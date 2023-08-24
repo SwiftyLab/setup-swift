@@ -1,0 +1,397 @@
+name: CI/CD
+on:
+  push:
+    branches: ['main']
+  pull_request:
+    branches: ['main']
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+    inputs:
+      release:
+        description: Create release?
+        required: false
+        type: boolean
+      version:
+        description: New version to release
+        required: false
+        type: string
+
+jobs:
+  ci:
+    name: Check requirements
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
+      release: ${{ (steps.check_version_bump.outputs.release_type != '' && github.event_name == 'push') || (github.event_name == 'workflow_dispatch' && github.event.inputs.release == 'true') }}
+
+    steps:
+    - name: Check version bump
+      if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.release == 'true')
+      id: check_version_bump
+      uses: mathieudutour/github-tag-action@v6.1
+      with:
+        github_token: ${{ github.token }}
+        custom_release_rules: feat:minor,fix:patch,perf:patch,build:patch
+        default_bump: false
+        dry_run: true
+
+  analyze:
+    name: Run CodeQL analysis
+    if: needs.ci.outputs.run == 'true' && github.event_name != 'workflow_dispatch'
+    needs: ci
+    runs-on: ubuntu-latest
+    concurrency:
+      group: analyze-${{ github.ref }}
+      cancel-in-progress: true
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    # Initializes the CodeQL tools for scanning.
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v2
+      with:
+        languages: javascript
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v2
+
+  unit-test:
+    name: Run unit tests
+    if: needs.ci.outputs.run == 'true'
+    needs: ci
+    runs-on: ubuntu-latest
+    concurrency:
+      group: unit-test-${{ github.ref }}
+      cancel-in-progress: true
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        submodules: true
+
+    - name: Setup Node.js
+      id: setup-node
+      uses: actions/setup-node@v3
+      with:
+        cache: npm
+
+    - name: Cache dependencies
+      id: cache-node
+      uses: actions/cache@v3.3.1
+      with:
+        key: node-${{ github.ref }}
+        path: node_modules
+
+    - name: Setup npm pacakges
+      run: npm install
+
+    - name: Run unit tests
+      run: npm run all
+
+    - name: Codecov upload
+      if: github.event_name == 'push'
+      uses: codecov/codecov-action@v3.1.4
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        fail_ci_if_error: true
+
+  integration-test:
+    name: Integrate Swift ${{ matrix.swift }} on ${{ matrix.os }} with development ${{ matrix.development }}
+    if: needs.ci.outputs.run == 'true'
+    needs: ci
+    runs-on: ${{ matrix.os }}
+    concurrency:
+      group: integration-test-${{ github.ref }}-${{ matrix.os }}-${{ matrix.swift }}-${{ matrix.development }}
+      cancel-in-progress: true
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, macos-13]
+        swift: ['latest']
+        development: [false, true]
+        include:
+        - os: macos-latest
+          swift: '5.0.0'
+          development: false
+        - os: ubuntu-latest
+          swift: '5.3.0'
+          development: false
+        - os: windows-latest
+          swift: '5.6'
+          development: false
+        - os: windows-latest
+          swift: '5.3'
+          development: false
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      id: setup-node
+      uses: actions/setup-node@v3
+      with:
+        cache: npm
+
+    - name: Cache dependencies
+      id: cache-node
+      uses: actions/cache@v3.3.1
+      with:
+        key: node-${{ github.ref }}
+        path: node_modules
+
+    - name: Setup npm pacakges
+      run: npm install
+
+    - name: Build
+      run: npm run build && npm run package
+
+    - name: Run
+      id: setup-swift
+      uses: ./
+      with:
+        swift-version: ${{ matrix.swift }}
+        development: ${{ matrix.development }}
+        check-latest: ${{ github.event_name == 'schedule' }}
+
+    - name: Verify Swift version in macos
+      if: runner.os == 'macOS'
+      run: xcrun --toolchain ${{ env.TOOLCHAINS }} swift --version | grep ${{ steps.setup-swift.outputs.swift-version }} || exit 1
+
+    - name: Verify Swift version
+      run: swift --version | grep ${{ steps.setup-swift.outputs.swift-version }} || exit 1
+
+  dependabot:
+    name: Check dependabot PR raised updating swiftorg
+    if: needs.ci.outputs.run == 'true' && github.event_name == 'pull_request' && github.actor == 'dependabot[bot]'
+    needs: ci
+    runs-on: ubuntu-latest
+    concurrency:
+      group: dependabot-${{ github.ref }}
+      cancel-in-progress: true
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      merge: ${{ steps.update-swiftorg.outputs.result == 'true' }}
+
+    steps:
+    - name: Dependabot metadata
+      id: metadata
+      uses: dependabot/fetch-metadata@v1
+      with:
+        github-token: ${{ github.token }}
+
+    - name: Checkout repository
+      if: contains(steps.metadata.outputs.dependency-names, 'swiftorg')
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+        submodules: true
+        ref: ${{ github.event.pull_request.head.ref }}
+
+    - name: Changed Files
+      if: contains(steps.metadata.outputs.dependency-names, 'swiftorg')
+      id: changed-submodule-files
+      uses: tj-actions/changed-files@v38.1.0
+      with:
+        fetch_additional_submodule_history: true
+        files: |
+          swiftorg/download/index.md
+          swiftorg/download/_older-releases.md
+          swiftorg/_data/builds/**/*
+
+    - name: Update submodule ref in package.json
+      if: steps.changed-submodule-files.outputs.any_changed == 'true'
+      id: update-swiftorg
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const gitOptions = {cwd: 'swiftorg'};
+          const {stdout} = await exec.getExecOutput('git', ['rev-parse', '--verify', 'HEAD'], gitOptions);
+          const swiftorg = stdout.trim();
+          core.info(`Updating swiftorg to "${swiftorg}"`);
+          await exec.exec('npm', ['pkg', 'set', `swiftorg=${swiftorg}`]);
+          await exec.exec('git', ['config', '--global', 'user.name', 'github-actions']);
+          await exec.exec('git', ['config', '--global', 'user.email', 'github-actions@github.com']);
+          await exec.exec('git', ['commit', '--all', '--message', `[skip ci] wip: update package.json`]);
+          await exec.exec('git', ['push']);
+          return true;
+
+    - name: Close PR for unnecessary swiftorg changes
+      if: contains(steps.metadata.outputs.dependency-names, 'swiftorg') && steps.update-swiftorg.outputs.result != 'true'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          github.rest.issues.createComment({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number,
+            state: 'closed'
+          });
+
+  feature-test:
+    name: Run ${{ github.event.pull_request.head.repo.full_name || github.repository }}@${{ github.head_ref || github.ref_name }} with latest Swift on ${{ matrix.os }}
+    if: always() && needs.ci.outputs.run == 'true' && (needs.dependabot.result == 'success' || needs.dependabot.result == 'skipped')
+    needs: [ci, dependabot]
+    runs-on: ${{ matrix.os }}
+    concurrency:
+      group: feature-test-${{ github.ref }}-${{ matrix.os }}
+      cancel-in-progress: true
+    env:
+      COMPOSITE: ./.ref-download-test
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+    - name: Setup wrapper composite action at ${{ env.COMPOSITE }}
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const path = require('path');
+          const fs = require('fs/promises');
+          const composite = '${{ env.COMPOSITE }}';
+          const repo = '${{ github.event.pull_request.head.repo.full_name || github.repository }}';
+          const branch = '${{ github.head_ref || github.ref_name }}';
+          const action = {
+            outputs: {
+              'swift-version': {
+                value: '$' + `{{ steps.run.outputs.swift-version }}`
+              }
+            },
+            runs: {
+              using: 'composite',
+              steps: [
+                {
+                  name: 'Cleanup',
+                  uses: `actions/github-script@${{ github.action_ref }}`,
+                  with: {
+                    script: `await io.rmRF('${composite}')`
+                  }
+                },
+                {
+                  name: `Run ${repo}@${branch}`,
+                  id: 'run',
+                  uses: `${repo}@${branch}`,
+                  with: {
+                    'swift-version': 'latest',
+                    'check-latest': '${{ github.event_name == 'schedule' }}'
+                  }
+                }
+              ]
+            }
+          };
+          const content = JSON.stringify(action);
+          core.debug(`Writing action:\n${content}\n`);
+          await io.mkdirP(composite);
+          await fs.writeFile(path.join(composite, 'action.yml'), content);
+
+    - name: Run composite action ${{ env.COMPOSITE }}
+      id: setup-swift
+      uses: ./.ref-download-test
+
+    - name: Cleanup
+      if: always()
+      uses: actions/github-script@v6
+      continue-on-error: true
+      with:
+        script: await io.rmRF('${{ env.COMPOSITE }}');
+
+    - name: Verify Swift version in macos
+      if: runner.os == 'macOS'
+      run: xcrun --toolchain ${{ env.TOOLCHAINS }} swift --version | grep ${{ steps.setup-swift.outputs.swift-version }} || exit 1
+
+    - name: Verify Swift version
+      run: swift --version | grep ${{ steps.setup-swift.outputs.swift-version }} || exit 1
+
+  merge:
+    name: Auto-merge submodule update PR
+    if: needs.ci.outputs.run == 'true' && needs.dependabot.outputs.merge == 'true'
+    needs: [ci, analyze, unit-test, integration-test, dependabot, feature-test]
+    runs-on: ubuntu-latest
+    concurrency:
+      group: swiftorg-update
+      cancel-in-progress: true
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+    - name: Auto-merge
+      run: gh pr merge --auto --squash "${{ github.event.pull_request.html_url }}"
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+
+  cd:
+    name: Create release
+    if: always() && needs.ci.outputs.run == 'true' && needs.ci.outputs.release == 'true' && (needs.analyze.result == 'success' || needs.analyze.result == 'skipped')
+    needs: [ci, analyze, unit-test, integration-test, feature-test]
+    runs-on: ubuntu-latest
+    concurrency:
+      group: cd-${{ github.ref }}
+      cancel-in-progress: true
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        fetch-tags: true
+        submodules: true
+
+    - name: Setup Node.js
+      id: setup-node
+      uses: actions/setup-node@v3
+      with:
+        cache: npm
+
+    - name: Cache dependencies
+      id: cache-node
+      uses: actions/cache@v3.3.1
+      with:
+        key: node-${{ github.ref }}
+        path: node_modules
+
+    - name: Setup npm pacakges
+      run: npm install
+
+    - name: Generate changelog
+      id: changelog
+      uses: TriPSs/conventional-changelog-action@v3
+      with:
+        github-token: ${{ github.token }}
+        git-message: 'chore(CHANGELOG): update for {version}'
+        git-user-name: github-actions
+        git-user-email: user.email github-actions@github.com
+        release-count: 0
+        version-file: ./package.json
+        version-path: version
+        fallback-version: ${{ inputs.version || '1.0.0' }}
+        config-file-path: .github/changelog/config.js
+        pre-commit: .github/changelog/pre_commit_hook.js
+        pre-changelog-generation: .github/changelog/pre_changelog_hook.js
+        create-summary: true
+      env:
+        VERSION: ${{ inputs.version }}
+        NODE_PATH: ${{ github.workspace }}/node_modules
+
+    - name: Update latest tag
+      run: |
+        git config --global user.name github-actions
+        git config --global user.email github-actions@github.com
+        git push origin :refs/tags/latest
+        git tag -fa latest -m latest
+        git push origin --tags
+
+    - name: Create GitHub release
+      uses: ncipollo/release-action@v1
+      with:
+        token: ${{ github.token }}
+        tag: ${{ steps.changelog.outputs.tag }}
+        body: ${{ steps.changelog.outputs.changelog }}

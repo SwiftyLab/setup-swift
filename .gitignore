@@ -1,3 +1,13 @@
+# OS generated files #
+######################
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
 # Logs
 logs
 *.log
@@ -45,6 +55,15 @@ jspm_packages/
 # Snowpack dependency directory (https://snowpack.dev/)
 web_modules/
 
+# TypeScript v1 declaration files
+typings/
+
+# Ignore built ts files
+__tests__/runner/*
+lib/**/*
+dist/*
+!dist/index.js
+
 # TypeScript cache
 *.tsbuildinfo
 
@@ -75,6 +94,7 @@ web_modules/
 # dotenv environment variable files
 .env
 .env.development.local
+.env.test
 .env.test.local
 .env.production.local
 .env.local
@@ -89,7 +109,7 @@ out
 
 # Nuxt.js build / generate output
 .nuxt
-dist
+# dist
 
 # Gatsby files
 .cache/

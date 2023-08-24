@@ -1,0 +1,22 @@
+{
+    "compilerOptions": {
+        "target": "es6",
+        "module": "node16",
+        "moduleResolution": "node16",
+        "outDir": "lib",
+        "rootDir": "src",
+        "strict": true,
+        "noImplicitAny": true,
+        "esModuleInterop": true,
+        "lib": [
+            "ES2021.String",
+        ]
+    },
+    "exclude": [
+        "node_modules",
+        "**/*.test.ts",
+        "**/__mocks__/*",
+        "lib",
+        "jest.config.ts"
+    ]
+}
