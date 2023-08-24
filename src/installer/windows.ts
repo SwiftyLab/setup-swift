@@ -45,6 +45,9 @@ export class WindowsToolchainInstaller extends VerifyingToolchainInstaller<Windo
   protected async unpack(exe: string) {
     core.debug(`Installing toolchain from "${exe}"`)
     const code = await exec(`"${exe}"`, ['-q'])
+    if (code !== 0) {
+      throw new Error(`Swift installer failed with exit code: "${code}"`)
+    }
     const installation = path.join(process.env.SystemDrive ?? 'C:', 'Library')
     const toolchain = path.join(
       installation,
@@ -61,11 +64,20 @@ export class WindowsToolchainInstaller extends VerifyingToolchainInstaller<Windo
       'SDKs',
       'Windows.sdk'
     )
-    if (code !== 0) {
-      throw new Error(`Swift installer failed with exit code: "${code}"`)
-    }
+    const runtime = path.join(
+      process.env.SystemDrive ?? 'C:',
+      'Program Files',
+      'swift'
+    )
     core.debug(`Toolchain installed at "${toolchain}"`)
     core.debug(`SDK installed at "${sdkroot}"`)
+    try {
+      await fs.access(runtime)
+      await fs.cp(runtime, path.join(installation, 'swift'), {recursive: true})
+      core.debug(`Runtime installed at "${runtime}"`)
+    } catch (error) {
+      core.debug('No Swift runtime installed')
+    }
     return installation
   }
 
@@ -90,7 +102,23 @@ export class WindowsToolchainInstaller extends VerifyingToolchainInstaller<Windo
     core.exportVariable('SDKROOT', sdkroot)
     const swiftDev = path.join(installation, 'Swift-development', 'bin')
     const icu67 = path.join(installation, 'icu-67', 'usr', 'bin')
-    for (const envPath of [swiftPath, swiftDev, icu67]) {
+    const runtime = path.join(
+      installation,
+      'swift',
+      'runtime-development',
+      'usr',
+      'bin'
+    )
+    const requirePaths = [swiftPath, swiftDev, icu67]
+    try {
+      await fs.access(runtime)
+      requirePaths.push(runtime)
+    } catch (error) {
+      core.debug('No Swift runtime found, skipping runtime path')
+    }
+
+    for (const envPath of requirePaths) {
+      core.debug(`Adding "${envPath}" to PATH`)
       core.addPath(envPath)
     }
     core.debug(`Swift installed at "${swiftPath}"`)

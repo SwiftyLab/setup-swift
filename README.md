@@ -1,6 +1,6 @@
 # Setup Swift
 
-[![GitHub Action](https://img.shields.io/github/v/tag/SwiftyLab/setup-swift?logo=github&label=GitHub)](https://badge.fury.io/gh/SwiftyLab%2Fsetup-swift)
+[![GitHub Action](https://img.shields.io/github/v/tag/SwiftyLab/setup-swift?logo=github&label=GitHub)](https://github.com/marketplace/actions/setup-swift-environment-for-macos-linux-and-windows)
 [![Supports macOS, Linux & Windows](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-blue?label=platform)](https://help.github.com/en/actions/automating-your-workflow-with-github-actions/virtual-environments-for-github-hosted-runners#supported-runners-and-hardware-resources)
 [![Swift 5.9](https://img.shields.io/badge/Swift-5.9-orange?logo=swift&logoColor=white)](https://swift.org)
 [![CI/CD](https://github.com/SwiftyLab/setup-swift/actions/workflows/main.yml/badge.svg)](https://github.com/SwiftyLab/setup-swift/actions/workflows/main.yml)
@@ -24,7 +24,8 @@ Or use the latest development snapshots by enabling the `development` flag:
 
 ```yml
 - uses: SwiftyLab/setup-swift@latest
-  development: true
+  with:
+    development: true
 ```
 
 After the environment is configured you can run swift and xcode commands using the standard [`run`](https://help.github.com/en/actions/automating-your-workflow-with-github-actions/workflow-syntax-for-github-actions#jobsjob_idstepsrun) step:
