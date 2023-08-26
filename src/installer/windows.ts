@@ -121,6 +121,17 @@ export class WindowsToolchainInstaller extends VerifyingToolchainInstaller<Windo
       core.debug(`Adding "${envPath}" to PATH`)
       core.addPath(envPath)
     }
+    const pwshScript = `
+    foreach ($level in "Machine", "User") {
+      [Environment]::GetEnvironmentVariables($level).GetEnumerator() | % {
+        # For Path variables, append the new values, if they're not already in there
+        if ($_.Name -Match 'Path$') {
+          Write-Output "Env:$($_.Name), value$($_.Value)"
+        }
+      }
+    }
+    `
+    await exec ('pwsh', ['--command', pwshScript])
     core.debug(`Swift installed at "${swiftPath}"`)
     if (!this.visualStudio) {
       throw new Error('No supported Visual Studio installation in installer')
