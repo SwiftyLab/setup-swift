@@ -145,7 +145,7 @@ describe('fetch tool data based on options', () => {
     }
   })
 
-  // Ubuntu tests
+  // Linux tests
 
   it('fetches ubuntu 18.04 latest swift 4 tool', async () => {
     setos({os: 'linux', dist: 'Ubuntu', release: '18.04'})
@@ -295,6 +295,20 @@ describe('fetch tool data based on options', () => {
       'swift-5.2.5-RELEASE-ubuntu20.04.tar.gz.sig'
     )
     expect(lTool.docker).toBe('5.2.5-focal')
+  })
+
+  it('fetches centos 7 latest swift tool', async () => {
+    setos({os: 'linux', dist: 'CentOS', release: '7'})
+    jest.spyOn(os, 'arch').mockReturnValue('x64')
+    const tool = await Platform.toolchain(latest)
+    expect(tool).toBeTruthy()
+    const lTool = tool as LinuxToolchainSnapshot
+    expect(lTool.download).toBeTruthy()
+    expect(lTool.dir).toBeTruthy()
+    expect(lTool.platform).toBeTruthy()
+    expect(lTool.branch).toBeTruthy()
+    expect(lTool.download_signature).toBeTruthy()
+    expect(lTool.docker).toBeTruthy()
   })
 
   // Windows tests

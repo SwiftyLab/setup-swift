@@ -52,6 +52,17 @@ describe('platform detection', () => {
     expect(platform.file).toBe('ubuntu1804-aarch64')
   })
 
+  it('detects centos', async () => {
+    setos({os: 'linux', dist: 'CentOS', release: '7'})
+    jest.spyOn(os, 'arch').mockReturnValue('x64')
+    const platform = await Platform.currentPlatform()
+    expect(platform.name).toBe('centos')
+    expect(platform).toBeInstanceOf(LinuxPlatform)
+    expect((platform as LinuxPlatform).version).toBe(7)
+    expect(platform.arch).toBe('x86_64')
+    expect(platform.file).toBe('centos7')
+  })
+
   it('detects windows', async () => {
     setos({os: 'win32', dist: 'Windows', release: '10.0.17063'})
     jest.spyOn(os, 'arch').mockReturnValue('x64')

@@ -1,10 +1,10 @@
 import * as path from 'path'
 import {promises as fs} from 'fs'
 import * as core from '@actions/core'
-import {exec} from '@actions/exec'
 import * as toolCache from '@actions/tool-cache'
 import {VerifyingToolchainInstaller} from './verify'
 import {LinuxToolchainSnapshot} from '../snapshot'
+import {PackageManager} from './package_manager'
 import {MODULE_DIR} from '../const'
 
 export class LinuxToolchainInstaller extends VerifyingToolchainInstaller<LinuxToolchainSnapshot> {
@@ -29,16 +29,15 @@ export class LinuxToolchainInstaller extends VerifyingToolchainInstaller<LinuxTo
         .trim()
         .replace(/^\\+|\\+$|^\$+|\$+$/g, '')
         .trim()
-      return command.length ? command : []
+      return command.length ? command.split(' ') : []
     })
     if (!commands.length) {
       core.debug(`Skipping dependencies install as no commands in "${content}"`)
       return
     }
     try {
-      // TODO: make update generalized accross linux platforms
-      await exec('sudo', ['apt-get', 'update'])
-      await exec('sudo', [...commands, '-y'])
+      const packageManager = new PackageManager(commands)
+      await packageManager.install()
     } catch (error) {
       core.debug(`Dependencies installation failed with "${error}"`)
     }
