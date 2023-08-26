@@ -1,7 +1,7 @@
 # Setup Swift
 
 [![GitHub Action](https://img.shields.io/github/v/tag/SwiftyLab/setup-swift?logo=github&label=GitHub)](https://badge.fury.io/gh/SwiftyLab%2Fsetup-swift)
-[![Supports macOS, Ubuntu & Windows](https://img.shields.io/badge/platform-macOS%20%7C%20Ubuntu%20%7C%20Windows-blue?label=platform)](https://help.github.com/en/actions/automating-your-workflow-with-github-actions/virtual-environments-for-github-hosted-runners#supported-runners-and-hardware-resources)
+[![Supports macOS, Linux & Windows](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-blue?label=platform)](https://help.github.com/en/actions/automating-your-workflow-with-github-actions/virtual-environments-for-github-hosted-runners#supported-runners-and-hardware-resources)
 [![Swift 5.9](https://img.shields.io/badge/Swift-5.9-orange?logo=swift&logoColor=white)](https://swift.org)
 [![CI/CD](https://github.com/SwiftyLab/setup-swift/actions/workflows/main.yml/badge.svg)](https://github.com/SwiftyLab/setup-swift/actions/workflows/main.yml)
 [![CodeFactor](https://www.codefactor.io/repository/github/swiftylab/setup-swift/badge)](https://www.codefactor.io/repository/github/swiftylab/setup-swift)
@@ -9,7 +9,7 @@
 
 ![swift.org](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FSwiftyLab%2Fsetup-swift%2Fmain%2Fpackage.json&query=%24.swiftorg&logo=swift&logoColor=white&label=swift.org)
 
-[GitHub Action](https://github.com/features/actions) that will setup [Swift](https://swift.org) environment with specified version. Works on both Ubuntu and macOS runners with limited support on Windows runners.
+[GitHub Action](https://github.com/features/actions) that will setup [Swift](https://swift.org) environment with specified version. Works on both Linux and macOS runners with limited support on Windows runners.
 
 ## Usage
 
