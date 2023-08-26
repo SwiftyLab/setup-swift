@@ -16,7 +16,7 @@ async function run() {
     await submodule.update()
     core.endGroup()
 
-    const dryRun = core.getBooleanInput('development')
+    const dryRun = core.getBooleanInput('dry-run')
     let snapshot: ToolchainSnapshot
     let installedVersion: string
     if (dryRun) {
@@ -26,7 +26,12 @@ async function run() {
       } else {
         throw new Error(`No Swift toolchain found for ${version}`)
       }
-      installedVersion = requestedVersion
+      const match = /swift-(.*)-/.exec(toolchain.branch)
+      if (match && match.length > 1) {
+        installedVersion = match[1]
+      } else {
+        installedVersion = requestedVersion
+      }
     } else {
       const installer = await Platform.install(version)
       snapshot = installer.data

@@ -169,6 +169,51 @@ jobs:
     - name: Verify Swift version
       run: swift --version | grep ${{ steps.setup-swift.outputs.swift-version }} || exit 1
 
+  dry-run:
+    name: Check action with dry run
+    if: needs.ci.outputs.run == 'true'
+    needs: ci
+    runs-on: ubuntu-latest
+    concurrency:
+      group: dry-run-${{ github.ref }}
+      cancel-in-progress: true
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      id: setup-node
+      uses: actions/setup-node@v3
+      with:
+        cache: npm
+
+    - name: Cache dependencies
+      id: cache-node
+      uses: actions/cache@v3.3.1
+      with:
+        key: node-${{ github.ref }}
+        path: node_modules
+
+    - name: Setup npm pacakges
+      run: npm install
+
+    - name: Build
+      run: npm run build && npm run package
+
+    - name: Run
+      id: setup-swift
+      uses: ./
+      with:
+        check-latest: ${{ github.event_name == 'schedule' }}
+        dry-run: true
+
+    - name: Verify Swift version
+      uses: addnab/docker-run-action@v3
+      with:
+        image: swift:${{ fromJSON(steps.setup-swift.outputs.toolchain).docker }}
+        run: swift --version  | grep ${{ steps.setup-swift.outputs.swift-version }} || exit 1
+
   dependabot:
     name: Check dependabot PR raised updating swiftorg
     if: needs.ci.outputs.run == 'true' && github.event_name == 'pull_request' && github.actor == 'dependabot[bot]'
@@ -315,7 +360,7 @@ jobs:
   merge:
     name: Auto-merge submodule update PR
     if: needs.ci.outputs.run == 'true' && needs.dependabot.outputs.merge == 'true'
-    needs: [ci, analyze, unit-test, integration-test, dependabot, feature-test]
+    needs: [ci, analyze, unit-test, integration-test, dry-run, dependabot, feature-test]
     runs-on: ubuntu-latest
     concurrency:
       group: swiftorg-update
@@ -333,7 +378,7 @@ jobs:
   cd:
     name: Create release
     if: always() && needs.ci.outputs.release == 'true' && (needs.analyze.result == 'success' || needs.analyze.result == 'skipped')
-    needs: [ci, analyze, unit-test, integration-test, feature-test]
+    needs: [ci, analyze, unit-test, integration-test, dry-run, feature-test]
     runs-on: ubuntu-latest
     concurrency:
       group: cd-${{ github.ref }}
