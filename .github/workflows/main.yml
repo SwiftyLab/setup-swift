@@ -94,7 +94,9 @@ jobs:
       run: npm install
 
     - name: Run unit tests
-      run: npm run all
+      run: |
+        npm run lint
+        npm run test
 
     - name: Codecov upload
       uses: codecov/codecov-action@v3.1.4
