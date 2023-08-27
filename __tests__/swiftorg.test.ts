@@ -18,7 +18,7 @@ describe('swiftorg sync validation', () => {
     fs.readdir = jest.fn().mockResolvedValue(['download'])
     const swiftorg = new Swiftorg(true)
     await swiftorg.update()
-    expect(rmdirSpy).toHaveBeenCalledTimes(0)
+    expect(rmdirSpy).not.toHaveBeenCalled()
     expect(execSpy).toHaveBeenCalledTimes(3)
     const gitArgs = [
       'submodule',
@@ -41,7 +41,7 @@ describe('swiftorg sync validation', () => {
     fs.readdir = jest.fn().mockResolvedValue(['download'])
     const swiftorg = new Swiftorg(false)
     await swiftorg.update()
-    expect(rmdirSpy).toHaveBeenCalledTimes(0)
+    expect(rmdirSpy).not.toHaveBeenCalled()
     expect(execSpy).toHaveBeenCalledTimes(3)
     const gitArgs = ['submodule', 'update']
     expect(execSpy.mock.calls[2]).toStrictEqual([
@@ -57,7 +57,7 @@ describe('swiftorg sync validation', () => {
     fs.readdir = jest.fn().mockResolvedValue([])
     const swiftorg = new Swiftorg(true)
     await swiftorg.update()
-    expect(rmdirSpy).toHaveBeenCalledTimes(1)
+    expect(rmdirSpy).toHaveBeenCalled()
     expect(execSpy).toHaveBeenCalledTimes(4)
   })
 
@@ -67,7 +67,7 @@ describe('swiftorg sync validation', () => {
     fs.readdir = jest.fn().mockResolvedValue([])
     const swiftorg = new Swiftorg(false)
     await swiftorg.update()
-    expect(rmdirSpy).toHaveBeenCalledTimes(1)
+    expect(rmdirSpy).toHaveBeenCalled()
     expect(execSpy).toHaveBeenCalledTimes(5)
   })
 
@@ -77,7 +77,7 @@ describe('swiftorg sync validation', () => {
     fs.readdir = jest.fn().mockResolvedValue([])
     const swiftorg = new Swiftorg(true)
     await swiftorg.update()
-    expect(rmdirSpy).toHaveBeenCalledTimes(0)
+    expect(rmdirSpy).not.toHaveBeenCalled()
     expect(execSpy).toHaveBeenCalledTimes(4)
   })
 
@@ -87,7 +87,7 @@ describe('swiftorg sync validation', () => {
     fs.readdir = jest.fn().mockResolvedValue([])
     const swiftorg = new Swiftorg(false)
     await swiftorg.update()
-    expect(rmdirSpy).toHaveBeenCalledTimes(0)
+    expect(rmdirSpy).not.toHaveBeenCalled()
     expect(execSpy).toHaveBeenCalledTimes(5)
   })
 
@@ -98,7 +98,7 @@ describe('swiftorg sync validation', () => {
     fs.readFile = jest.fn().mockResolvedValue('{}')
     const swiftorg = new Swiftorg(false)
     await swiftorg.update()
-    expect(rmdirSpy).toHaveBeenCalledTimes(1)
+    expect(rmdirSpy).toHaveBeenCalled()
     expect(execSpy).toHaveBeenCalledTimes(4)
   })
 
@@ -109,7 +109,7 @@ describe('swiftorg sync validation', () => {
     fs.readFile = jest.fn().mockResolvedValue('{}')
     const swiftorg = new Swiftorg(false)
     await swiftorg.update()
-    expect(rmdirSpy).toHaveBeenCalledTimes(0)
+    expect(rmdirSpy).not.toHaveBeenCalled()
     expect(execSpy).toHaveBeenCalledTimes(4)
   })
 })

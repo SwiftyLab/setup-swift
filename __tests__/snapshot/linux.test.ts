@@ -1,5 +1,4 @@
 import os from 'os'
-import {glob} from 'glob'
 // @ts-ignore
 import {__setos as setos} from 'getos'
 import {ToolchainVersion} from '../../src/version'
@@ -10,7 +9,6 @@ jest.mock('getos')
 
 describe('fetch linux tool data based on options', () => {
   const ver4 = ToolchainVersion.create('4', false)
-  const ver5 = ToolchainVersion.create('5', false)
   const ver5_0 = ToolchainVersion.create('5.0', false)
   const ver5_5_0 = ToolchainVersion.create('5.5.0', false)
   const ver5_5 = ToolchainVersion.create('5.5', false)

@@ -1,5 +1,4 @@
 import os from 'os'
-import {glob} from 'glob'
 // @ts-ignore
 import {__setos as setos} from 'getos'
 import {ToolchainVersion} from '../../src/version'

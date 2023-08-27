@@ -73,7 +73,7 @@ export class LinuxPlatform extends VersionedPlatform<LinuxToolchainInstaller> {
 
   async install(data: LinuxToolchainSnapshot) {
     const installer = new LinuxToolchainInstaller(data)
-    await installer.install(this.name, this.arch)
+    await installer.install(this.arch)
     return installer
   }
 }

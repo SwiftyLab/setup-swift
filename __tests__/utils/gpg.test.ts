@@ -5,7 +5,7 @@ jest.mock('@actions/tool-cache', () => {
   const original = jest.requireActual('@actions/tool-cache')
   return {
     ...original,
-    downloadTool: jest.fn((url, dest?, auth?, headers?) => 'keys')
+    downloadTool: jest.fn(() => 'keys')
   }
 })
 

@@ -10,7 +10,6 @@ jest.mock('getos')
 
 describe('fetch macos tool data based on options', () => {
   const ver4 = ToolchainVersion.create('4', false)
-  const ver5 = ToolchainVersion.create('5', false)
   const ver5_0 = ToolchainVersion.create('5.0', false)
   const ver5_5_0 = ToolchainVersion.create('5.5.0', false)
   const ver5_5 = ToolchainVersion.create('5.5', false)

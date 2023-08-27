@@ -109,7 +109,7 @@ describe('visual studio setup validation', () => {
   })
 })
 
-function fsAccessMock(value: boolean = true) {
+function fsAccessMock(value = true) {
   const spy = jest.spyOn(fs, 'access')
   if (value) {
     spy.mockResolvedValue()
