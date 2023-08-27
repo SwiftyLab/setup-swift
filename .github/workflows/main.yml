@@ -97,7 +97,6 @@ jobs:
       run: npm run all
 
     - name: Codecov upload
-      if: github.event_name == 'push'
       uses: codecov/codecov-action@v3.1.4
       with:
         token: ${{ secrets.CODECOV_TOKEN }}

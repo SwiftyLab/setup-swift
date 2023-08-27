@@ -1,4 +1,4 @@
-import * as fs from 'fs'
+import {promises as fs} from 'fs'
 import * as path from 'path'
 import * as io from '@actions/io'
 import * as core from '@actions/core'
@@ -96,7 +96,7 @@ export async function setupVisualStudioTools(
 /// Get vswhere and vs_installer paths
 /// Borrowed from setup-msbuild action: https://github.com/microsoft/setup-msbuild
 /// From source file: https://github.com/microsoft/setup-msbuild/blob/master/src/main.ts
-async function getVsWherePath() {
+export async function getVsWherePath() {
   // check to see if we are using a specific path for vswhere
   let vswhereToolExe = ''
   // Env variable for self-hosted runner to provide custom path
@@ -114,8 +114,9 @@ async function getVsWherePath() {
       vswhereToolExe = vsWhereInPath
     } catch {
       // fall back to VS-installed path
+      const program86 = 'ProgramFiles(x86)'
       vswhereToolExe = path.join(
-        process.env['ProgramFiles(x86)'] as string,
+        process.env[program86] ?? path.join('C:', program86),
         'Microsoft Visual Studio',
         'Installer',
         'vswhere.exe'
@@ -124,7 +125,9 @@ async function getVsWherePath() {
     }
   }
 
-  if (!fs.existsSync(vswhereToolExe)) {
+  try {
+    await fs.access(vswhereToolExe)
+  } catch (error) {
     throw new Error('Missing vswhere.exe, needed Visual Studio installation')
   }
 
