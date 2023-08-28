@@ -163,7 +163,7 @@ jobs:
 
     - name: Verify Swift version in macos
       if: runner.os == 'macOS'
-      run: xcrun --toolchain ${{ env.TOOLCHAINS }} swift --version | grep ${{ steps.setup-swift.outputs.swift-version }} || exit 1
+      run: xcrun --toolchain ${{ env.TOOLCHAINS || '""' }} swift --version | grep ${{ steps.setup-swift.outputs.swift-version }} || exit 1
 
     - name: Verify Swift version
       run: swift --version | grep ${{ steps.setup-swift.outputs.swift-version }} || exit 1
@@ -306,7 +306,7 @@ jobs:
 
     - name: Verify Swift version in macos
       if: runner.os == 'macOS'
-      run: xcrun --toolchain ${{ env.TOOLCHAINS }} swift --version | grep ${{ steps.setup-swift.outputs.swift-version }} || exit 1
+      run: xcrun --toolchain ${{ env.TOOLCHAINS || '""' }} swift --version | grep ${{ steps.setup-swift.outputs.swift-version }} || exit 1
 
     - name: Verify Swift version
       run: swift --version | grep ${{ steps.setup-swift.outputs.swift-version }} || exit 1
