@@ -3,14 +3,14 @@ import * as core from '@actions/core'
 import * as toolCache from '@actions/tool-cache'
 
 export async function setupKeys() {
-  core.debug('Fetching verification PGP keys')
-  const allKeys = 'https://swift.org/keys/all-keys.asc'
-  const path = await toolCache.downloadTool(allKeys)
-
-  core.debug('Importing verification PGP keys')
   try {
+    core.debug('Fetching verification PGP keys')
+    const allKeys = 'https://swift.org/keys/all-keys.asc'
+    const path = await toolCache.downloadTool(allKeys)
+    core.debug('Importing verification PGP keys')
     await exec('gpg', ['--import', path])
   } catch {
+    core.debug('Using fallback PGP keys server')
     await exec('gpg', [
       '--keyserver',
       'hkp://keyserver.ubuntu.com',

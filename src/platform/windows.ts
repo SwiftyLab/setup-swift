@@ -5,7 +5,7 @@ import {WindowsToolchainSnapshot} from '../snapshot'
 export class WindowsPlatform extends VersionedPlatform<WindowsToolchainInstaller> {
   async install(data: WindowsToolchainSnapshot) {
     const installer = new WindowsToolchainInstaller(data)
-    await installer.install(this.name, this.arch)
+    await installer.install(this.arch)
     return installer
   }
 }

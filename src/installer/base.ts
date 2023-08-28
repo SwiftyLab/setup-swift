@@ -1,5 +1,5 @@
 import * as core from '@actions/core'
-import {exec} from '@actions/exec'
+import {getExecOutput} from '@actions/exec'
 import * as toolCache from '@actions/tool-cache'
 import {coerce as parseSemVer} from 'semver'
 import {ToolchainSnapshot} from '../snapshot'
@@ -34,9 +34,9 @@ export abstract class ToolchainInstaller<Snapshot extends ToolchainSnapshot> {
     this.data = data
   }
 
-  async install(platform: string, arch?: string) {
+  async install(arch?: string) {
     try {
-      const tool = `${this.data.branch}-${platform}`
+      const tool = `${this.data.branch}-${this.data.platform}`
       const version = this.version?.raw
       let cache: string | undefined
       if (version) {
@@ -71,22 +71,10 @@ export abstract class ToolchainInstaller<Snapshot extends ToolchainSnapshot> {
 
   async installedSwiftVersion(command?: {bin: string; args: string[]}) {
     const {bin, args} = command ?? this.swiftVersionCommand()
-    let output = ''
-
-    const options = {
-      listeners: {
-        stdout: (data: Buffer) => {
-          output += data.toString()
-        },
-        stderr: (data: Buffer) => {
-          core.error(data.toString())
-        }
-      }
-    }
 
     core.debug(`Getting swift version with command "${bin} ${args}"`)
-    await exec(bin, args, options)
-    const match = /Swift\s+version\s+(?<version>\S+)/.exec(output)
+    const {stdout} = await getExecOutput(bin, args)
+    const match = /Swift\s+version\s+(?<version>\S+)/.exec(stdout)
     if (!match?.groups || !match.groups.version) {
       throw new Error('Error getting swift version')
     }

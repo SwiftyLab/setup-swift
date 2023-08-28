@@ -27,7 +27,7 @@ jobs:
 
     steps:
     - name: Check version bump
-      if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.release == 'true')
+      if: (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'build(swift-org-website):')) || (github.event_name == 'workflow_dispatch' && github.event.inputs.release == 'true')
       id: check_version_bump
       uses: mathieudutour/github-tag-action@v6.1
       with:
@@ -97,7 +97,6 @@ jobs:
       run: npm run all
 
     - name: Codecov upload
-      if: github.event_name == 'push'
       uses: codecov/codecov-action@v3.1.4
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
@@ -368,7 +367,7 @@ jobs:
         github-token: ${{ github.token }}
         git-message: 'chore(CHANGELOG): update for {version}'
         git-user-name: github-actions
-        git-user-email: user.email github-actions@github.com
+        git-user-email: github-actions@github.com
         release-count: 0
         version-file: ./package.json
         version-path: version

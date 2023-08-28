@@ -2,7 +2,7 @@ import * as core from '@actions/core'
 import * as toolCache from '@actions/tool-cache'
 import * as gpg from '../utils/gpg'
 import {ToolchainInstaller} from './base'
-import {SignedToolchainSnapshot} from '../snapshot/signed'
+import {SignedToolchainSnapshot} from '../snapshot'
 
 export abstract class VerifyingToolchainInstaller<
   Snapshot extends SignedToolchainSnapshot

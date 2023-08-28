@@ -204,7 +204,7 @@ export class XcodePlatform extends Platform<XcodeToolchainInstaller> {
 
   async install(data: XcodeToolchainSnapshot) {
     const installer = new XcodeToolchainInstaller(data)
-    await installer.install(this.name, this.arch)
+    await installer.install(this.arch)
     return installer
   }
 }
