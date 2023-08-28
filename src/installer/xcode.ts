@@ -38,7 +38,7 @@ export class XcodeToolchainInstaller extends ToolchainInstaller<XcodeToolchainSn
     const command = this.swiftVersionCommand('')
     const version = await this.installedSwiftVersion(command)
     core.debug(`Found toolchain "${version}" bundled with Xcode ${xcode}`)
-    return this.data.dir === `swift-${version}-RELEASE`
+    return this.data.dir !== `swift-${version}-RELEASE`
   }
 
   protected async download() {
@@ -75,10 +75,11 @@ export class XcodeToolchainInstaller extends ToolchainInstaller<XcodeToolchainSn
     const xctoolchain = path.join(xctoolchains, `${this.data.dir}.xctoolchain`)
     try {
       await fs.access(xctoolchain)
-    } catch (error) {
-      core.debug(`Removing xctoolchain "${xctoolchain}" for "${error}"`)
+      core.debug(`Removing existing xctoolchain "${xctoolchain}"`)
       await exec('sudo', ['rm', '-rf', xctoolchain])
       // await fs.unlink(xctoolchain)
+    } catch (error) {
+      core.debug(`No existing xctoolchain "${xctoolchain}", got "${error}"`)
     }
     core.debug(`Linking "${xctoolchain}" to "${toolchain}"`)
     await exec('sudo', ['ln', '-s', toolchain, xctoolchain])
@@ -96,9 +97,6 @@ export class XcodeToolchainInstaller extends ToolchainInstaller<XcodeToolchainSn
       `Setting Swift toolchain identifier to "${info.CFBundleIdentifier}"`
     )
     core.exportVariable('TOOLCHAINS', info.CFBundleIdentifier)
-    core.addPath(
-      '%ProgramFiles(x86)%\\Microsoft Visual Studio\\Shared\\Python37_64'
-    )
   }
 }
 
