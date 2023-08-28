@@ -22,7 +22,7 @@ jobs:
     name: Check requirements
     runs-on: ubuntu-latest
     outputs:
-      run: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
+      run: ${{ github.event_name != 'push' && !contains(github.event.head_commit.message, '[skip ci]') }}
       release: ${{ (steps.check_version_bump.outputs.release_type != '' && github.event_name == 'push') || (github.event_name == 'workflow_dispatch' && github.event.inputs.release == 'true') }}
 
     steps:
@@ -32,13 +32,13 @@ jobs:
       uses: mathieudutour/github-tag-action@v6.1
       with:
         github_token: ${{ github.token }}
-        custom_release_rules: feat:minor,fix:patch,perf:patch,build:patch
+        custom_release_rules: build(swift-org-website):patch
         default_bump: false
         dry_run: true
 
   analyze:
     name: Run CodeQL analysis
-    if: needs.ci.outputs.run == 'true' && github.event_name != 'workflow_dispatch'
+    if: (needs.ci.outputs.run == 'true' || github.event_name == 'push') && github.event_name != 'workflow_dispatch'
     needs: ci
     runs-on: ubuntu-latest
     concurrency:
@@ -331,7 +331,7 @@ jobs:
 
   cd:
     name: Create release
-    if: always() && needs.ci.outputs.run == 'true' && needs.ci.outputs.release == 'true' && (needs.analyze.result == 'success' || needs.analyze.result == 'skipped')
+    if: always() && needs.ci.outputs.release == 'true' && (needs.analyze.result == 'success' || needs.analyze.result == 'skipped')
     needs: [ci, analyze, unit-test, integration-test, feature-test]
     runs-on: ubuntu-latest
     concurrency:
