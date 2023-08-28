@@ -12,7 +12,7 @@ updates:
     schedule:
       interval: daily
     commit-message:
-      prefix: 'build: '
+      prefix: 'build(swift-org-website): '
 
   - package-ecosystem: npm
     directory: /
