@@ -1,6 +1,7 @@
 import * as core from '@actions/core'
 import {ToolchainVersion} from './version'
 import {Swiftorg} from './swiftorg'
+import {ToolchainSnapshot} from './snapshot'
 import {Platform} from './platform'
 
 async function run() {
@@ -15,9 +16,29 @@ async function run() {
     await submodule.update()
     core.endGroup()
 
-    const installer = await Platform.install(version)
-    core.setOutput('swift-version', await installer.installedSwiftVersion())
-    core.setOutput('toolchain', JSON.stringify(installer.data))
+    const dryRun = core.getBooleanInput('dry-run')
+    let snapshot: ToolchainSnapshot
+    let installedVersion: string
+    if (dryRun) {
+      const toolchain = await Platform.toolchain(version)
+      if (toolchain) {
+        snapshot = toolchain
+      } else {
+        throw new Error(`No Swift toolchain found for ${version}`)
+      }
+      const match = /swift-(.*)-/.exec(toolchain.branch)
+      if (match && match.length > 1) {
+        installedVersion = match[1]
+      } else {
+        installedVersion = requestedVersion
+      }
+    } else {
+      const installer = await Platform.install(version)
+      snapshot = installer.data
+      installedVersion = await installer.installedSwiftVersion()
+    }
+    core.setOutput('swift-version', installedVersion)
+    core.setOutput('toolchain', JSON.stringify(snapshot))
   } catch (error) {
     if (error instanceof Error) core.setFailed(error.message)
   }

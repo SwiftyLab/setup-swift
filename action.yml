@@ -24,6 +24,12 @@ inputs:
       use cautiously and disable if any issue.
     required: false
     default: 'false'
+  dry-run:
+    description: >-
+      Whether to only get the toolchain data based on version input and skip intallation.
+      Can be used with actions that perform custom installations, i.e. using docker tag in Lsinux.
+    required: false
+    default: 'false'
 outputs:
   swift-version:
     description: The actual Swift version that was configured.

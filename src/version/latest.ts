@@ -8,4 +8,8 @@ export class LatestToolchainVersion extends ToolchainVersion {
   protected get dirRegex() {
     return /.*/
   }
+
+  toString() {
+    return `latest ${this.dev ? 'dev ' : ''}version`
+  }
 }

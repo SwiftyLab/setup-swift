@@ -36,4 +36,8 @@ export class SemanticToolchainVersion extends ToolchainVersion {
   protected get dirRegex() {
     return new RegExp(`swift-${this.versionComponent}`)
   }
+
+  toString() {
+    return `version: ${this.semver.raw}, dev: ${this.dev}`
+  }
 }

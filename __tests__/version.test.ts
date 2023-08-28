@@ -9,26 +9,31 @@ describe('parse version from provided string', () => {
     const version = ToolchainVersion.create('latest', false)
     expect(version).toBeInstanceOf(LatestToolchainVersion)
     expect(version.dev).toBe(false)
+    expect(`${version}`).toBe('latest version')
 
     const devVersion = ToolchainVersion.create('latest', true)
     expect(devVersion).toBeInstanceOf(LatestToolchainVersion)
     expect(devVersion.dev).toBe(true)
+    expect(`${devVersion}`).toBe('latest dev version')
   })
 
   it('parses current version', async () => {
     const version = ToolchainVersion.create('current', false)
     expect(version).toBeInstanceOf(LatestToolchainVersion)
     expect(version.dev).toBe(false)
+    expect(`${version}`).toBe('latest version')
 
     const devVersion = ToolchainVersion.create('current', true)
     expect(devVersion).toBeInstanceOf(LatestToolchainVersion)
     expect(devVersion.dev).toBe(true)
+    expect(`${devVersion}`).toBe('latest dev version')
   })
 
   it('parses X semver', async () => {
     const version = ToolchainVersion.create('5', false)
     expect(version).toBeInstanceOf(SemanticToolchainVersion)
     expect(version.dev).toBe(false)
+    expect(`${version}`).toBe('version: 5.0.0, dev: false')
     const sVersion = version as SemanticToolchainVersion
     expect(sVersion['dirGlob']).toBe('swift-5*')
     expect(sVersion['dirRegex']).toStrictEqual(/swift-5/)
