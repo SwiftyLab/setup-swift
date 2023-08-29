@@ -6,6 +6,7 @@
 [![CI/CD](https://github.com/SwiftyLab/setup-swift/actions/workflows/main.yml/badge.svg)](https://github.com/SwiftyLab/setup-swift/actions/workflows/main.yml)
 [![CodeFactor](https://www.codefactor.io/repository/github/swiftylab/setup-swift/badge)](https://www.codefactor.io/repository/github/swiftylab/setup-swift)
 [![codecov](https://codecov.io/gh/SwiftyLab/setup-swift/graph/badge.svg?token=XWfSpWQ6gC)](https://codecov.io/gh/SwiftyLab/setup-swift)
+[![Static Badge](https://img.shields.io/badge/Get_it-from_Marketplace-blue?logo=github)](https://github.com/marketplace/actions/setup-swift-environment-for-macos-linux-and-windows)
 
 ![swift.org](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FSwiftyLab%2Fsetup-swift%2Fmain%2Fpackage.json&query=%24.swiftorg&logo=swift&logoColor=white&label=swift.org)
 
