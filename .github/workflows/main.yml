@@ -265,8 +265,8 @@ jobs:
           const swiftorg = stdout.trim();
           core.info(`Updating swiftorg to "${swiftorg}"`);
           await exec.exec('npm', ['pkg', 'set', `swiftorg=${swiftorg}`]);
-          await exec.exec('git', ['config', '--global', 'user.name', 'github-actions']);
-          await exec.exec('git', ['config', '--global', 'user.email', 'github-actions@github.com']);
+          await exec.exec('git', ['config', '--global', 'user.name', 'github-actions[bot]']);
+          await exec.exec('git', ['config', '--global', 'user.email', '41898282+github-actions[bot]@users.noreply.github.com']);
           await exec.exec('git', ['commit', '--all', '--message', `[skip ci] wip: update package.json`]);
           await exec.exec('git', ['push']);
           return true;
@@ -413,8 +413,8 @@ jobs:
       with:
         github-token: ${{ github.token }}
         git-message: 'chore(CHANGELOG): update for {version}'
-        git-user-name: github-actions
-        git-user-email: github-actions@github.com
+        git-user-name: github-actions[bot]
+        git-user-email: 41898282+github-actions[bot]@users.noreply.github.com
         release-count: 0
         version-file: ./package.json
         version-path: version
@@ -429,8 +429,8 @@ jobs:
 
     - name: Update latest tag
       run: |
-        git config --global user.name github-actions
-        git config --global user.email github-actions@github.com
+        git config --global user.name github-actions[bot]
+        git config --global user.email 41898282+github-actions[bot]@users.noreply.github.com
         git push origin :refs/tags/latest
         git tag -fa latest -m latest
         git push origin --tags
