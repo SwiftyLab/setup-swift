@@ -267,7 +267,7 @@ jobs:
           await exec.exec('npm', ['pkg', 'set', `swiftorg=${swiftorg}`]);
           await exec.exec('git', ['config', '--global', 'user.name', 'github-actions[bot]']);
           await exec.exec('git', ['config', '--global', 'user.email', '41898282+github-actions[bot]@users.noreply.github.com']);
-          await exec.exec('git', ['commit', '--all', '--message', `[skip ci] wip: update package.json`]);
+          await exec.exec('git', ['commit', '--all', '--message', `[skip ci] [skip dependabot] wip: update package.json`]);
           await exec.exec('git', ['push']);
           return true;
 
