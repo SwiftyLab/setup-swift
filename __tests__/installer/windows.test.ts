@@ -59,14 +59,34 @@ describe('windows toolchain installation verification', () => {
     expect(installer['visualStudio']).toStrictEqual(visualStudio)
   })
 
-  it('tests unpack', async () => {
+  it('tests unpack for default toolchains', async () => {
     const installer = new WindowsToolchainInstaller(toolchain)
     const exe = path.resolve('tool', 'downloaded', 'toolchain.exe')
     const extracted = path.resolve('tool', 'extracted', 'path')
     process.env.SystemDrive = 'C:'
     jest.spyOn(toolCache, 'extractTar').mockResolvedValue(extracted)
     jest.spyOn(exec, 'exec').mockResolvedValue(0)
+    jest.spyOn(fs, 'access').mockRejectedValueOnce(new Error())
+    jest.spyOn(fs, 'access').mockResolvedValue()
+    jest.spyOn(fs, 'cp').mockResolvedValue()
     const toolPath = path.join(process.env.SystemDrive, 'Library')
+    await expect(installer['unpack'](exe)).resolves.toBe(toolPath)
+  })
+
+  it('tests unpack for development snapshots', async () => {
+    const installer = new WindowsToolchainInstaller(toolchain)
+    const exe = path.resolve('tool', 'downloaded', 'toolchain.exe')
+    const extracted = path.resolve('tool', 'extracted', 'path')
+    process.env.SystemDrive = 'C:'
+    jest.spyOn(toolCache, 'extractTar').mockResolvedValue(extracted)
+    jest.spyOn(exec, 'exec').mockResolvedValue(0)
+    jest.spyOn(fs, 'access').mockResolvedValue()
+    jest.spyOn(fs, 'cp').mockResolvedValue()
+    const toolPath = path.join(
+      process.env.SystemDrive,
+      'Program Files',
+      'Swift'
+    )
     await expect(installer['unpack'](exe)).resolves.toBe(toolPath)
   })
 
