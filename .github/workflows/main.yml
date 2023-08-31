@@ -22,7 +22,7 @@ jobs:
     name: Check requirements
     runs-on: ubuntu-latest
     outputs:
-      run: ${{ github.event_name != 'push' && !contains(github.event.head_commit.message, '[skip ci]') }}
+      run: ${{ github.event_name != 'push' && !contains(github.event.head_commit.message, '[skip dependabot]') }}
       release: ${{ (steps.check_version_bump.outputs.release_type != '' && github.event_name == 'push') || (github.event_name == 'workflow_dispatch' && github.event.inputs.release == 'true') }}
 
     steps:
@@ -236,7 +236,7 @@ jobs:
 
   dependabot:
     name: Check dependabot PR raised updating swiftorg
-    if: needs.ci.outputs.run == 'true' && github.event_name == 'pull_request' && github.actor == 'dependabot[bot]'
+    if: needs.ci.outputs.run == 'true' && github.event_name == 'pull_request' && github.event.pull_request.user.login == 'dependabot[bot]'
     needs: ci
     runs-on: ubuntu-latest
     concurrency:
@@ -253,7 +253,7 @@ jobs:
       id: metadata
       uses: dependabot/fetch-metadata@v1
       with:
-        github-token: ${{ github.token }}
+        github-token: ${{ secrets.COMMIT_TOKEN }}
 
     - name: Checkout repository
       if: contains(steps.metadata.outputs.dependency-names, 'swiftorg')
@@ -262,6 +262,18 @@ jobs:
         fetch-depth: 0
         submodules: true
         ref: ${{ github.event.pull_request.head.ref }}
+        token: ${{ secrets.COMMIT_TOKEN }}
+
+    - name: Import GPG
+      if: contains(steps.metadata.outputs.dependency-names, 'swiftorg')
+      uses: crazy-max/ghaction-import-gpg@v5.3.0
+      with:
+        gpg_private_key: ${{ secrets.COMMIT_SIGN_KEY }}
+        passphrase: ${{ secrets.COMMIT_SIGN_KEY_PASSPHRASE }}
+        git_user_signingkey: true
+        git_commit_gpgsign: true
+        git_tag_gpgsign: true
+        git_push_gpgsign: if-asked
 
     - name: Changed Files
       if: contains(steps.metadata.outputs.dependency-names, 'swiftorg')
@@ -279,22 +291,22 @@ jobs:
       id: update-swiftorg
       uses: actions/github-script@v6
       with:
+        github-token: ${{ secrets.COMMIT_TOKEN }}
         script: |
           const gitOptions = {cwd: 'swiftorg'};
           const {stdout} = await exec.getExecOutput('git', ['rev-parse', '--verify', 'HEAD'], gitOptions);
           const swiftorg = stdout.trim();
           core.info(`Updating swiftorg to "${swiftorg}"`);
           await exec.exec('npm', ['pkg', 'set', `swiftorg=${swiftorg}`]);
-          await exec.exec('git', ['config', '--global', 'user.name', 'github-actions[bot]']);
-          await exec.exec('git', ['config', '--global', 'user.email', '41898282+github-actions[bot]@users.noreply.github.com']);
-          await exec.exec('git', ['commit', '--all', '--message', `[skip ci] [skip dependabot] wip: update package.json`]);
-          await exec.exec('git', ['push']);
+          await exec.exec('git', ['commit', '--all', '-S', '--message', `[skip dependabot] wip: update package.json`]);
+          await exec.exec('git', ['push', '--signed=if-asked']);
           return true;
 
     - name: Close PR for unnecessary swiftorg changes
       if: contains(steps.metadata.outputs.dependency-names, 'swiftorg') && steps.update-swiftorg.outputs.result != 'true'
       uses: actions/github-script@v6
       with:
+        github-token: ${{ secrets.COMMIT_TOKEN }}
         script: |
           github.rest.issues.createComment({
             owner: context.repo.owner,
@@ -413,6 +425,17 @@ jobs:
       with:
         fetch-tags: true
         submodules: true
+        token: ${{ secrets.COMMIT_TOKEN }}
+
+    - name: Import GPG
+      uses: crazy-max/ghaction-import-gpg@v5.3.0
+      with:
+        gpg_private_key: ${{ secrets.COMMIT_SIGN_KEY }}
+        passphrase: ${{ secrets.COMMIT_SIGN_KEY_PASSPHRASE }}
+        git_user_signingkey: true
+        git_commit_gpgsign: true
+        git_tag_gpgsign: true
+        git_push_gpgsign: if-asked
 
     - name: Setup Node.js
       id: setup-node
@@ -434,10 +457,10 @@ jobs:
       id: changelog
       uses: TriPSs/conventional-changelog-action@v4
       with:
-        github-token: ${{ github.token }}
+        github-token: ${{ secrets.COMMIT_TOKEN }}
         git-message: 'chore(CHANGELOG): update for {version}'
-        git-user-name: github-actions[bot]
-        git-user-email: 41898282+github-actions[bot]@users.noreply.github.com
+        git-user-name: swiftylab-ci
+        git-user-email: swiftylab.bot@gmail.com
         release-count: 0
         version-file: ./package.json
         version-path: version
@@ -452,11 +475,9 @@ jobs:
 
     - name: Update latest tag
       run: |
-        git config --global user.name github-actions[bot]
-        git config --global user.email 41898282+github-actions[bot]@users.noreply.github.com
-        git push origin :refs/tags/latest
-        git tag -fa latest -m latest
-        git push origin --tags
+        git push --signed=if-asked origin :refs/tags/latest
+        git tag -sfa latest -m latest
+        git push --signed=if-asked origin --tags
 
     - name: Create GitHub release
       uses: ncipollo/release-action@v1
