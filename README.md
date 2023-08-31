@@ -6,11 +6,21 @@
 [![CI/CD](https://github.com/SwiftyLab/setup-swift/actions/workflows/main.yml/badge.svg)](https://github.com/SwiftyLab/setup-swift/actions/workflows/main.yml)
 [![CodeFactor](https://www.codefactor.io/repository/github/swiftylab/setup-swift/badge)](https://www.codefactor.io/repository/github/swiftylab/setup-swift)
 [![codecov](https://codecov.io/gh/SwiftyLab/setup-swift/graph/badge.svg?token=XWfSpWQ6gC)](https://codecov.io/gh/SwiftyLab/setup-swift)
-[![Static Badge](https://img.shields.io/badge/Get_it-from_Marketplace-blue?logo=github)](https://github.com/marketplace/actions/setup-swift-environment-for-macos-linux-and-windows)
+[![Get it from Marketplace](https://img.shields.io/badge/Get_it-from_Marketplace-blue?logo=github)](https://github.com/marketplace/actions/setup-swift-environment-for-macos-linux-and-windows)
 
 ![swift.org](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FSwiftyLab%2Fsetup-swift%2Fmain%2Fpackage.json&query=%24.swiftorg&logo=swift&logoColor=white&label=swift.org)
 
-[GitHub Action](https://github.com/features/actions) that will setup [Swift](https://swift.org) environment with specified version. Works on both Linux and macOS runners with limited support on Windows runners.
+[GitHub Action](https://github.com/features/actions) that will setup [Swift](https://swift.org) environment with specified version.
+This action supports the following functionalities:
+
+- Works on Linux, macOS and Windows.
+- Supports [installing latest major/minor/patch](#specifying-version).
+- Provides snapshots as soon as published in `swift.org`.
+- Verifies toolchain snapshots before installation (`gpg` for Linux and Windows, `pkgutil` for macOS) .
+- Allows development snapshots by enabling `development` flag and optional version.
+- Prefers existing Xcode installations.
+- Caches installed setup in tool cache.
+- Allows fetching snapshot metadata without installation (can be used to setup docker images).
 
 ## Usage
 
@@ -105,6 +115,8 @@ Not:
 ## Keeping the action up-to-date
 
 You have two options for keeping this action up-to-date: either use the `latest` tag to always have the latest changes or define a specific version (like `v1.0.0`).
+
+**Note: This action uses [dependabot](https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/about-dependabot-version-updates) to keep [swift.org](https://github.com/apple/swift-org-website) submodule data up-to-date. Due to the frequency of snapshots published, the changes aren't merged immediately rather kept as a separate PR. If you need action to be updated, comment `@swiftylab-ci anything..` on the PR to merge and update this action.**
 
 ### Latest version tag (Recommended)
 
