@@ -1,5 +1,6 @@
-import {promises as fs} from 'fs'
+import * as os from 'os'
 import * as path from 'path'
+import {promises as fs} from 'fs'
 import * as io from '@actions/io'
 import * as core from '@actions/core'
 import {exec, getExecOutput} from '@actions/exec'
@@ -25,23 +26,75 @@ export interface VisualStudioRequirement {
 }
 
 /// Do swift version based additional support files setup
-export async function setupSupportFiles(visualStudio: VisualStudio) {
+export async function setupSupportFiles(
+  visualStudio: VisualStudio,
+  sdkroot: string
+) {
   /// https://docs.microsoft.com/en-us/cpp/build/building-on-the-command-line?view=msvc-170
   const nativeToolsScriptx86 = path.join(
     visualStudio.installationPath,
-    'VC\\Auxiliary\\Build\\vcvars32.bat'
+    'Common7',
+    'Tools',
+    'VsDevCmd.bat'
   )
-  const copyCommands = [
-    'copy /Y %SDKROOT%\\usr\\share\\ucrt.modulemap "%UniversalCRTSdkDir%\\Include\\%UCRTVersion%\\ucrt\\module.modulemap"',
-    'copy /Y %SDKROOT%\\usr\\share\\visualc.modulemap "%VCToolsInstallDir%\\include\\module.modulemap"',
-    'copy /Y %SDKROOT%\\usr\\share\\visualc.apinotes "%VCToolsInstallDir%\\include\\visualc.apinotes"',
-    'copy /Y %SDKROOT%\\usr\\share\\winsdk.modulemap "%UniversalCRTSdkDir%\\Include\\%UCRTVersion%\\um\\module.modulemap"'
-  ].join('&&')
-  const code = await exec('cmd', ['/k', nativeToolsScriptx86], {
-    failOnStdErr: true,
-    input: Buffer.from(copyCommands, 'utf8')
-  })
-  core.debug(`Tried Windows SDK accessible to Swift, exited with code: ${code}`)
+  const {stdout} = await getExecOutput(
+    'cmd',
+    [
+      '/k',
+      nativeToolsScriptx86,
+      `-arch=${os.arch()}`,
+      '&&',
+      'set',
+      '&&',
+      'exit'
+    ],
+    {failOnStdErr: true}
+  )
+  const vsEnvs = Object.fromEntries(
+    stdout
+      .split(os.EOL)
+      .filter(s => s.indexOf('='))
+      .map(s => s.trim())
+      .map(s => s.split('=', 2))
+      .filter(s => s.length === 2)
+      .map(s => [s[0].trim(), s[1].trim()] as const)
+  )
+  const universalCRTSdkDir = vsEnvs.UniversalCRTSdkDir
+  const uCRTVersion = vsEnvs.UCRTVersion
+  const vCToolsInstallDir = vsEnvs.VCToolsInstallDir
+  if (!(universalCRTSdkDir && uCRTVersion && vCToolsInstallDir)) {
+    throw new Error(`Failed to find paths from "${JSON.stringify(vsEnvs)}"`)
+  }
+
+  const sdkshare = path.join(sdkroot, 'usr', 'share')
+  const winsdk = path.join(universalCRTSdkDir, 'Include', uCRTVersion)
+  const vcToolsInclude = path.join(vCToolsInstallDir, 'include')
+  const vcModulemap = path.join(vcToolsInclude, 'module.modulemap')
+  const uCRTmap = path.join(sdkshare, 'ucrt.modulemap')
+  const winsdkMap = path.join(sdkshare, 'winsdk.modulemap')
+  await fs.copyFile(uCRTmap, path.join(winsdk, 'ucrt', 'module.modulemap'))
+  await fs.copyFile(winsdkMap, path.join(winsdk, 'um', 'module.modulemap'))
+  try {
+    const modulemap = path.join(sdkshare, 'vcruntime.modulemap')
+    const runtimenotes = 'vcruntime.apinotes'
+    const apinotes = path.join(sdkshare, runtimenotes)
+    await fs.access(modulemap)
+    await fs.copyFile(modulemap, vcModulemap)
+    await fs.copyFile(apinotes, path.join(vcToolsInclude, runtimenotes))
+  } catch (error) {
+    core.debug(`Using visualc files for copy due to "${error}"`)
+    const modulemap = path.join(sdkshare, 'visualc.modulemap')
+    const runtimenotes = 'visualc.apinotes'
+    const apinotes = path.join(sdkshare, runtimenotes)
+    await fs.copyFile(modulemap, vcModulemap)
+    await fs.copyFile(apinotes, path.join(vcToolsInclude, runtimenotes))
+  }
+  for (const property in vsEnvs) {
+    if (vsEnvs[property] === process.env[property]) {
+      continue
+    }
+    core.exportVariable(property, vsEnvs[property])
+  }
 }
 
 /// set up required visual studio tools for swift on windows
@@ -78,18 +131,15 @@ export async function setupVisualStudioTools(
   core.debug(
     `Installing Visual Studio components "${requirement.components}" at "${vs.installationPath}"`
   )
-  const code = await exec(`"${vs.properties.setupEngineFilePath}"`, [
+  await exec(`"${vs.properties.setupEngineFilePath}"`, [
     'modify',
     '--installPath',
     vs.installationPath,
     ...requirement.components.flatMap(component => ['--add', component]),
+    '--installWhileDownloading',
+    '--force',
     '--quiet'
   ])
-  if (code !== 0) {
-    throw new Error(
-      `Visual Studio installer failed to install required components with exit code: ${code}.`
-    )
-  }
   return vs
 }
 

@@ -1,5 +1,6 @@
 import * as path from 'path'
 import {promises as fs} from 'fs'
+import * as os from 'os'
 import * as exec from '@actions/exec'
 import * as cache from '@actions/cache'
 import * as toolCache from '@actions/tool-cache'
@@ -27,6 +28,11 @@ describe('windows toolchain installation verification', () => {
       setupEngineFilePath: path.join('C:', 'Visual Studio', 'setup.exe')
     }
   }
+  const vsEnvs = [
+    `UniversalCRTSdkDir=${path.join('C:', 'Windows Kits')}`,
+    `UCRTVersion=10.0.17063`,
+    `VCToolsInstallDir=${path.join('C:', 'Visual Studio', 'Tools')}`
+  ]
 
   beforeEach(() => {
     process.env = {...env}
@@ -97,7 +103,14 @@ describe('windows toolchain installation verification', () => {
     const installer = new WindowsToolchainInstaller(toolchain)
     installer['visualStudio'] = visualStudio
     const installation = path.resolve('tool', 'installed', 'path')
+    jest.spyOn(fs, 'access').mockRejectedValue(new Error())
+    jest.spyOn(fs, 'copyFile').mockResolvedValue()
     jest.spyOn(exec, 'exec').mockResolvedValue(0)
+    jest.spyOn(exec, 'getExecOutput').mockResolvedValue({
+      exitCode: 0,
+      stdout: vsEnvs.join(os.EOL),
+      stderr: ''
+    })
     const toolPath = path.join(
       installation,
       'Developer',

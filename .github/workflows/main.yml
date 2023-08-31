@@ -330,19 +330,22 @@ jobs:
             state: 'closed'
           });
 
-  feature-test:
-    name: Run ${{ github.event.pull_request.head.repo.full_name || github.repository }}@${{ github.head_ref || github.ref_name }} with latest Swift on ${{ matrix.os }}
-    if: always() && (needs.dependabot.result == 'success' || needs.dependabot.result == 'skipped')
+  e2e-test:
+    name: End-to-end test latest Swift on ${{ matrix.os }}
+    if: |
+      always() &&
+      (needs.ci.result == 'success' || needs.ci.result == 'skipped') &&
+      (needs.dependabot.result == 'success' || needs.dependabot.result == 'skipped')
     needs: [ci, dependabot]
     runs-on: ${{ matrix.os }}
     concurrency:
-      group: feature-test-${{ github.ref }}-${{ matrix.os }}
+      group: e2e-test-${{ github.ref }}-${{ matrix.os }}
       cancel-in-progress: ${{ needs.ci.outputs.run == 'true' }}
     env:
       COMPOSITE: ./.ref-download-test
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
     - name: Setup wrapper composite action at ${{ env.COMPOSITE }}
       if: needs.ci.outputs.run == 'true'
@@ -407,10 +410,17 @@ jobs:
       if: needs.ci.outputs.run == 'true'
       run: swift --version | grep ${{ steps.setup-swift.outputs.swift-version }} || exit 1
 
+    - name: Test Swift package
+      if: needs.ci.outputs.run == 'true'
+      run: |
+        swift package init --type library --name SetupLib
+        swift build --build-tests
+        swift test
+
   merge:
     name: Auto-merge submodule update PR
     if: needs.ci.outputs.run == 'true' && needs.dependabot.outputs.merge == 'true'
-    needs: [ci, analyze, unit-test, integration-test, dry-run, dependabot, feature-test]
+    needs: [ci, analyze, unit-test, integration-test, dry-run, dependabot, e2e-test]
     runs-on: ubuntu-latest
     concurrency:
       group: swiftorg-update
@@ -427,8 +437,14 @@ jobs:
 
   cd:
     name: Create release
-    if: always() && needs.ci.outputs.release == 'true' && (needs.analyze.result == 'success' || needs.analyze.result == 'skipped')
-    needs: [ci, analyze, unit-test, integration-test, dry-run, feature-test]
+    if: |
+      always() && needs.ci.outputs.release == 'true' &&
+      (needs.analyze.result == 'success' || needs.analyze.result == 'skipped') &&
+      (needs.unit-test.result == 'success' || needs.unit-test.result == 'skipped') &&
+      (needs.integration-test.result == 'success' || needs.integration-test.result == 'skipped') &&
+      (needs.dry-run.result == 'success' || needs.dry-run.result == 'skipped') &&
+      (needs.e2e-test.result == 'success' || needs.e2e-test.result == 'skipped')
+    needs: [ci, analyze, unit-test, integration-test, dry-run, e2e-test]
     runs-on: ubuntu-latest
     concurrency:
       group: cd-${{ github.ref }}

@@ -89,24 +89,6 @@ describe('visual studio setup validation', () => {
       )
     )
   })
-
-  it('tests visual studio setup fails with exit code', async () => {
-    fsAccessMock()
-    process.env.VSWHERE_PATH = path.join('C:', 'Visual Studio')
-    jest.spyOn(exec, 'exec').mockResolvedValue(-1)
-    jest.spyOn(exec, 'getExecOutput').mockResolvedValue({
-      exitCode: 0,
-      stdout: JSON.stringify([visualStudio]),
-      stderr: ''
-    })
-    await expect(
-      vs.setupVisualStudioTools({version: '16', components: ['Component']})
-    ).rejects.toMatchObject(
-      new Error(
-        `Visual Studio installer failed to install required components with exit code: -1.`
-      )
-    )
-  })
 })
 
 function fsAccessMock(value = true) {
