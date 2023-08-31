@@ -57,7 +57,7 @@
     "@types/plist": "^3.0.2",
     "@types/semver": "^7.5.0",
     "@vercel/ncc": "^0.36.1",
-    "conventional-changelog-conventionalcommits": "^6.1.0",
+    "conventional-changelog-conventionalcommits": "^7.0.1",
     "eslint": "^8.47.0",
     "eslint-plugin-github": "^4.9.2",
     "eslint-plugin-jest": "^27.2.3",
