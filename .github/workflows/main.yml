@@ -22,10 +22,25 @@ jobs:
     name: Check requirements
     runs-on: ubuntu-latest
     outputs:
-      run: ${{ github.event_name != 'push' && !contains(github.event.head_commit.message, '[skip dependabot]') }}
+      run: ${{ github.event_name != 'push' && steps.skip.outputs.result != 'true' }}
       release: ${{ (steps.check_version_bump.outputs.release_type != '' && github.event_name == 'push') || (github.event_name == 'workflow_dispatch' && github.event.inputs.release == 'true') }}
 
     steps:
+    - name: Checkout repository
+      if: github.event.pull_request.head.sha != ''
+      uses: actions/checkout@v3
+      with:
+        ref: ${{ github.event.pull_request.head.sha }}
+
+    - name: Check dependabot skip commit
+      if: github.event.pull_request.head.sha != ''
+      id: skip
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const {stdout} = await exec.getExecOutput('git', ['show', '-s', '--format=%s']);
+          return stdout.includes('[skip dependabot]');
+
     - name: Check version bump
       if: (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'build(swift-org-website):')) || (github.event_name == 'workflow_dispatch' && github.event.inputs.release == 'true')
       id: check_version_bump
