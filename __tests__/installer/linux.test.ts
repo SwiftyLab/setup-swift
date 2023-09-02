@@ -1,5 +1,6 @@
 import * as path from 'path'
 import * as exec from '@actions/exec'
+import * as cache from '@actions/cache'
 import * as toolCache from '@actions/tool-cache'
 import {coerce as parseSemVer} from 'semver'
 import {LinuxToolchainInstaller} from '../../src/installer/linux'
@@ -34,6 +35,8 @@ describe('linux toolchain installation verification', () => {
     )
 
     const download = path.resolve('tool', 'download', 'path')
+    jest.spyOn(cache, 'restoreCache').mockResolvedValue(undefined)
+    jest.spyOn(cache, 'saveCache').mockResolvedValue(1)
     jest.spyOn(toolCache, 'downloadTool').mockResolvedValue(download)
     jest.spyOn(exec, 'exec').mockResolvedValue(0)
     await expect(installer['download']()).resolves.toBe(download)
@@ -65,6 +68,8 @@ describe('linux toolchain installation verification', () => {
     const extracted = path.resolve('tool', 'extracted', 'path')
     const cached = path.resolve('tool', 'cached', 'path')
     const swiftPath = path.join(cached, 'usr', 'bin')
+    jest.spyOn(cache, 'restoreCache').mockResolvedValue(undefined)
+    jest.spyOn(cache, 'saveCache').mockResolvedValue(1)
     jest.spyOn(toolCache, 'find').mockReturnValue('')
     const downloadSpy = jest.spyOn(toolCache, 'downloadTool')
     downloadSpy.mockResolvedValue(download)
