@@ -1,6 +1,7 @@
 import * as path from 'path'
 import {promises as fs} from 'fs'
 import * as exec from '@actions/exec'
+import * as cache from '@actions/cache'
 import * as toolCache from '@actions/tool-cache'
 import {coerce as parseSemVer} from 'semver'
 import {WindowsToolchainInstaller} from '../../src/installer/windows'
@@ -53,6 +54,8 @@ describe('windows toolchain installation verification', () => {
       stdout: JSON.stringify([visualStudio]),
       stderr: ''
     })
+    jest.spyOn(cache, 'restoreCache').mockResolvedValue(undefined)
+    jest.spyOn(cache, 'saveCache').mockResolvedValue(1)
     jest.spyOn(toolCache, 'downloadTool').mockResolvedValue(download)
     jest.spyOn(exec, 'exec').mockResolvedValue(0)
     await expect(installer['download']()).resolves.toBe(`${download}.exe`)

@@ -1,5 +1,8 @@
+import * as os from 'os'
+import * as path from 'path'
 import * as core from '@actions/core'
 import {getExecOutput} from '@actions/exec'
+import * as cache from '@actions/cache'
 import * as toolCache from '@actions/tool-cache'
 import {coerce as parseSemVer} from 'semver'
 import {ToolchainSnapshot} from '../snapshot'
@@ -36,23 +39,23 @@ export abstract class ToolchainInstaller<Snapshot extends ToolchainSnapshot> {
 
   async install(arch?: string) {
     try {
-      const tool = `${this.data.branch}-${this.data.platform}`
+      const key = `${this.data.branch}-${this.data.platform}`
       const version = this.version?.raw
-      let cache: string | undefined
+      let tool: string | undefined
       if (version) {
-        cache = toolCache.find(tool, version, arch).trim()
+        tool = toolCache.find(key, version, arch).trim()
       }
-      if (!cache?.length) {
+      if (!tool?.length) {
         const resource = await this.download()
         const installation = await this.unpack(resource)
         if (version) {
-          cache = await toolCache.cacheDir(installation, tool, version, arch)
+          tool = await toolCache.cacheDir(installation, key, version, arch)
         } else {
           core.debug('Proceeding without caching non-versioned snapshot')
-          cache = installation
+          tool = installation
         }
       }
-      await this.add(cache)
+      await this.add(tool)
     } catch (error) {
       if (!(error instanceof NoInstallationNeededError)) {
         throw error
@@ -61,9 +64,17 @@ export abstract class ToolchainInstaller<Snapshot extends ToolchainSnapshot> {
   }
 
   protected async download() {
-    const url = `${this.baseUrl}/${this.data.download}`
-    core.debug(`Downloading snapshot from "${url}"`)
-    return await toolCache.downloadTool(url)
+    const tmpDir = process.env.RUNNER_TEMP || os.tmpdir()
+    let resourcePath = path.join(tmpDir, 'setup-swift', this.data.download)
+    if (!(await cache.restoreCache([resourcePath], this.data.download))) {
+      const url = `${this.baseUrl}/${this.data.download}`
+      core.debug(`Downloading snapshot from "${url}"`)
+      resourcePath = await toolCache.downloadTool(url)
+      await cache.saveCache([resourcePath], this.data.download)
+    } else {
+      core.debug(`Picked snapshot from cache key "${this.data.download}"`)
+    }
+    return resourcePath
   }
 
   protected abstract unpack(resource: string): Promise<string>
