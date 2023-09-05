@@ -70,7 +70,9 @@ export abstract class ToolchainInstaller<Snapshot extends ToolchainSnapshot> {
       const url = `${this.baseUrl}/${this.data.download}`
       core.debug(`Downloading snapshot from "${url}"`)
       resourcePath = await toolCache.downloadTool(url)
-      await cache.saveCache([resourcePath], this.data.download)
+      if (core.getBooleanInput('cache-snapshot')) {
+        await cache.saveCache([resourcePath], this.data.download)
+      }
     } else {
       core.debug(`Picked snapshot from cache key "${this.data.download}"`)
     }

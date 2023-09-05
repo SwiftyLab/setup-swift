@@ -1,4 +1,5 @@
 import * as path from 'path'
+import * as core from '@actions/core'
 import * as exec from '@actions/exec'
 import * as cache from '@actions/cache'
 import * as toolCache from '@actions/tool-cache'
@@ -35,6 +36,7 @@ describe('linux toolchain installation verification', () => {
     )
 
     const download = path.resolve('tool', 'download', 'path')
+    jest.spyOn(core, 'getBooleanInput').mockReturnValue(true)
     jest.spyOn(cache, 'restoreCache').mockResolvedValue(undefined)
     jest.spyOn(cache, 'saveCache').mockResolvedValue(1)
     jest.spyOn(toolCache, 'downloadTool').mockResolvedValue(download)
@@ -68,6 +70,7 @@ describe('linux toolchain installation verification', () => {
     const extracted = path.resolve('tool', 'extracted', 'path')
     const cached = path.resolve('tool', 'cached', 'path')
     const swiftPath = path.join(cached, 'usr', 'bin')
+    jest.spyOn(core, 'getBooleanInput').mockReturnValue(true)
     jest.spyOn(cache, 'restoreCache').mockResolvedValue(undefined)
     jest.spyOn(cache, 'saveCache').mockResolvedValue(1)
     jest.spyOn(toolCache, 'find').mockReturnValue('')

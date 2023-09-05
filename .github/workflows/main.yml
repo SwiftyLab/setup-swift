@@ -189,6 +189,7 @@ jobs:
         swift-version: ${{ matrix.swift }}
         development: ${{ matrix.development }}
         check-latest: ${{ github.event_name == 'schedule' }}
+        cache-snapshot: ${{ !matrix.development }}
 
     - name: Verify Swift version in macos
       if: needs.ci.outputs.run == 'true' && runner.os == 'macOS'
