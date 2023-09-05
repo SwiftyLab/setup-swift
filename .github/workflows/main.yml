@@ -125,7 +125,7 @@ jobs:
       uses: codecov/codecov-action@v3.1.4
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
-        fail_ci_if_error: true
+        fail_ci_if_error: ${{ github.event_name == 'push' }}
 
   integration-test:
     name: Integrate Swift ${{ matrix.swift }} on ${{ matrix.os }} with development ${{ matrix.development }}
@@ -263,6 +263,7 @@ jobs:
       pull-requests: write
     outputs:
       merge: ${{ steps.update-swiftorg.outputs.result == 'true' }}
+      approve: ${{ steps.auto-approve.outputs.result == 'true' }}
 
     steps:
     - name: Dependabot metadata
@@ -317,6 +318,15 @@ jobs:
           await exec.exec('git', ['commit', '--all', '-S', '--message', `[skip dependabot] wip: update package.json`]);
           await exec.exec('git', ['push', '--signed=if-asked']);
           return true;
+
+    - name: Check if auto-approval needed
+      if: steps.changed-submodule-files.outputs.any_changed == 'true'
+      id: auto-approve
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const changedFiles = '${{ steps.changed-submodule-files.outputs.all_changed_and_modified_files }}'.split(' ');
+          return changedFiles.some(file => /swiftorg\/_data\/builds\/swift-.*-release.*/.exec(file));
 
     - name: Close PR for unnecessary swiftorg changes
       if: contains(steps.metadata.outputs.dependency-names, 'swiftorg') && steps.update-swiftorg.outputs.result != 'true'
@@ -431,6 +441,12 @@ jobs:
       pull-requests: write
 
     steps:
+    - name: Approve
+      if: needs.dependabot.outputs.approve == 'true'
+      run: gh pr review --approve "${{ github.event.pull_request.html_url }}"
+      env:
+        GITHUB_TOKEN: ${{ secrets.COMMIT_TOKEN }}
+
     - name: Auto-merge
       run: gh pr merge --auto --squash "${{ github.event.pull_request.html_url }}"
       env:
