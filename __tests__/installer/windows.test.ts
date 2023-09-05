@@ -1,6 +1,7 @@
+import * as os from 'os'
 import * as path from 'path'
 import {promises as fs} from 'fs'
-import * as os from 'os'
+import * as core from '@actions/core'
 import * as exec from '@actions/exec'
 import * as cache from '@actions/cache'
 import * as toolCache from '@actions/tool-cache'
@@ -43,7 +44,7 @@ describe('windows toolchain installation verification', () => {
     process.env = env
   })
 
-  it('tests download', async () => {
+  it('tests download with caching', async () => {
     const installer = new WindowsToolchainInstaller(toolchain)
     expect(installer['version']).toStrictEqual(parseSemVer('5.8'))
     expect(installer['baseUrl']).toBe(
@@ -54,6 +55,7 @@ describe('windows toolchain installation verification', () => {
     process.env.VSWHERE_PATH = path.join('C:', 'Visual Studio')
     jest.spyOn(fs, 'access').mockResolvedValue()
     jest.spyOn(fs, 'rename').mockResolvedValue()
+    jest.spyOn(core, 'getBooleanInput').mockReturnValue(true)
     jest.spyOn(exec, 'exec').mockResolvedValue(0)
     jest.spyOn(exec, 'getExecOutput').mockResolvedValue({
       exitCode: 0,
@@ -61,11 +63,39 @@ describe('windows toolchain installation verification', () => {
       stderr: ''
     })
     jest.spyOn(cache, 'restoreCache').mockResolvedValue(undefined)
-    jest.spyOn(cache, 'saveCache').mockResolvedValue(1)
+    const cacheSpy = jest.spyOn(cache, 'saveCache').mockResolvedValue(1)
     jest.spyOn(toolCache, 'downloadTool').mockResolvedValue(download)
     jest.spyOn(exec, 'exec').mockResolvedValue(0)
     await expect(installer['download']()).resolves.toBe(`${download}.exe`)
     expect(installer['visualStudio']).toStrictEqual(visualStudio)
+    expect(cacheSpy).toHaveBeenCalled()
+  })
+
+  it('tests download without caching', async () => {
+    const installer = new WindowsToolchainInstaller(toolchain)
+    expect(installer['version']).toStrictEqual(parseSemVer('5.8'))
+    expect(installer['baseUrl']).toBe(
+      'https://download.swift.org/swift-5.8-release/ubuntu2204/swift-5.8-RELEASE'
+    )
+
+    const download = path.resolve('tool', 'download', 'path')
+    process.env.VSWHERE_PATH = path.join('C:', 'Visual Studio')
+    jest.spyOn(fs, 'access').mockResolvedValue()
+    jest.spyOn(fs, 'rename').mockResolvedValue()
+    jest.spyOn(core, 'getBooleanInput').mockReturnValue(false)
+    jest.spyOn(exec, 'exec').mockResolvedValue(0)
+    jest.spyOn(exec, 'getExecOutput').mockResolvedValue({
+      exitCode: 0,
+      stdout: JSON.stringify([visualStudio]),
+      stderr: ''
+    })
+    jest.spyOn(cache, 'restoreCache').mockResolvedValue(undefined)
+    const cacheSpy = jest.spyOn(cache, 'saveCache').mockResolvedValue(1)
+    jest.spyOn(toolCache, 'downloadTool').mockResolvedValue(download)
+    jest.spyOn(exec, 'exec').mockResolvedValue(0)
+    await expect(installer['download']()).resolves.toBe(`${download}.exe`)
+    expect(installer['visualStudio']).toStrictEqual(visualStudio)
+    expect(cacheSpy).not.toHaveBeenCalled()
   })
 
   it('tests unpack for default toolchains', async () => {

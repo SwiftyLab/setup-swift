@@ -27,9 +27,15 @@ inputs:
   dry-run:
     description: >-
       Whether to only get the toolchain data based on version input and skip intallation.
-      Can be used with actions that perform custom installations, i.e. using docker tag in Lsinux.
+      Can be used with actions that perform custom installations, i.e. using docker tag in Linux.
     required: false
     default: 'false'
+  cache-snapshot:
+    description: >-
+      Whether to cache downloaded toolchain snapshots. Enabled by default,
+      can be disabled in case of storage constraints.
+    required: false
+    default: 'true'
 outputs:
   swift-version:
     description: The actual Swift version that was configured.

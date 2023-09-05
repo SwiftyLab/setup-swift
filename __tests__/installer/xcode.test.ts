@@ -1,5 +1,6 @@
 import * as path from 'path'
 import {promises as fs} from 'fs'
+import * as core from '@actions/core'
 import * as exec from '@actions/exec'
 import * as cache from '@actions/cache'
 import * as toolCache from '@actions/tool-cache'
@@ -57,6 +58,7 @@ describe('macOS toolchain installation verification', () => {
 
     const download = path.resolve('tool', 'download', 'path')
     jest.spyOn(installer, 'isInstallationNeeded').mockResolvedValue(true)
+    jest.spyOn(core, 'getBooleanInput').mockReturnValue(true)
     jest.spyOn(cache, 'restoreCache').mockResolvedValue(undefined)
     jest.spyOn(cache, 'saveCache').mockResolvedValue(1)
     jest.spyOn(toolCache, 'downloadTool').mockResolvedValue(download)
@@ -98,6 +100,7 @@ describe('macOS toolchain installation verification', () => {
     const swiftPath = path.join(cached, 'usr', 'bin')
     const identifier = 'org.swift.581202305171a'
     jest.spyOn(installer, 'isInstallationNeeded').mockResolvedValue(true)
+    jest.spyOn(core, 'getBooleanInput').mockReturnValue(true)
     jest.spyOn(cache, 'restoreCache').mockResolvedValue(undefined)
     jest.spyOn(cache, 'saveCache').mockResolvedValue(1)
     jest.spyOn(toolCache, 'find').mockReturnValue('')
