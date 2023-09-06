@@ -58,20 +58,6 @@ describe('visual studio setup validation', () => {
     )
   })
 
-  it('tests visual studio setup successfully', async () => {
-    fsAccessMock()
-    process.env.VSWHERE_PATH = path.join('C:', 'Visual Studio')
-    jest.spyOn(exec, 'exec').mockResolvedValue(0)
-    jest.spyOn(exec, 'getExecOutput').mockResolvedValue({
-      exitCode: 0,
-      stdout: JSON.stringify([visualStudio]),
-      stderr: ''
-    })
-    await expect(
-      vs.setupVisualStudioTools({version: '16', components: ['Component']})
-    ).resolves.toMatchObject(visualStudio)
-  })
-
   it('tests visual studio setup fails when invalid path', async () => {
     fsAccessMock()
     process.env.VSWHERE_PATH = path.join('C:', 'Visual Studio')
@@ -88,6 +74,20 @@ describe('visual studio setup validation', () => {
         `Unable to find any Visual Studio installation for version: 16.`
       )
     )
+  })
+
+  it('tests visual studio setup successfully', async () => {
+    fsAccessMock()
+    process.env.VSWHERE_PATH = path.join('C:', 'Visual Studio')
+    jest.spyOn(exec, 'exec').mockResolvedValue(0)
+    jest.spyOn(exec, 'getExecOutput').mockResolvedValue({
+      exitCode: 0,
+      stdout: JSON.stringify([visualStudio]),
+      stderr: ''
+    })
+    await expect(
+      vs.setupVisualStudioTools({version: '16', components: ['Component']})
+    ).resolves.toMatchObject(visualStudio)
   })
 })
 

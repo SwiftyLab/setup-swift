@@ -97,10 +97,15 @@ export async function setupSupportFiles(
   }
 }
 
+let visualStudio: VisualStudio | undefined
+
 /// set up required visual studio tools for swift on windows
 export async function setupVisualStudioTools(
   requirement: VisualStudioRequirement
 ) {
+  if (visualStudio) {
+    return visualStudio
+  }
   /// https://github.com/microsoft/vswhere/wiki/Find-MSBuild
   /// get visual studio properties
   const vswhereExe = await getVsWherePath()
@@ -140,6 +145,7 @@ export async function setupVisualStudioTools(
     '--force',
     '--quiet'
   ])
+  visualStudio = vs
   return vs
 }
 

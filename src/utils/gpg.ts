@@ -59,12 +59,11 @@ async function refreshKeys() {
 
 async function refreshKeysFromServer(server: string) {
   try {
-    const code = await exec('gpg', [
-      '--keyserver',
-      server,
-      '--refresh-keys',
-      'Swift'
-    ])
+    const code = await exec(
+      'gpg',
+      ['--keyserver', server, '--refresh-keys', 'Swift'],
+      {ignoreReturnCode: true}
+    )
     return code === 0
   } catch (error) {
     core.warning(
