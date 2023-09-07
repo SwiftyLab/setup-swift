@@ -1,11 +1,9 @@
-import * as os from 'os'
 import * as path from 'path'
 import {promises as fs} from 'fs'
 import * as core from '@actions/core'
-import {getExecOutput} from '@actions/exec'
-import {VisualStudio} from './setup'
+import {VisualStudio} from './base'
 
-declare module './setup' {
+declare module './base' {
   // eslint-disable-next-line no-shadow
   export interface VisualStudio {
     update(sdkroot: string): Promise<void>
@@ -14,40 +12,12 @@ declare module './setup' {
 
 /// Update swift version based additional support files setup
 VisualStudio.prototype.update = async function (sdkroot: string) {
-  /// https://docs.microsoft.com/en-us/cpp/build/building-on-the-command-line?view=msvc-170
-  const nativeToolsScriptx86 = path.join(
-    this.installationPath,
-    'Common7',
-    'Tools',
-    'VsDevCmd.bat'
-  )
-  const {stdout} = await getExecOutput(
-    'cmd',
-    [
-      '/k',
-      nativeToolsScriptx86,
-      `-arch=${os.arch()}`,
-      '&&',
-      'set',
-      '&&',
-      'exit'
-    ],
-    {failOnStdErr: true}
-  )
-  const vsEnvs = Object.fromEntries(
-    stdout
-      .split(os.EOL)
-      .filter(s => s.indexOf('='))
-      .map(s => s.trim())
-      .map(s => s.split('=', 2))
-      .filter(s => s.length === 2)
-      .map(s => [s[0].trim(), s[1].trim()] as const)
-  )
-  const universalCRTSdkDir = vsEnvs.UniversalCRTSdkDir
-  const uCRTVersion = vsEnvs.UCRTVersion
-  const vCToolsInstallDir = vsEnvs.VCToolsInstallDir
+  const vsEnv = await this.env()
+  const universalCRTSdkDir = vsEnv.UniversalCRTSdkDir
+  const uCRTVersion = vsEnv.UCRTVersion
+  const vCToolsInstallDir = vsEnv.VCToolsInstallDir
   if (!(universalCRTSdkDir && uCRTVersion && vCToolsInstallDir)) {
-    throw new Error(`Failed to find paths from "${JSON.stringify(vsEnvs)}"`)
+    throw new Error(`Failed to find paths from "${JSON.stringify(vsEnv)}"`)
   }
 
   const sdkshare = path.join(sdkroot, 'usr', 'share')
@@ -73,10 +43,10 @@ VisualStudio.prototype.update = async function (sdkroot: string) {
     await fs.copyFile(modulemap, vcModulemap)
     await fs.copyFile(apinotes, path.join(vcToolsInclude, runtimenotes))
   }
-  for (const property in vsEnvs) {
-    if (vsEnvs[property] === process.env[property]) {
+  for (const property in vsEnv) {
+    if (vsEnv[property] === process.env[property]) {
       continue
     }
-    core.exportVariable(property, vsEnvs[property])
+    core.exportVariable(property, vsEnv[property])
   }
 }
