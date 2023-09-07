@@ -7,15 +7,12 @@ import {ToolchainInstaller, SnapshotForInstaller} from '../installer'
 export abstract class VersionedPlatform<
   Installer extends ToolchainInstaller<SnapshotForInstaller<Installer>>
 > extends Platform<Installer> {
-  readonly name: string
-  readonly version: number
-  readonly arch: string
-
-  constructor(name: string, version: number, arch: string) {
+  constructor(
+    readonly name: string,
+    readonly version: number,
+    readonly arch: string
+  ) {
     super()
-    this.name = name
-    this.version = version
-    this.arch = arch
   }
 
   private fileForVersion(version: number | string) {

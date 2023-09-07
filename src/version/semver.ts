@@ -2,13 +2,12 @@ import {SemVer} from 'semver'
 import {ToolchainVersion} from './base'
 
 export class SemanticToolchainVersion extends ToolchainVersion {
-  readonly requested: string
-  readonly semver: SemVer
-
-  constructor(requested: string, semver: SemVer, dev: boolean) {
+  constructor(
+    readonly requested: string,
+    readonly semver: SemVer,
+    dev: boolean
+  ) {
     super(dev)
-    this.requested = requested
-    this.semver = semver
   }
 
   private get versionComponent() {

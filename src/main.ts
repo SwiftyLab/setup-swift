@@ -4,7 +4,7 @@ import {Swiftorg} from './swiftorg'
 import {ToolchainSnapshot} from './snapshot'
 import {Platform} from './platform'
 
-async function run() {
+export async function run() {
   try {
     const requestedVersion = core.getInput('swift-version') ?? 'latest'
     const development = core.getBooleanInput('development')
@@ -44,4 +44,6 @@ async function run() {
   }
 }
 
-run()
+if (process.env.JEST_WORKER_ID === undefined) {
+  run()
+}

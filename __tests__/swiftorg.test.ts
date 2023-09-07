@@ -5,12 +5,8 @@ import {MODULE_DIR} from '../src/const'
 
 describe('swiftorg sync validation', () => {
   const accessSpy = jest.spyOn(fs, 'access')
-  const rmdirSpy = jest.spyOn(fs, 'rmdir')
+  const rmdirSpy = jest.spyOn(fs, 'rmdir').mockResolvedValue()
   const execSpy = jest.spyOn(exec, 'exec')
-
-  beforeEach(() => {
-    rmdirSpy.mockResolvedValue()
-  })
 
   it('tests latest sync', async () => {
     accessSpy.mockResolvedValue()

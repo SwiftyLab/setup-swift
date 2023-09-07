@@ -7,11 +7,7 @@ import {MODULE_DIR} from './const'
 const SWIFTORG = 'swiftorg'
 
 export class Swiftorg {
-  readonly checkLatest: boolean
-
-  constructor(checkLatest: boolean) {
-    this.checkLatest = checkLatest
-  }
+  constructor(readonly checkLatest: boolean) {}
 
   private async addSwiftorgSubmodule() {
     const swiftorg = path.join(MODULE_DIR, SWIFTORG)

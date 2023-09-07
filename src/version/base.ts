@@ -8,11 +8,8 @@ const SWIFT_RELEASE_REGEX = /swift-.*-release/
 export abstract class ToolchainVersion {
   protected abstract readonly dirGlob: string
   protected abstract readonly dirRegex: RegExp
-  readonly dev: boolean
 
-  constructor(dev: boolean) {
-    this.dev = dev
-  }
+  constructor(readonly dev: boolean) {}
 
   async toolFiles(fileGlob: string) {
     const pattern = `swiftorg/_data/builds/${this.dirGlob}/${fileGlob}.yml`
