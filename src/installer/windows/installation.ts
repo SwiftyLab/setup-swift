@@ -3,25 +3,13 @@ import {promises as fs} from 'fs'
 import * as core from '@actions/core'
 
 export class Installation {
-  readonly location: string
-  readonly toolchain: string
-  readonly sdkroot: string
-  readonly runtime: string
-  readonly devdir?: string
-
   private constructor(
-    location: string,
-    toolchain: string,
-    sdkroot: string,
-    runtime: string,
-    devdir?: string
-  ) {
-    this.location = location
-    this.toolchain = toolchain
-    this.sdkroot = sdkroot
-    this.runtime = runtime
-    this.devdir = devdir
-  }
+    readonly location: string,
+    readonly toolchain: string,
+    readonly sdkroot: string,
+    readonly runtime: string,
+    readonly devdir?: string
+  ) {}
 
   static async get(location: string, fallback?: string) {
     let toolchain: string

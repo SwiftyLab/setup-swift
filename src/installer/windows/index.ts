@@ -1,27 +1,36 @@
+import * as os from 'os'
 import * as path from 'path'
 import {promises as fs} from 'fs'
 import * as core from '@actions/core'
 import {exec} from '@actions/exec'
+import * as semver from 'semver'
 import {VerifyingToolchainInstaller} from '../verify'
 import {WindowsToolchainSnapshot} from '../../snapshot'
-import {setupVisualStudioTools, setupSupportFiles} from '../../utils'
+import {VisualStudio} from '../../utils'
 import {Installation} from './installation'
 
 export class WindowsToolchainInstaller extends VerifyingToolchainInstaller<WindowsToolchainSnapshot> {
-  private readonly vsRequirement = {
-    version: '16',
-    components: [
-      'Microsoft.VisualStudio.Component.VC.ATL',
-      'Microsoft.VisualStudio.Component.VC.CMake.Project',
-      'Microsoft.VisualStudio.Component.VC.Tools.x86.x64',
-      'Microsoft.VisualStudio.Component.Windows10SDK'
-    ]
+  private get vsRequirement() {
+    const reccommended = '10.0.17763'
+    const current = os.release()
+    const version = semver.gte(current, reccommended) ? current : reccommended
+    const winsdk = semver.patch(version)
+    const componentsStr = core.getInput('visual-studio-components')
+    const providedComponents = componentsStr ? componentsStr.split(';') : []
+    return {
+      version: '16',
+      components: [
+        'Microsoft.VisualStudio.Component.VC.Tools.x86.x64',
+        `Microsoft.VisualStudio.Component.Windows10SDK.${winsdk}`,
+        ...providedComponents
+      ]
+    }
   }
 
   protected async download() {
-    core.debug(`Using Visual Studio requirement ${this.vsRequirement}`)
+    core.debug(`Using VS requirement ${JSON.stringify(this.vsRequirement)}`)
     const [, toolchain] = await Promise.all([
-      setupVisualStudioTools(this.vsRequirement),
+      VisualStudio.setup(this.vsRequirement),
       super.download()
     ])
     const exeFile = `${toolchain}.exe`
@@ -56,8 +65,8 @@ export class WindowsToolchainInstaller extends VerifyingToolchainInstaller<Windo
       core.addPath(envPath)
     }
     core.debug(`Swift installed at "${swiftPath}"`)
-    const visualStudio = await setupVisualStudioTools(this.vsRequirement)
-    await setupSupportFiles(visualStudio, installation.sdkroot)
+    const visualStudio = await VisualStudio.setup(this.vsRequirement)
+    await visualStudio.update(installation.sdkroot)
     const swiftFlags = `-sdk %SDKROOT% -I %SDKROOT%/usr/lib/swift -L %SDKROOT%/usr/lib/swift/windows`
     core.exportVariable('SWIFTFLAGS', swiftFlags)
   }

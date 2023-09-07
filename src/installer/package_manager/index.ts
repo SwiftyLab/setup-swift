@@ -1,12 +1,10 @@
 import {exec} from '@actions/exec'
 
 export class PackageManager {
-  readonly name: string
-  readonly installationCommands: string[]
+  constructor(readonly installationCommands: string[]) {}
 
-  constructor(installationCommands: string[]) {
-    this.name = installationCommands[0]
-    this.installationCommands = installationCommands
+  get name() {
+    return this.installationCommands[0]
   }
 
   protected async update() {

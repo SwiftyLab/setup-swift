@@ -7,7 +7,7 @@ import * as cache from '@actions/cache'
 import * as toolCache from '@actions/tool-cache'
 import {coerce as parseSemVer} from 'semver'
 import {WindowsToolchainInstaller} from '../../src/installer/windows'
-import * as vs from '../../src/utils/visual_studio'
+import {VisualStudio} from '../../src/utils/visual_studio'
 
 describe('windows toolchain installation verification', () => {
   const env = process.env
@@ -21,14 +21,14 @@ describe('windows toolchain installation verification', () => {
     branch: 'swift-5.8-release',
     windows: true
   }
-  const visualStudio: vs.VisualStudio = {
+  const visualStudio = VisualStudio.createFromJSON({
     installationPath: path.join('C:', 'Visual Studio'),
     installationVersion: '16',
     catalog: {productDisplayVersion: '16'},
     properties: {
       setupEngineFilePath: path.join('C:', 'Visual Studio', 'setup.exe')
     }
-  }
+  })
   const vsEnvs = [
     `UniversalCRTSdkDir=${path.join('C:', 'Windows Kits')}`,
     `UCRTVersion=10.0.17063`,
@@ -42,6 +42,20 @@ describe('windows toolchain installation verification', () => {
   afterEach(() => {
     jest.restoreAllMocks()
     process.env = env
+  })
+
+  it('tests adding additional components', async () => {
+    jest
+      .spyOn(core, 'getInput')
+      .mockReturnValue(
+        'Microsoft.VisualStudio.Component.VC.ATL;Microsoft.VisualStudio.Component.VC.CMake.Project;Microsoft.VisualStudio.Component.Windows10SDK'
+      )
+    const installer = new WindowsToolchainInstaller(toolchain)
+    expect(installer['vsRequirement'].components.slice(2)).toStrictEqual([
+      'Microsoft.VisualStudio.Component.VC.ATL',
+      'Microsoft.VisualStudio.Component.VC.CMake.Project',
+      'Microsoft.VisualStudio.Component.Windows10SDK'
+    ])
   })
 
   it('tests download with caching', async () => {
@@ -130,7 +144,7 @@ describe('windows toolchain installation verification', () => {
   it('tests add to PATH', async () => {
     const installer = new WindowsToolchainInstaller(toolchain)
     const installation = path.resolve('tool', 'installed', 'path')
-    jest.spyOn(vs, 'setupVisualStudioTools').mockResolvedValue(visualStudio)
+    jest.spyOn(VisualStudio, 'setup').mockResolvedValue(visualStudio)
     jest.spyOn(fs, 'access').mockRejectedValue(new Error())
     jest.spyOn(fs, 'copyFile').mockResolvedValue()
     jest.spyOn(exec, 'exec').mockResolvedValue(0)
@@ -186,7 +200,7 @@ describe('windows toolchain installation verification', () => {
     const swiftDev = path.join(cached, 'Swift-development', 'bin')
     const icu67 = path.join(cached, 'icu-67', 'usr', 'bin')
     const setupSpy = jest
-      .spyOn(vs, 'setupVisualStudioTools')
+      .spyOn(VisualStudio, 'setup')
       .mockResolvedValue(visualStudio)
     jest.spyOn(fs, 'access').mockRejectedValue(new Error())
     jest.spyOn(fs, 'copyFile').mockResolvedValue()

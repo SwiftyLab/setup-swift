@@ -15,7 +15,7 @@ export type SnapshotForInstaller<Installer> =
 export class NoInstallationNeededError extends Error {}
 
 export abstract class ToolchainInstaller<Snapshot extends ToolchainSnapshot> {
-  readonly data: Snapshot
+  constructor(readonly data: Snapshot) {}
 
   protected get version() {
     const match = /swift-(.*)-/.exec(this.data.branch)
@@ -31,10 +31,6 @@ export abstract class ToolchainInstaller<Snapshot extends ToolchainSnapshot> {
       bin: 'swift',
       args: ['--version']
     }
-  }
-
-  constructor(data: Snapshot) {
-    this.data = data
   }
 
   async install(arch?: string) {

@@ -248,7 +248,7 @@ jobs:
       uses: addnab/docker-run-action@v3
       with:
         image: swift:${{ fromJSON(steps.setup-swift.outputs.toolchain).docker }}
-        run: swift --version  | grep ${{ steps.setup-swift.outputs.swift-version }} || exit 1
+        run: swift --version | grep ${{ steps.setup-swift.outputs.swift-version }} || exit 1
 
   dependabot:
     name: Check dependabot PR raised updating swiftorg

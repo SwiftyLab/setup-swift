@@ -9,11 +9,8 @@ import {XcodeToolchainInstaller} from '../installer'
 import {MODULE_DIR} from '../const'
 
 export class XcodePlatform extends Platform<XcodeToolchainInstaller> {
-  arch: string
-
-  constructor(arch: string) {
+  constructor(readonly arch: string) {
     super()
-    this.arch = arch
   }
 
   get name() {
