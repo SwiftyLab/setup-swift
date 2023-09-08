@@ -58,32 +58,6 @@ describe('windows toolchain installation verification', () => {
     ])
   })
 
-  it('tests download with caching', async () => {
-    const installer = new WindowsToolchainInstaller(toolchain)
-    expect(installer['version']).toStrictEqual(parseSemVer('5.8'))
-    expect(installer['baseUrl']).toBe(
-      'https://download.swift.org/swift-5.8-release/windows10/swift-5.8-RELEASE'
-    )
-
-    const download = path.resolve('tool', 'download', 'path')
-    process.env.VSWHERE_PATH = path.join('C:', 'Visual Studio')
-    jest.spyOn(fs, 'access').mockResolvedValue()
-    jest.spyOn(fs, 'rename').mockResolvedValue()
-    jest.spyOn(core, 'getBooleanInput').mockReturnValue(true)
-    jest.spyOn(exec, 'exec').mockResolvedValue(0)
-    jest.spyOn(exec, 'getExecOutput').mockResolvedValue({
-      exitCode: 0,
-      stdout: JSON.stringify([visualStudio]),
-      stderr: ''
-    })
-    jest.spyOn(cache, 'restoreCache').mockResolvedValue(undefined)
-    const cacheSpy = jest.spyOn(cache, 'saveCache').mockResolvedValue(1)
-    jest.spyOn(toolCache, 'downloadTool').mockResolvedValue(download)
-    jest.spyOn(exec, 'exec').mockResolvedValue(0)
-    await expect(installer['download']()).resolves.toBe(`${download}.exe`)
-    expect(cacheSpy).toHaveBeenCalled()
-  })
-
   it('tests download without caching', async () => {
     const installer = new WindowsToolchainInstaller(toolchain)
     expect(installer['version']).toStrictEqual(parseSemVer('5.8'))
@@ -204,7 +178,10 @@ describe('windows toolchain installation verification', () => {
       .mockResolvedValue(visualStudio)
     jest.spyOn(fs, 'access').mockRejectedValue(new Error())
     jest.spyOn(fs, 'copyFile').mockResolvedValue()
+    jest.spyOn(core, 'getBooleanInput').mockReturnValue(true)
     jest.spyOn(toolCache, 'find').mockReturnValue(cached)
+    jest.spyOn(toolCache, 'cacheDir').mockResolvedValue(cached)
+    jest.spyOn(cache, 'saveCache').mockResolvedValue(1)
     jest.spyOn(exec, 'exec').mockResolvedValue(0)
     jest.spyOn(exec, 'getExecOutput').mockResolvedValue({
       exitCode: 0,

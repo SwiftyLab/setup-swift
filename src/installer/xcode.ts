@@ -4,7 +4,7 @@ import * as core from '@actions/core'
 import {exec} from '@actions/exec'
 import * as toolCache from '@actions/tool-cache'
 import * as plist from 'plist'
-import {ToolchainInstaller, NoInstallationNeededError} from './base'
+import {ToolchainInstaller} from './base'
 import {XcodeToolchainSnapshot} from '../snapshot'
 
 export class XcodeToolchainInstaller extends ToolchainInstaller<XcodeToolchainSnapshot> {
@@ -41,10 +41,14 @@ export class XcodeToolchainInstaller extends ToolchainInstaller<XcodeToolchainSn
     return this.data.dir !== `swift-${version}-RELEASE`
   }
 
-  protected async download() {
+  async install(arch?: string | undefined) {
     if (!(await this.isInstallationNeeded())) {
-      throw new NoInstallationNeededError('Bundled with xcode')
+      return
     }
+    await super.install(arch)
+  }
+
+  protected async download() {
     const toolchain = await super.download()
     core.debug(`Checking package signature for "${toolchain}"`)
     await exec('pkgutil', ['--check-signature', toolchain])

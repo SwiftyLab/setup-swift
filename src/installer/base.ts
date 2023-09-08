@@ -12,8 +12,6 @@ export type SnapshotForInstaller<Installer> =
     ? Snapshot
     : never
 
-export class NoInstallationNeededError extends Error {}
-
 export abstract class ToolchainInstaller<Snapshot extends ToolchainSnapshot> {
   constructor(readonly data: Snapshot) {}
 
@@ -34,45 +32,41 @@ export abstract class ToolchainInstaller<Snapshot extends ToolchainSnapshot> {
   }
 
   async install(arch?: string) {
-    try {
-      const key = `${this.data.branch}-${this.data.platform}`
-      const version = this.version?.raw
-      let tool: string | undefined
-      if (version) {
-        tool = toolCache.find(key, version, arch).trim()
-      }
-      if (!tool?.length) {
+    const key = `${this.data.dir}-${this.data.platform}`
+    const version = this.version?.raw
+    let tool: string | undefined
+    if (version) {
+      tool = toolCache.find(key, version, arch).trim()
+      core.debug(`Found tool at "${tool}" in tool cache`)
+    }
+    if (!tool?.length) {
+      const tmpDir = process.env.RUNNER_TEMP || os.tmpdir()
+      const restore = path.join(tmpDir, 'setup-swift', key)
+      if (await cache.restoreCache([restore], key)) {
+        core.debug(`Restored snapshot at "${restore}" from key "${key}"`)
+        tool = restore
+      } else {
         const resource = await this.download()
         const installation = await this.unpack(resource)
-        if (version) {
-          tool = await toolCache.cacheDir(installation, key, version, arch)
-        } else {
-          core.debug('Proceeding without caching non-versioned snapshot')
-          tool = installation
-        }
-      }
-      await this.add(tool)
-    } catch (error) {
-      if (!(error instanceof NoInstallationNeededError)) {
-        throw error
+        core.debug(`Downloaded and installed snapshot at "${installation}"`)
+        tool = installation
       }
     }
+    if (version) {
+      tool = await toolCache.cacheDir(tool, key, version, arch)
+      core.debug(`Added to tool cache at "${tool}"`)
+    }
+    if (core.getBooleanInput('cache-snapshot')) {
+      await cache.saveCache([tool], key)
+      core.debug(`Saved to cache with key "${key}"`)
+    }
+    await this.add(tool)
   }
 
   protected async download() {
-    const tmpDir = process.env.RUNNER_TEMP || os.tmpdir()
-    let resourcePath = path.join(tmpDir, 'setup-swift', this.data.download)
-    if (!(await cache.restoreCache([resourcePath], this.data.download))) {
-      const url = `${this.baseUrl}/${this.data.download}`
-      core.debug(`Downloading snapshot from "${url}"`)
-      resourcePath = await toolCache.downloadTool(url)
-      if (core.getBooleanInput('cache-snapshot')) {
-        await cache.saveCache([resourcePath], this.data.download)
-      }
-    } else {
-      core.debug(`Picked snapshot from cache key "${this.data.download}"`)
-    }
-    return resourcePath
+    const url = `${this.baseUrl}/${this.data.download}`
+    core.debug(`Downloading snapshot from "${url}"`)
+    return await toolCache.downloadTool(url)
   }
 
   protected abstract unpack(resource: string): Promise<string>

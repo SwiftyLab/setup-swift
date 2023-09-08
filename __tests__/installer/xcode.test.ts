@@ -7,7 +7,6 @@ import * as toolCache from '@actions/tool-cache'
 import {coerce as parseSemVer} from 'semver'
 import * as plist from 'plist'
 import {XcodeToolchainInstaller} from '../../src/installer/xcode'
-import {NoInstallationNeededError} from '../../src/installer/base'
 
 jest.mock('plist')
 
@@ -43,9 +42,14 @@ describe('macOS toolchain installation verification', () => {
       stdout: `swift-driver version: 1.75.2 Apple Swift version 5.8.1 (swiftlang-5.8.0.124.5 clang-1403.0.22.11.100)\nTarget: arm64-apple-macosx13.0`,
       stderr: ''
     })
-    await expect(installer['download']()).rejects.toMatchObject(
-      new NoInstallationNeededError('Bundled with xcode')
-    )
+    const installationNeededSpy = jest.spyOn(installer, 'isInstallationNeeded')
+    const downloadSpy = jest.spyOn(toolCache, 'downloadTool')
+    const extractSpy = jest.spyOn(toolCache, 'extractXar')
+    await installer.install()
+    for (const spy of [downloadSpy, extractSpy]) {
+      expect(spy).not.toHaveBeenCalled()
+    }
+    expect(installationNeededSpy).toHaveBeenCalled()
     expect(process.env.DEVELOPER_DIR).toBe(toolchain.xcodePath)
   })
 
@@ -131,18 +135,25 @@ describe('macOS toolchain installation verification', () => {
     const identifier = 'org.swift.581202305171a'
     jest.spyOn(toolCache, 'find').mockReturnValue(cached)
     jest.spyOn(exec, 'exec').mockResolvedValue(0)
+    jest.spyOn(cache, 'saveCache').mockResolvedValue(1)
     const downloadSpy = jest.spyOn(toolCache, 'downloadTool')
     const extractSpy = jest.spyOn(toolCache, 'extractXar')
     const deploySpy = jest.spyOn(toolCache, 'extractTar')
-    const cacheSpy = jest.spyOn(toolCache, 'cacheDir')
+    jest.spyOn(toolCache, 'cacheDir').mockResolvedValue(cached)
+    jest.spyOn(core, 'getBooleanInput').mockReturnValue(true)
     jest.spyOn(exec, 'exec').mockResolvedValue(0)
+    jest.spyOn(exec, 'getExecOutput').mockResolvedValue({
+      exitCode: 0,
+      stdout: `Apple Swift version 5.9-dev (LLVM fd38736063c15cd, Swift a533c63d783f5b8)\nTarget: arm64-apple-macosx13.0`,
+      stderr: ''
+    })
     jest.spyOn(fs, 'access').mockResolvedValue()
     jest.spyOn(fs, 'readFile').mockResolvedValue('')
     jest.spyOn(plist, 'parse').mockReturnValue({CFBundleIdentifier: identifier})
     await installer.install()
     expect(process.env.PATH?.includes(swiftPath)).toBeTruthy()
     expect(process.env.TOOLCHAINS).toBe(identifier)
-    for (const spy of [downloadSpy, extractSpy, deploySpy, cacheSpy]) {
+    for (const spy of [downloadSpy, extractSpy, deploySpy]) {
       expect(spy).not.toHaveBeenCalled()
     }
   })
