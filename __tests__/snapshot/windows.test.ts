@@ -106,6 +106,44 @@ describe('fetch windows tool data based on options', () => {
     expect(wTool.download_signature).toBeTruthy()
   })
 
+  it('fetches windows 10 named swift tool', async () => {
+    setos({os: 'win32', dist: 'Windows', release: '10.0.17063'})
+    jest.spyOn(os, 'arch').mockReturnValue('x64')
+    const name = 'swift-DEVELOPMENT-SNAPSHOT-2023-08-10-a'
+    const version = ToolchainVersion.create(name, false)
+    const tool = await Platform.toolchain(version)
+    expect(tool).toBeTruthy()
+    const lTool = tool as WindowsToolchainSnapshot
+    expect(lTool.download).toBe(
+      'swift-DEVELOPMENT-SNAPSHOT-2023-08-10-a-windows10.exe'
+    )
+    expect(lTool.dir).toBe('swift-DEVELOPMENT-SNAPSHOT-2023-08-10-a')
+    expect(lTool.platform).toBe('windows10')
+    expect(lTool.branch).toBe('development')
+    expect(lTool.download_signature).toBe(
+      'swift-DEVELOPMENT-SNAPSHOT-2023-08-10-a-windows10.exe.sig'
+    )
+  })
+
+  it('fetches windows 10 named versioned swift tool', async () => {
+    setos({os: 'win32', dist: 'Windows', release: '10.0.17063'})
+    jest.spyOn(os, 'arch').mockReturnValue('x64')
+    const name = 'swift-5.9-DEVELOPMENT-SNAPSHOT-2023-05-11-a'
+    const version = ToolchainVersion.create(name, false)
+    const tool = await Platform.toolchain(version)
+    expect(tool).toBeTruthy()
+    const lTool = tool as WindowsToolchainSnapshot
+    expect(lTool.download).toBe(
+      'swift-5.9-DEVELOPMENT-SNAPSHOT-2023-05-11-a-windows10.exe'
+    )
+    expect(lTool.dir).toBe('swift-5.9-DEVELOPMENT-SNAPSHOT-2023-05-11-a')
+    expect(lTool.platform).toBe('windows10')
+    expect(lTool.branch).toBe('swift-5.9-branch')
+    expect(lTool.download_signature).toBe(
+      'swift-5.9-DEVELOPMENT-SNAPSHOT-2023-05-11-a-windows10.exe.sig'
+    )
+  })
+
   it('fetches windows 10 latest swift 5.5 tools', async () => {
     setos({os: 'win32', dist: 'Windows', release: '10.0.17063'})
     jest.spyOn(os, 'arch').mockReturnValue('x64')

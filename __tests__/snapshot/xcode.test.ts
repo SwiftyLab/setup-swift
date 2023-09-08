@@ -138,6 +138,38 @@ describe('fetch macos tool data based on options', () => {
     }
   })
 
+  it('fetches macOs named swift tool', async () => {
+    setos({os: 'darwin', dist: 'macOS', release: '21'})
+    jest.spyOn(os, 'arch').mockReturnValue('x64')
+    const name = 'swift-DEVELOPMENT-SNAPSHOT-2023-09-02-a'
+    const version = ToolchainVersion.create(name, false)
+    const tool = await Platform.toolchain(version)
+    expect(tool).toBeTruthy()
+    const lTool = tool as XcodeToolchainSnapshot
+    expect(lTool.download).toBe(
+      'swift-DEVELOPMENT-SNAPSHOT-2023-09-02-a-osx.pkg'
+    )
+    expect(lTool.dir).toBe('swift-DEVELOPMENT-SNAPSHOT-2023-09-02-a')
+    expect(lTool.platform).toBe('xcode')
+    expect(lTool.branch).toBe('development')
+  })
+
+  it('fetches macOS named versioned swift tool', async () => {
+    setos({os: 'darwin', dist: 'macOS', release: '21'})
+    jest.spyOn(os, 'arch').mockReturnValue('x64')
+    const name = 'swift-5.9-DEVELOPMENT-SNAPSHOT-2023-09-01-a'
+    const version = ToolchainVersion.create(name, false)
+    const tool = await Platform.toolchain(version)
+    expect(tool).toBeTruthy()
+    const lTool = tool as XcodeToolchainSnapshot
+    expect(lTool.download).toBe(
+      'swift-5.9-DEVELOPMENT-SNAPSHOT-2023-09-01-a-osx.pkg'
+    )
+    expect(lTool.dir).toBe('swift-5.9-DEVELOPMENT-SNAPSHOT-2023-09-01-a')
+    expect(lTool.platform).toBe('xcode')
+    expect(lTool.branch).toBe('swift-5.9-branch')
+  })
+
   it('detects earliest toolchains', async () => {
     const platform = new XcodePlatform('x64')
     const version = ToolchainVersion.create('latest', false)

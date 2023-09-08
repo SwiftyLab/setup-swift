@@ -1,7 +1,8 @@
 import {
   ToolchainVersion,
   SemanticToolchainVersion,
-  LatestToolchainVersion
+  LatestToolchainVersion,
+  ToolchainSnapshotName
 } from '../src/version'
 
 describe('parse version from provided string', () => {
@@ -82,6 +83,27 @@ describe('parse version from provided string', () => {
     const sVersion = version as SemanticToolchainVersion
     expect(sVersion['dirGlob']).toBe('swift-5_5_1*')
     expect(sVersion['dirRegex']).toStrictEqual(/swift-5.5.1/)
+  })
+
+  it('parses toolchain name', async () => {
+    const name = 'swift-DEVELOPMENT-SNAPSHOT-2023-09-06-a'
+    const version = ToolchainVersion.create(name, false)
+    expect(version).toBeInstanceOf(ToolchainSnapshotName)
+    expect(version.dev).toBe(true)
+    const lVersion = version as ToolchainSnapshotName
+    expect(lVersion['dirGlob']).toBe('*')
+    expect(lVersion['dirRegex']).toStrictEqual(new RegExp(name))
+  })
+
+  it('parses toolchain name without prefix', async () => {
+    const input = '5.9-DEVELOPMENT-SNAPSHOT-2023-09-05-a'
+    const name = `swift-${input}`
+    const version = ToolchainVersion.create(input, false)
+    expect(version).toBeInstanceOf(ToolchainSnapshotName)
+    expect(version.dev).toBe(true)
+    const lVersion = version as ToolchainSnapshotName
+    expect(lVersion['dirGlob']).toBe('swift-5_9-*')
+    expect(lVersion['dirRegex']).toStrictEqual(new RegExp(name))
   })
 
   it('parses invalid input', async () => {

@@ -180,6 +180,44 @@ describe('fetch linux tool data based on options', () => {
     expect(lTool.docker).toBeTruthy()
   })
 
+  it('fetches ubuntu 22.04 named swift tool', async () => {
+    setos({os: 'linux', dist: 'Ubuntu', release: '22.04'})
+    jest.spyOn(os, 'arch').mockReturnValue('x64')
+    const name = 'swift-DEVELOPMENT-SNAPSHOT-2023-09-02-a'
+    const version = ToolchainVersion.create(name, false)
+    const tool = await Platform.toolchain(version)
+    expect(tool).toBeTruthy()
+    const lTool = tool as LinuxToolchainSnapshot
+    expect(lTool.download).toBe(
+      'swift-DEVELOPMENT-SNAPSHOT-2023-09-02-a-ubuntu22.04.tar.gz'
+    )
+    expect(lTool.dir).toBe('swift-DEVELOPMENT-SNAPSHOT-2023-09-02-a')
+    expect(lTool.platform).toBe('ubuntu2204')
+    expect(lTool.branch).toBe('development')
+    expect(lTool.download_signature).toBe(
+      'swift-DEVELOPMENT-SNAPSHOT-2023-09-02-a-ubuntu22.04.tar.gz.sig'
+    )
+  })
+
+  it('fetches ubuntu 22.04 named versioned swift tool', async () => {
+    setos({os: 'linux', dist: 'Ubuntu', release: '22.04'})
+    jest.spyOn(os, 'arch').mockReturnValue('x64')
+    const name = 'swift-5.9-DEVELOPMENT-SNAPSHOT-2023-09-01-a'
+    const version = ToolchainVersion.create(name, false)
+    const tool = await Platform.toolchain(version)
+    expect(tool).toBeTruthy()
+    const lTool = tool as LinuxToolchainSnapshot
+    expect(lTool.download).toBe(
+      'swift-5.9-DEVELOPMENT-SNAPSHOT-2023-09-01-a-ubuntu22.04.tar.gz'
+    )
+    expect(lTool.dir).toBe('swift-5.9-DEVELOPMENT-SNAPSHOT-2023-09-01-a')
+    expect(lTool.platform).toBe('ubuntu2204')
+    expect(lTool.branch).toBe('swift-5.9-branch')
+    expect(lTool.download_signature).toBe(
+      'swift-5.9-DEVELOPMENT-SNAPSHOT-2023-09-01-a-ubuntu22.04.tar.gz.sig'
+    )
+  })
+
   it('fetches ubuntu 18.04 latest swift 5.5 tools', async () => {
     setos({os: 'linux', dist: 'Ubuntu', release: '18.04'})
     jest.spyOn(os, 'arch').mockReturnValue('x64')
