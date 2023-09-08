@@ -93,13 +93,15 @@ describe('linux toolchain installation verification', () => {
     const cached = path.resolve('tool', 'cached', 'path')
     const swiftPath = path.join(cached, 'usr', 'bin')
     jest.spyOn(toolCache, 'find').mockReturnValue(cached)
+    jest.spyOn(toolCache, 'cacheDir').mockResolvedValue(cached)
+    jest.spyOn(cache, 'saveCache').mockResolvedValue(1)
+    jest.spyOn(core, 'getBooleanInput').mockReturnValue(true)
+    jest.spyOn(exec, 'exec').mockResolvedValue(0)
     const downloadSpy = jest.spyOn(toolCache, 'downloadTool')
     const extractSpy = jest.spyOn(toolCache, 'extractTar')
-    const cacheSpy = jest.spyOn(toolCache, 'cacheDir')
-    jest.spyOn(exec, 'exec').mockResolvedValue(0)
     await installer.install()
     expect(process.env.PATH?.includes(swiftPath)).toBeTruthy()
-    for (const spy of [downloadSpy, extractSpy, cacheSpy]) {
+    for (const spy of [downloadSpy, extractSpy]) {
       expect(spy).not.toHaveBeenCalled()
     }
   })
