@@ -1,0 +1,7 @@
+{
+    "recommendations": [
+        "ms-vscode.vscode-typescript-next",
+        "Orta.vscode-jest",
+        "dbaeumer.vscode-eslint"
+    ]
+}

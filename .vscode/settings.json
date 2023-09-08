@@ -5,6 +5,7 @@
   },
   "search.exclude": {
     "swiftorg": true,
+    "lib": true,
     "dist": true
   }
 }
