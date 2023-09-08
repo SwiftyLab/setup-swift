@@ -7,7 +7,7 @@
   "author": "Soumya Ranjan Mahunt",
   "license": "MIT",
   "homepage": "https://github.com/SwiftyLab/setup-swift#readme",
-  "swiftorg": "1f57d0ee4176ed4ab3d704c320964e1921fbdf40",
+  "swiftorg": "d7c8f98e4f7ac1bd344361f4eb3a332339bbd913",
   "engines": {
     "node": ">=16.0.0",
     "npm": ">=8.0.0"
