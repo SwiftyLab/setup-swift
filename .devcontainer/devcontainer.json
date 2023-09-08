@@ -1,0 +1,20 @@
+{
+    "image": "mcr.microsoft.com/devcontainers/universal:2",
+    "features": {
+        "ghcr.io/devcontainers-contrib/features/jest:2": {}
+    },
+    "customizations": {
+        "vscode": {
+            "settings": {
+                "jest.autoRun": "off"
+            },
+            "extensions": [
+                "eamodio.gitlens",
+                "ms-vscode.vscode-typescript-next",
+                "Orta.vscode-jest",
+                "dbaeumer.vscode-eslint"
+            ]
+        }
+    },
+    "postCreateCommand": "npm install"
+}
