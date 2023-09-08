@@ -15,7 +15,7 @@ describe('swiftorg sync validation', () => {
     const swiftorg = new Swiftorg(true)
     await swiftorg.update()
     expect(rmdirSpy).not.toHaveBeenCalled()
-    expect(execSpy).toHaveBeenCalledTimes(3)
+    expect(execSpy).toHaveBeenCalledTimes(2)
     const gitArgs = [
       'submodule',
       'update',
@@ -24,7 +24,7 @@ describe('swiftorg sync validation', () => {
       '--remote',
       '--merge'
     ]
-    expect(execSpy.mock.calls[2]).toStrictEqual([
+    expect(execSpy.mock.calls[1]).toStrictEqual([
       'git',
       gitArgs,
       {cwd: MODULE_DIR}
@@ -38,9 +38,9 @@ describe('swiftorg sync validation', () => {
     const swiftorg = new Swiftorg(false)
     await swiftorg.update()
     expect(rmdirSpy).not.toHaveBeenCalled()
-    expect(execSpy).toHaveBeenCalledTimes(3)
-    const gitArgs = ['submodule', 'update']
-    expect(execSpy.mock.calls[2]).toStrictEqual([
+    expect(execSpy).toHaveBeenCalledTimes(2)
+    const gitArgs = ['submodule', 'update', '--init']
+    expect(execSpy.mock.calls[1]).toStrictEqual([
       'git',
       gitArgs,
       {cwd: MODULE_DIR}
@@ -54,7 +54,7 @@ describe('swiftorg sync validation', () => {
     const swiftorg = new Swiftorg(true)
     await swiftorg.update()
     expect(rmdirSpy).toHaveBeenCalled()
-    expect(execSpy).toHaveBeenCalledTimes(4)
+    expect(execSpy).toHaveBeenCalledTimes(3)
   })
 
   it('tests without latest sync failure with empty swiftorg', async () => {
@@ -64,7 +64,7 @@ describe('swiftorg sync validation', () => {
     const swiftorg = new Swiftorg(false)
     await swiftorg.update()
     expect(rmdirSpy).toHaveBeenCalled()
-    expect(execSpy).toHaveBeenCalledTimes(5)
+    expect(execSpy).toHaveBeenCalledTimes(4)
   })
 
   it('tests latest sync failure with no swiftorg', async () => {
@@ -74,7 +74,7 @@ describe('swiftorg sync validation', () => {
     const swiftorg = new Swiftorg(true)
     await swiftorg.update()
     expect(rmdirSpy).not.toHaveBeenCalled()
-    expect(execSpy).toHaveBeenCalledTimes(4)
+    expect(execSpy).toHaveBeenCalledTimes(3)
   })
 
   it('tests without latest sync failure with no swiftorg', async () => {
@@ -84,7 +84,7 @@ describe('swiftorg sync validation', () => {
     const swiftorg = new Swiftorg(false)
     await swiftorg.update()
     expect(rmdirSpy).not.toHaveBeenCalled()
-    expect(execSpy).toHaveBeenCalledTimes(5)
+    expect(execSpy).toHaveBeenCalledTimes(4)
   })
 
   it('tests without latest sync failure with empty swiftorg and no commit in package.json', async () => {
@@ -95,7 +95,7 @@ describe('swiftorg sync validation', () => {
     const swiftorg = new Swiftorg(false)
     await swiftorg.update()
     expect(rmdirSpy).toHaveBeenCalled()
-    expect(execSpy).toHaveBeenCalledTimes(4)
+    expect(execSpy).toHaveBeenCalledTimes(3)
   })
 
   it('tests without latest sync failure with no swiftorg and no commit in package.json', async () => {
@@ -106,6 +106,6 @@ describe('swiftorg sync validation', () => {
     const swiftorg = new Swiftorg(false)
     await swiftorg.update()
     expect(rmdirSpy).not.toHaveBeenCalled()
-    expect(execSpy).toHaveBeenCalledTimes(4)
+    expect(execSpy).toHaveBeenCalledTimes(3)
   })
 })

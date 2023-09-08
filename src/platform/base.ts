@@ -48,6 +48,7 @@ export abstract class Platform<
           } as SnapshotForInstaller<Installer>
         })
       })
+      .filter(item => version.satisfiedBy((item as ToolchainSnapshot).dir))
       .sort(
         (item1, item2) =>
           (item2 as ToolchainSnapshot).date.getTime() -
