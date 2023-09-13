@@ -2,13 +2,10 @@
 
 [![GitHub Action](https://img.shields.io/github/v/tag/SwiftyLab/setup-swift?logo=github&label=GitHub)](https://github.com/marketplace/actions/setup-swift-environment-for-macos-linux-and-windows)
 [![Supports macOS, Linux & Windows](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-blue?label=platform)](https://help.github.com/en/actions/automating-your-workflow-with-github-actions/virtual-environments-for-github-hosted-runners#supported-runners-and-hardware-resources)
-[![Swift 5.9](https://img.shields.io/badge/Swift-5.9-orange?logo=swift&logoColor=white)](https://swift.org)
 [![CI/CD](https://github.com/SwiftyLab/setup-swift/actions/workflows/main.yml/badge.svg)](https://github.com/SwiftyLab/setup-swift/actions/workflows/main.yml)
 [![CodeFactor](https://www.codefactor.io/repository/github/swiftylab/setup-swift/badge)](https://www.codefactor.io/repository/github/swiftylab/setup-swift)
 [![codecov](https://codecov.io/gh/SwiftyLab/setup-swift/graph/badge.svg?token=XWfSpWQ6gC)](https://codecov.io/gh/SwiftyLab/setup-swift)
 [![Get it from Marketplace](https://img.shields.io/badge/Get_it-from_Marketplace-blue?logo=github)](https://github.com/marketplace/actions/setup-swift-environment-for-macos-linux-and-windows)
-
-![swift.org](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FSwiftyLab%2Fsetup-swift%2Fmain%2Fpackage.json&query=%24.swiftorg&logo=swift&logoColor=white&label=swift.org)
 
 [GitHub Action](https://github.com/features/actions) that will setup [Swift](https://swift.org) environment with specified version.
 This action supports the following functionalities:
@@ -21,6 +18,12 @@ This action supports the following functionalities:
 - Prefers existing Xcode installations.
 - Caches installed setup in tool cache.
 - Allows fetching snapshot metadata without installation (can be used to setup docker images).
+
+| Release Type | Latest Available |
+|--------------|------------------|
+| Stable | [![Latest Release](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FSwiftyLab%2Fsetup-swift%2Fmain%2Fpackage.json&query=%24.swiftorg.release.name&logo=swift&logoColor=white&label=Swift&color=orange)](https://www.swift.org/download/#releases)<br/>[![Latest Release Tag](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FSwiftyLab%2Fsetup-swift%2Fmain%2Fpackage.json&query=%24.swiftorg.release.tag&logo=swift&logoColor=white&label=tag&color=orange)](https://www.swift.org/download/#releases) |
+| Development | [![Latest Development Snapshot](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FSwiftyLab%2Fsetup-swift%2Fmain%2Fpackage.json&query=%24.swiftorg.dev.name&logo=swift&logoColor=white&label=Swift&color=orange)](https://www.swift.org/download/#snapshots)<br/>[![Latest Development Snapshot Tag](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FSwiftyLab%2Fsetup-swift%2Fmain%2Fpackage.json&query=%24.swiftorg.dev.tag&logo=swift&logoColor=white&label=tag&color=orange)](https://www.swift.org/download/#snapshots)<br/>[![Latest Development Snapshot Date](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FSwiftyLab%2Fsetup-swift%2Fmain%2Fpackage.json&query=%24.swiftorg.dev.date&logo=swift&logoColor=white&label=date)](https://www.swift.org/download/#snapshots) |
+| Trunk Development | [![Latest Trunk Development Snapshot Tag](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FSwiftyLab%2Fsetup-swift%2Fmain%2Fpackage.json&query=%24.swiftorg.snapshot.tag&logo=swift&logoColor=white&label=tag&color=orange)](https://www.swift.org/download/#snapshots)<br/>[![Latest Trunk Development Snapshot Date](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FSwiftyLab%2Fsetup-swift%2Fmain%2Fpackage.json&query=%24.swiftorg.snapshot.date&logo=swift&logoColor=white&label=date)](https://www.swift.org/download/#snapshots) |
 
 ## Usage
 

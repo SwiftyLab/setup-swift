@@ -7,6 +7,10 @@ import {LinuxToolchainInstaller} from '../installer'
 import {MODULE_DIR} from '../const'
 
 export class LinuxPlatform extends VersionedPlatform<LinuxToolchainInstaller> {
+  protected get downloadExtension() {
+    return 'tar.gz'
+  }
+
   private async html() {
     const doc = path.join(MODULE_DIR, 'swiftorg', 'download', 'index.md')
     const content = await fs.readFile(doc, 'utf8')

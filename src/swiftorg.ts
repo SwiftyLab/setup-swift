@@ -35,7 +35,8 @@ export class Swiftorg {
     }
     const packagePath = path.join(MODULE_DIR, 'package.json')
     const packageContent = await fs.readFile(packagePath, 'utf-8')
-    const commit = (JSON.parse(packageContent) as {swiftorg?: string}).swiftorg
+    const commit = (JSON.parse(packageContent) as {swiftorg?: {commit: string}})
+      .swiftorg?.commit
     if (!commit) {
       core.debug(`No commit tracked in "${packageContent}, skipping switching`)
       return

@@ -3,7 +3,7 @@ import * as core from '@actions/core'
 import {glob} from 'glob'
 import {MODULE_DIR} from '../const'
 
-const SWIFT_RELEASE_REGEX = /swift-.*-release/
+export const SWIFT_RELEASE_REGEX = /swift-(.*)-release/
 
 export abstract class ToolchainVersion {
   protected abstract readonly dirGlob: string

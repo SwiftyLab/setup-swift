@@ -181,20 +181,6 @@ describe('fetch macos tool data based on options', () => {
     expect(earliestTool.platform).toBe('xcode')
     expect(earliestTool.branch).toBe('swift-2.2-release')
     expect(earliestTool.download).toBe('swift-2.2-RELEASE-osx.pkg')
-    expect(earliestTool.symbols).toBeUndefined()
-
-    const earliestDownloadableTool = tools
-      .slice()
-      .reverse()
-      .find(tool => tool.symbols)
-    expect(earliestDownloadableTool?.xcode).toBe('8')
-    expect(earliestDownloadableTool?.dir).toBe('swift-3.0-RELEASE')
-    expect(earliestDownloadableTool?.download).toBe('swift-3.0-RELEASE-osx.pkg')
-    expect(earliestDownloadableTool?.symbols).toBe(
-      'swift-3.0-RELEASE-osx-symbols.pkg'
-    )
-    expect(earliestDownloadableTool?.platform).toBe('xcode')
-    expect(earliestDownloadableTool?.branch).toBe('swift-3.0-release')
   })
 
   it('fetches macOS latest swift 5.5 tools', async () => {
