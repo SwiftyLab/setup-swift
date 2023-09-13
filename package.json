@@ -7,7 +7,80 @@
   "author": "Soumya Ranjan Mahunt",
   "license": "MIT",
   "homepage": "https://github.com/SwiftyLab/setup-swift#readme",
-  "swiftorg": "3b07687f2a44abfc21fe3ec3cc27590bff1cc0a3",
+  "swiftorg": {
+    "commit": "d7c8f98e4f7ac1bd344361f4eb3a332339bbd913",
+    "release": {
+      "name": "5.8.1",
+      "tag": "swift-5.8.1-RELEASE",
+      "xcode": "Xcode 14.3.1",
+      "xcode_release": true,
+      "date": "2023-06-01T00:00:00.000Z",
+      "platforms": [
+        {
+          "name": "Ubuntu 18.04",
+          "docker": "5.8.1-bionic",
+          "archs": [
+            "x86_64"
+          ]
+        },
+        {
+          "name": "Ubuntu 20.04",
+          "docker": "5.8.1-focal",
+          "archs": [
+            "x86_64",
+            "aarch64"
+          ]
+        },
+        {
+          "name": "Ubuntu 22.04",
+          "docker": "5.8.1-jammy",
+          "archs": [
+            "x86_64",
+            "aarch64"
+          ]
+        },
+        {
+          "name": "CentOS 7",
+          "docker": "5.8.1-centos7",
+          "archs": [
+            "x86_64"
+          ]
+        },
+        {
+          "name": "Amazon Linux 2",
+          "docker": "5.8.1-amazonlinux2",
+          "archs": [
+            "x86_64",
+            "aarch64"
+          ]
+        },
+        {
+          "name": "Red Hat Universal Base Image 9",
+          "docker": "5.8.1-rhel-ubi9",
+          "dir": "ubi9",
+          "archs": [
+            "x86_64",
+            "aarch64"
+          ]
+        },
+        {
+          "name": "Windows 10",
+          "archs": [
+            "x86_64"
+          ]
+        }
+      ]
+    },
+    "dev": {
+      "name": "5.9",
+      "date": "2023-09-05T16:10:00.000Z",
+      "tag": "swift-5.9-DEVELOPMENT-SNAPSHOT-2023-09-05-a"
+    },
+    "snapshot": {
+      "date": "2023-09-06T16:10:00.000Z",
+      "tag": "swift-DEVELOPMENT-SNAPSHOT-2023-09-06-a"
+    }
+  },
   "engines": {
     "node": ">=16.0.0",
     "npm": ">=8.0.0"
@@ -28,7 +101,7 @@
     "ci"
   ],
   "scripts": {
-    "prepare": "npm run build",
+    "prepare": "npm run build && git submodule update --init",
     "build": "tsc",
     "format": "prettier --write \"**/*.ts\"",
     "lint": "eslint src/**/*.ts && prettier --check \"**/*.ts\"",
@@ -51,6 +124,7 @@
     "semver": "^7.5.2"
   },
   "devDependencies": {
+    "@npmcli/package-json": "^5.0.0",
     "@types/getos": "^3.0.1",
     "@types/jest": "^29.5.1",
     "@types/js-yaml": "^4.0.5",

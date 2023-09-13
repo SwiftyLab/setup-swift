@@ -15,12 +15,19 @@ export class ToolchainSnapshotName extends ToolchainVersion {
     return `swift-${this.name}`
   }
 
-  protected get dirGlob() {
+  private get version() {
     const match = /swift-([^-]*)-/.exec(this.dir)
     if (!match || match.length < 2 || !parseSemVer(match[1])) {
+      return
+    }
+    return match[1]
+  }
+
+  protected get dirGlob() {
+    if (!this.version) {
       return '*'
     }
-    return `swift-${match[1].replaceAll('.', '_')}-*`
+    return `swift-${this.version.replaceAll('.', '_')}-*`
   }
 
   protected get dirRegex() {
