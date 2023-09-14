@@ -12,7 +12,8 @@
                 "eamodio.gitlens",
                 "ms-vscode.vscode-typescript-next",
                 "Orta.vscode-jest",
-                "dbaeumer.vscode-eslint"
+                "dbaeumer.vscode-eslint",
+                "github.vscode-github-actions"
             ]
         }
     },

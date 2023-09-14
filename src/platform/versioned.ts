@@ -2,11 +2,14 @@ import * as path from 'path'
 import * as core from '@actions/core'
 import {Platform} from './base'
 import {ToolchainVersion} from '../version'
+import {ToolchainSnapshot} from '../snapshot'
 import {ToolchainInstaller, SnapshotForInstaller} from '../installer'
 
 export abstract class VersionedPlatform<
   Installer extends ToolchainInstaller<SnapshotForInstaller<Installer>>
 > extends Platform<Installer> {
+  protected abstract readonly downloadExtension: string
+
   constructor(
     readonly name: string,
     readonly version: number,
@@ -15,9 +18,12 @@ export abstract class VersionedPlatform<
     super()
   }
 
+  private get archSuffix() {
+    return this.arch === 'x86_64' ? '' : `-${this.arch}`
+  }
+
   private fileForVersion(version: number | string) {
-    const archSuffix = this.arch === 'x86_64' ? '' : `-${this.arch}`
-    return this.name + version + archSuffix
+    return this.name + version + this.archSuffix
   }
 
   get file() {
@@ -28,18 +34,15 @@ export abstract class VersionedPlatform<
     return this.fileForVersion('*')
   }
 
-  private fallbackFiles(files: string[]) {
-    if (!files.length) {
-      return []
-    }
+  private get nameRegex() {
+    return new RegExp(`${this.name}(?<version>[0-9]*)(-.*)?`)
+  }
 
-    const fileRegex = new RegExp(`${this.name}(?<version>[0-9]*)(-.*)?`)
+  private fallbackPlatformVersion(platforms: string[]) {
     let maxVer: number | undefined
     let minVer: number | undefined
-    for (const file of files) {
-      const yml = path.extname(file)
-      const filename = path.basename(file, yml)
-      const match = fileRegex.exec(filename)
+    for (const platform of platforms) {
+      const match = this.nameRegex.exec(platform)
       const version = match?.groups?.version
       if (!version) {
         continue
@@ -48,23 +51,34 @@ export abstract class VersionedPlatform<
       if (maxVer === undefined || maxVer < ver) maxVer = ver
       if (minVer === undefined || minVer > ver) minVer = ver
     }
+    return maxVer ?? minVer
+  }
 
-    const selectedVer = maxVer ?? minVer
-    if (!selectedVer || !files.length) {
+  private fallbackFiles(files: string[]) {
+    if (!files.length) {
       return []
     }
-    const fallbackFiles = files.filter(file => {
+
+    const fallbackVer = this.fallbackPlatformVersion(
+      files.map(file => {
+        const yml = path.extname(file)
+        return path.basename(file, yml)
+      })
+    )
+    if (!fallbackVer || !files.length) {
+      return []
+    }
+    return files.filter(file => {
       const yml = path.extname(file)
       const filename = path.basename(file, yml)
-      const match = fileRegex.exec(filename)
-      const version = match?.groups?.version
-      if (!version) {
+      const match = this.nameRegex.exec(filename)
+      const versionStr = match?.groups?.version
+      if (!versionStr) {
         return false
       }
-      const ver = parseInt(version)
-      return ver === selectedVer
+      const ver = parseInt(versionStr)
+      return ver === fallbackVer
     })
-    return fallbackFiles
   }
 
   protected async toolFiles(version: ToolchainVersion) {
@@ -81,5 +95,53 @@ export abstract class VersionedPlatform<
       files = this.fallbackFiles(files)
     }
     return files
+  }
+
+  protected async releasedTools(version: ToolchainVersion) {
+    const releases = await this.releases()
+    const allReleasedTools = releases
+      .filter(release => version.satisfiedBy(release.tag))
+      .flatMap(release => {
+        return release.platforms.flatMap(platform => {
+          const pName =
+            platform.dir ??
+            platform.name.replaceAll(/\s+|\./g, '').toLowerCase()
+          const pDownloadName =
+            platform.dir ?? platform.name.replaceAll(/\s+/g, '').toLowerCase()
+          const download = `${release.tag}-${pDownloadName}${this.archSuffix}.${this.downloadExtension}`
+          return platform.archs.includes(this.arch)
+            ? ({
+                name: platform.name,
+                date: release.date,
+                download,
+                download_signature: `${download}.sig`,
+                dir: release.tag,
+                platform: pName + this.archSuffix,
+                branch: release.tag.toLocaleLowerCase(),
+                docker: platform.docker,
+                windows: pName.startsWith('windows')
+              } as ToolchainSnapshot)
+            : []
+        })
+      })
+    const platformReleasedTools = allReleasedTools.filter(
+      tool => tool.platform === this.file
+    )
+    if (platformReleasedTools.length) {
+      return platformReleasedTools as SnapshotForInstaller<Installer>[]
+    }
+
+    const fallbackVer = this.fallbackPlatformVersion(
+      allReleasedTools.map(tool => tool.platform)
+    )
+    return allReleasedTools.filter(tool => {
+      const match = this.nameRegex.exec(tool.platform)
+      const versionStr = match?.groups?.version
+      if (!versionStr) {
+        return false
+      }
+      const ver = parseInt(versionStr)
+      return ver === fallbackVer
+    }) as SnapshotForInstaller<Installer>[]
   }
 }

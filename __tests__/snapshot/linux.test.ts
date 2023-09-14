@@ -64,6 +64,23 @@ describe('fetch linux tool data based on options', () => {
     expect(lTool.docker).toBe('5.5-bionic')
   })
 
+  it('fetches ubuntu 20.04 arm64 latest swift 5.6.0 tool', async () => {
+    setos({os: 'linux', dist: 'Ubuntu', release: '20.04'})
+    jest.spyOn(os, 'arch').mockReturnValue('arm64')
+    const ver5_6_0 = ToolchainVersion.create('5.6.0', false)
+    const tool = await Platform.toolchain(ver5_6_0)
+    expect(tool).toBeTruthy()
+    const lTool = tool as LinuxToolchainSnapshot
+    expect(lTool.download).toBe('swift-5.6-RELEASE-ubuntu20.04-aarch64.tar.gz')
+    expect(lTool.dir).toBe('swift-5.6-RELEASE')
+    expect(lTool.platform).toBe('ubuntu2004-aarch64')
+    expect(lTool.branch).toBe('swift-5.6-release')
+    expect(lTool.download_signature).toBe(
+      'swift-5.6-RELEASE-ubuntu20.04-aarch64.tar.gz.sig'
+    )
+    expect(lTool.docker).toBe('5.6-focal')
+  })
+
   it('fetches ubuntu 18.04 latest swift 5.5 tool', async () => {
     setos({os: 'linux', dist: 'Ubuntu', release: '18.04'})
     jest.spyOn(os, 'arch').mockReturnValue('x64')
@@ -232,12 +249,20 @@ describe('fetch linux tool data based on options', () => {
     expect(tools.length).toBe(103)
   })
 
-  it('fetches ubuntu 16.04 latest swift 5.6 tools', async () => {
+  it('fetches ubuntu 16.04 latest swift 5.6.1 tools', async () => {
     setos({os: 'linux', dist: 'Ubuntu', release: '16.04'})
     jest.spyOn(os, 'arch').mockReturnValue('x64')
     const ver5_6_1 = ToolchainVersion.create('5.6.1', false)
     const tools = await Platform.toolchains(ver5_6_1)
-    expect(tools.length).toBe(2)
+    expect(tools.length).toBe(1)
+  })
+
+  it('fetches ubuntu 16.04 latest swift 5.7 dev tools', async () => {
+    setos({os: 'linux', dist: 'Ubuntu', release: '16.04'})
+    jest.spyOn(os, 'arch').mockReturnValue('x64')
+    const dev5_7 = ToolchainVersion.create('5.7', true)
+    const tools = await Platform.toolchains(dev5_7)
+    expect(tools.length).toBe(8)
   })
 
   it('fetches ubuntu 20.04 latest swift 5.2 tools', async () => {
