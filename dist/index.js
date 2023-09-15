@@ -1591,7 +1591,7 @@ class Swiftorg {
         return __awaiter(this, void 0, void 0, function* () {
             const gitArgs = ['submodule', 'update', '--init'];
             if (this.checkLatest) {
-                gitArgs.push('--recursive', '--remote', '--merge');
+                gitArgs.push('--recursive', '--remote');
             }
             core.debug(`Initializing submodules in "${const_1.MODULE_DIR}"`);
             yield (0, exec_1.exec)('git', ['init'], { cwd: const_1.MODULE_DIR });

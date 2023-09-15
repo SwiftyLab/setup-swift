@@ -16,14 +16,7 @@ describe('swiftorg sync validation', () => {
     await swiftorg.update()
     expect(rmdirSpy).not.toHaveBeenCalled()
     expect(execSpy).toHaveBeenCalledTimes(2)
-    const gitArgs = [
-      'submodule',
-      'update',
-      '--init',
-      '--recursive',
-      '--remote',
-      '--merge'
-    ]
+    const gitArgs = ['submodule', 'update', '--init', '--recursive', '--remote']
     expect(execSpy.mock.calls[1]).toStrictEqual([
       'git',
       gitArgs,

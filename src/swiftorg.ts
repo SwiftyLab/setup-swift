@@ -48,7 +48,7 @@ export class Swiftorg {
   async update() {
     const gitArgs = ['submodule', 'update', '--init']
     if (this.checkLatest) {
-      gitArgs.push('--recursive', '--remote', '--merge')
+      gitArgs.push('--recursive', '--remote')
     }
     core.debug(`Initializing submodules in "${MODULE_DIR}"`)
     await exec('git', ['init'], {cwd: MODULE_DIR})
