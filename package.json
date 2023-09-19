@@ -8,24 +8,24 @@
   "license": "MIT",
   "homepage": "https://github.com/SwiftyLab/setup-swift#readme",
   "swiftorg": {
-    "commit": "e85140886ae36be7dcc5b381d81bd2329754a8f6",
+    "commit": "73f218c8e0d3ef6bc1b89f50862deb928a4b0d10",
     "release": {
-      "name": "5.8.1",
-      "tag": "swift-5.8.1-RELEASE",
-      "xcode": "Xcode 14.3.1",
+      "name": 5.9,
+      "tag": "swift-5.9-RELEASE",
+      "xcode": "Xcode 15",
       "xcode_release": true,
-      "date": "2023-06-01T00:00:00.000Z",
+      "date": "2023-09-18T00:00:00.000Z",
       "platforms": [
         {
           "name": "Ubuntu 18.04",
-          "docker": "5.8.1-bionic",
+          "docker": "Coming Soon",
           "archs": [
             "x86_64"
           ]
         },
         {
           "name": "Ubuntu 20.04",
-          "docker": "5.8.1-focal",
+          "docker": "Coming Soon",
           "archs": [
             "x86_64",
             "aarch64"
@@ -33,7 +33,7 @@
         },
         {
           "name": "Ubuntu 22.04",
-          "docker": "5.8.1-jammy",
+          "docker": "Coming Soon",
           "archs": [
             "x86_64",
             "aarch64"
@@ -41,14 +41,14 @@
         },
         {
           "name": "CentOS 7",
-          "docker": "5.8.1-centos7",
+          "docker": "Coming Soon",
           "archs": [
             "x86_64"
           ]
         },
         {
           "name": "Amazon Linux 2",
-          "docker": "5.8.1-amazonlinux2",
+          "docker": "Coming Soon",
           "archs": [
             "x86_64",
             "aarch64"
@@ -56,7 +56,7 @@
         },
         {
           "name": "Red Hat Universal Base Image 9",
-          "docker": "5.8.1-rhel-ubi9",
+          "docker": "Coming Soon",
           "dir": "ubi9",
           "archs": [
             "x86_64",
@@ -77,8 +77,8 @@
       "tag": "swift-5.10-DEVELOPMENT-SNAPSHOT-2023-09-09-a"
     },
     "snapshot": {
-      "date": "2023-09-08T16:10:00.000Z",
-      "tag": "swift-DEVELOPMENT-SNAPSHOT-2023-09-08-a"
+      "date": "2023-09-17T16:10:00.000Z",
+      "tag": "swift-DEVELOPMENT-SNAPSHOT-2023-09-17-a"
     }
   },
   "engines": {
