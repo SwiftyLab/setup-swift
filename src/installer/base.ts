@@ -5,6 +5,7 @@ import {getExecOutput} from '@actions/exec'
 import * as cache from '@actions/cache'
 import * as toolCache from '@actions/tool-cache'
 import {coerce as parseSemVer} from 'semver'
+import {SWIFT_BRANCH_REGEX} from '../version'
 import {ToolchainSnapshot} from '../snapshot'
 
 export type SnapshotForInstaller<Installer> =
@@ -16,7 +17,7 @@ export abstract class ToolchainInstaller<Snapshot extends ToolchainSnapshot> {
   constructor(readonly data: Snapshot) {}
 
   protected get version() {
-    const match = /swift-(.*)-/.exec(this.data.branch)
+    const match = SWIFT_BRANCH_REGEX.exec(this.data.branch)
     return match && match.length > 1 ? parseSemVer(match[1]) : undefined
   }
 

@@ -24,7 +24,7 @@ async function latestRelease() {
 
 async function latestDevRelease() {
   const buildEntries = await fs.readdir(SWIFT_ORG_BUILD, { withFileTypes: true });
-  const devBranchRegex = /swift-(.*)-branch/;
+  const devBranchRegex = /swift-([^-]*)-branch/;
   const devDirs = buildEntries.flatMap(entry => {
       if (!entry.isDirectory() || !devBranchRegex.exec(entry.name)) {
           return [];

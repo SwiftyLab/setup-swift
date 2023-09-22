@@ -2,7 +2,8 @@ import * as path from 'path'
 import {promises as fs} from 'fs'
 import * as core from '@actions/core'
 import * as yaml from 'js-yaml'
-import {ToolchainVersion} from '../version'
+import semver from 'semver'
+import {ToolchainVersion, SWIFT_BRANCH_REGEX} from '../version'
 import {ToolchainSnapshot, SwiftRelease} from '../snapshot'
 import {ToolchainInstaller, SnapshotForInstaller} from '../installer'
 import {MODULE_DIR} from '../const'
@@ -32,6 +33,22 @@ export abstract class Platform<
     return yaml.load(data) as SwiftRelease[]
   }
 
+  private sortSnapshots(snapshots: SnapshotForInstaller<Installer>[]) {
+    return snapshots.sort((item1, item2) => {
+      const t1 = item1 as ToolchainSnapshot
+      const t2 = item2 as ToolchainSnapshot
+      const ver1 = semver.coerce(SWIFT_BRANCH_REGEX.exec(t1.branch)?.[0])
+      const ver2 = semver.coerce(SWIFT_BRANCH_REGEX.exec(t2.branch)?.[0])
+      if (ver1 && ver2) {
+        const comparison = semver.compare(ver2, ver1)
+        if (comparison !== 0) {
+          return comparison
+        }
+      }
+      return t2.date.getTime() - t1.date.getTime()
+    })
+  }
+
   protected abstract releasedTools(
     version: ToolchainVersion
   ): Promise<SnapshotForInstaller<Installer>[]>
@@ -41,11 +58,7 @@ export abstract class Platform<
   ): Promise<SnapshotForInstaller<Installer>[]> {
     const snapshots = await this.releasedTools(version)
     if (snapshots.length && !version.dev) {
-      return snapshots.sort(
-        (item1, item2) =>
-          (item2 as ToolchainSnapshot).date.getTime() -
-          (item1 as ToolchainSnapshot).date.getTime()
-      )
+      return this.sortSnapshots(snapshots)
     }
     const files = await this.toolFiles(version)
     core.debug(`Using files "${files}" to get toolchains snapshot data`)
@@ -76,11 +89,7 @@ export abstract class Platform<
       })
       .filter(item => version.satisfiedBy((item as ToolchainSnapshot).dir))
     snapshots.push(...devSnapshots)
-    return snapshots.sort(
-      (item1, item2) =>
-        (item2 as ToolchainSnapshot).date.getTime() -
-        (item1 as ToolchainSnapshot).date.getTime()
-    )
+    return this.sortSnapshots(snapshots)
   }
 
   abstract install(

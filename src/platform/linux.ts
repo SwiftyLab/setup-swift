@@ -1,7 +1,7 @@
 import * as path from 'path'
 import {promises as fs} from 'fs'
 import {VersionedPlatform} from './versioned'
-import {ToolchainVersion} from '../version'
+import {ToolchainVersion, SWIFT_BRANCH_REGEX} from '../version'
 import {LinuxToolchainSnapshot} from '../snapshot'
 import {LinuxToolchainInstaller} from '../installer'
 import {MODULE_DIR} from '../const'
@@ -26,7 +26,7 @@ export class LinuxPlatform extends VersionedPlatform<LinuxToolchainInstaller> {
           return tool
         }
         let headingPattern: RegExp
-        const match = /swift-(.*)-/.exec(tool.branch)
+        const match = SWIFT_BRANCH_REGEX.exec(tool.branch)
         if (match && match.length > 1) {
           const ver = match[1]
           headingPattern = new RegExp(`Swift ${ver}`, 'g')
