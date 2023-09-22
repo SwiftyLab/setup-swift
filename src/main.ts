@@ -1,5 +1,5 @@
 import * as core from '@actions/core'
-import {ToolchainVersion} from './version'
+import {ToolchainVersion, SWIFT_BRANCH_REGEX} from './version'
 import {Swiftorg} from './swiftorg'
 import {ToolchainSnapshot} from './snapshot'
 import {Platform} from './platform'
@@ -26,7 +26,7 @@ export async function run() {
       } else {
         throw new Error(`No Swift toolchain found for ${version}`)
       }
-      const match = /swift-(.*)-/.exec(toolchain.branch)
+      const match = SWIFT_BRANCH_REGEX.exec(toolchain.branch)
       if (match && match.length > 1) {
         installedVersion = match[1]
       } else {

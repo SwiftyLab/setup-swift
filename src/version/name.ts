@@ -2,6 +2,7 @@ import {coerce as parseSemVer} from 'semver'
 import {ToolchainVersion} from './base'
 
 export const DEVELOPMENT_SNAPSHOT = 'DEVELOPMENT-SNAPSHOT'
+export const SWIFT_BRANCH_REGEX = /swift-([^-]*)-.*/
 
 export class ToolchainSnapshotName extends ToolchainVersion {
   constructor(readonly name: string) {
@@ -16,7 +17,7 @@ export class ToolchainSnapshotName extends ToolchainVersion {
   }
 
   private get version() {
-    const match = /swift-([^-]*)-/.exec(this.dir)
+    const match = SWIFT_BRANCH_REGEX.exec(this.dir)
     if (!match || match.length < 2 || !parseSemVer(match[1])) {
       return
     }

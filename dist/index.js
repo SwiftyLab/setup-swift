@@ -83,12 +83,13 @@ const exec_1 = __nccwpck_require__(1514);
 const cache = __importStar(__nccwpck_require__(7799));
 const toolCache = __importStar(__nccwpck_require__(7784));
 const semver_1 = __nccwpck_require__(1383);
+const version_1 = __nccwpck_require__(4428);
 class ToolchainInstaller {
     constructor(data) {
         this.data = data;
     }
     get version() {
-        const match = /swift-(.*)-/.exec(this.data.branch);
+        const match = version_1.SWIFT_BRANCH_REGEX.exec(this.data.branch);
         return match && match.length > 1 ? (0, semver_1.coerce)(match[1]) : undefined;
     }
     get baseUrl() {
@@ -863,7 +864,7 @@ function run() {
                 else {
                     throw new Error(`No Swift toolchain found for ${version}`);
                 }
-                const match = /swift-(.*)-/.exec(toolchain.branch);
+                const match = version_1.SWIFT_BRANCH_REGEX.exec(toolchain.branch);
                 if (match && match.length > 1) {
                     installedVersion = match[1];
                 }
@@ -930,12 +931,17 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Platform = void 0;
 const path = __importStar(__nccwpck_require__(1017));
 const fs_1 = __nccwpck_require__(7147);
 const core = __importStar(__nccwpck_require__(2186));
 const yaml = __importStar(__nccwpck_require__(1917));
+const semver_1 = __importDefault(__nccwpck_require__(1383));
+const version_1 = __nccwpck_require__(4428);
 const const_1 = __nccwpck_require__(6695);
 const RELEASE_FILE = path.join(const_1.MODULE_DIR, 'swiftorg', '_data', 'builds', 'swift_releases.yml');
 class Platform {
@@ -950,12 +956,27 @@ class Platform {
             return yaml.load(data);
         });
     }
+    sortSnapshots(snapshots) {
+        return snapshots.sort((item1, item2) => {
+            var _a, _b;
+            const t1 = item1;
+            const t2 = item2;
+            const ver1 = semver_1.default.coerce((_a = version_1.SWIFT_BRANCH_REGEX.exec(t1.branch)) === null || _a === void 0 ? void 0 : _a[0]);
+            const ver2 = semver_1.default.coerce((_b = version_1.SWIFT_BRANCH_REGEX.exec(t2.branch)) === null || _b === void 0 ? void 0 : _b[0]);
+            if (ver1 && ver2) {
+                const comparison = semver_1.default.compare(ver2, ver1);
+                if (comparison !== 0) {
+                    return comparison;
+                }
+            }
+            return t2.date.getTime() - t1.date.getTime();
+        });
+    }
     tools(version) {
         return __awaiter(this, void 0, void 0, function* () {
             const snapshots = yield this.releasedTools(version);
             if (snapshots.length && !version.dev) {
-                return snapshots.sort((item1, item2) => item2.date.getTime() -
-                    item1.date.getTime());
+                return this.sortSnapshots(snapshots);
             }
             const files = yield this.toolFiles(version);
             core.debug(`Using files "${files}" to get toolchains snapshot data`);
@@ -978,8 +999,7 @@ class Platform {
             })
                 .filter(item => version.satisfiedBy(item.dir));
             snapshots.push(...devSnapshots);
-            return snapshots.sort((item1, item2) => item2.date.getTime() -
-                item1.date.getTime());
+            return this.sortSnapshots(snapshots);
         });
     }
 }
@@ -1156,6 +1176,7 @@ exports.LinuxPlatform = void 0;
 const path = __importStar(__nccwpck_require__(1017));
 const fs_1 = __nccwpck_require__(7147);
 const versioned_1 = __nccwpck_require__(1325);
+const version_1 = __nccwpck_require__(4428);
 const installer_1 = __nccwpck_require__(8979);
 const const_1 = __nccwpck_require__(6695);
 class LinuxPlatform extends versioned_1.VersionedPlatform {
@@ -1181,7 +1202,7 @@ class LinuxPlatform extends versioned_1.VersionedPlatform {
                     return tool;
                 }
                 let headingPattern;
-                const match = /swift-(.*)-/.exec(tool.branch);
+                const match = version_1.SWIFT_BRANCH_REGEX.exec(tool.branch);
                 if (match && match.length > 1) {
                     const ver = match[1];
                     headingPattern = new RegExp(`Swift ${ver}`, 'g');
@@ -2317,10 +2338,11 @@ exports.LatestToolchainVersion = LatestToolchainVersion;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.ToolchainSnapshotName = exports.DEVELOPMENT_SNAPSHOT = void 0;
+exports.ToolchainSnapshotName = exports.SWIFT_BRANCH_REGEX = exports.DEVELOPMENT_SNAPSHOT = void 0;
 const semver_1 = __nccwpck_require__(1383);
 const base_1 = __nccwpck_require__(2120);
 exports.DEVELOPMENT_SNAPSHOT = 'DEVELOPMENT-SNAPSHOT';
+exports.SWIFT_BRANCH_REGEX = /swift-([^-]*)-.*/;
 class ToolchainSnapshotName extends base_1.ToolchainVersion {
     constructor(name) {
         super(name.includes(exports.DEVELOPMENT_SNAPSHOT));
@@ -2333,7 +2355,7 @@ class ToolchainSnapshotName extends base_1.ToolchainVersion {
         return `swift-${this.name}`;
     }
     get version() {
-        const match = /swift-([^-]*)-/.exec(this.dir);
+        const match = exports.SWIFT_BRANCH_REGEX.exec(this.dir);
         if (!match || match.length < 2 || !(0, semver_1.coerce)(match[1])) {
             return;
         }

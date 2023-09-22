@@ -114,7 +114,7 @@ describe('fetch macos tool data based on options', () => {
 
     function getVersions(folders: string[], suffix: string) {
       return folders.flatMap(folder => {
-        const match = folder.match(`swift-([0-9_]+)-${suffix}`)
+        const match = folder.match(`swift-([^-]*)-${suffix}`)
         if (match?.length) {
           return match[1]
         }
