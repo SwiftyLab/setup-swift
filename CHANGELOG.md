@@ -1,3 +1,16 @@
+## [1.4.1](https://github.com/SwiftyLab/setup-swift/compare/v1.4.0...v1.4.1) (2023-09-25)
+
+
+### 🐛 Fixes
+
+* fixed snapshots not sorted by semantic version ([#65](https://github.com/SwiftyLab/setup-swift/issues/65)) ([e8192a4](https://github.com/SwiftyLab/setup-swift/commit/e8192a4bdccd10dbf9bb594fb60916e75c622355))
+
+
+### 🛠 Build System
+
+* **swift-org-website:** bump swiftorg from `73f218c` to `332574c` ([#67](https://github.com/SwiftyLab/setup-swift/issues/67)) ([0a57e00](https://github.com/SwiftyLab/setup-swift/commit/0a57e00e64135816707f7ae393b6cdf9b0c982bc))
+* updated action ruuner to Node v20 ([#66](https://github.com/SwiftyLab/setup-swift/issues/66)) ([c09b206](https://github.com/SwiftyLab/setup-swift/commit/c09b2063946c55be8a759e5a7caf3db01a1c7d3a))
+
 ## [1.4.0](https://github.com/SwiftyLab/setup-swift/compare/v1.3.0...v1.4.0) (2023-09-19)
 
 
