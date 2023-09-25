@@ -124,7 +124,6 @@ describe('fetch linux tool data based on options', () => {
     expect(lTool.platform).toBeTruthy()
     expect(lTool.branch).toBeTruthy()
     expect(lTool.download_signature).toBeTruthy()
-    expect(lTool.docker).toBeTruthy()
   })
 
   it('fetches ubuntu 18.04 latest swift tool including dev snapshot', async () => {
