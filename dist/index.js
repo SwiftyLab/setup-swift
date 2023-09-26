@@ -1615,7 +1615,7 @@ class Swiftorg {
                 gitArgs.push('--recursive', '--remote');
             }
             core.debug(`Initializing submodules in "${const_1.MODULE_DIR}"`);
-            yield (0, exec_1.exec)('git', ['init'], { cwd: const_1.MODULE_DIR });
+            yield (0, exec_1.exec)('git', ['init', '-b', 'main'], { cwd: const_1.MODULE_DIR });
             core.debug(`Updating submodules in "${const_1.MODULE_DIR}" with args "${gitArgs}"`);
             yield (0, exec_1.exec)('git', gitArgs, { cwd: const_1.MODULE_DIR });
             const swiftorg = path.join(const_1.MODULE_DIR, 'swiftorg');
