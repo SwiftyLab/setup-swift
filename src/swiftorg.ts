@@ -14,7 +14,7 @@ export class Swiftorg {
     try {
       await fs.access(swiftorg)
       core.debug(`Removing existing "${swiftorg}" directory`)
-      await fs.rmdir(swiftorg, {recursive: true})
+      await fs.rm(swiftorg, {recursive: true})
     } catch (error) {
       core.debug(`Failed removing "${swiftorg}" with "${error}"`)
     }
