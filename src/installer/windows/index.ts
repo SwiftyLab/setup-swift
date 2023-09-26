@@ -14,7 +14,7 @@ export class WindowsToolchainInstaller extends VerifyingToolchainInstaller<Windo
     const recommended = '10.0.19041'
     const current = os.release()
     const version = semver.gte(current, recommended) ? current : recommended
-    const winsdkMajor = semver.gte(version, '10.0.22000')
+    const winsdkMajor = semver.lt(version, '10.0.22000')
       ? semver.major(version)
       : 11
     const winsdkMinor = semver.patch(version)
