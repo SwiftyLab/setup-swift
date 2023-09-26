@@ -509,7 +509,8 @@ class WindowsToolchainInstaller extends verify_1.VerifyingToolchainInstaller {
     add(installLocation) {
         return __awaiter(this, void 0, void 0, function* () {
             const installation = yield installation_1.Installation.get(installLocation);
-            core.exportVariable('SDKROOT', installation.sdkroot);
+            const sdkroot = installation.sdkroot;
+            core.exportVariable('SDKROOT', sdkroot);
             if (installation.devdir) {
                 core.exportVariable('DEVELOPER_DIR', installation.devdir);
             }
@@ -521,13 +522,26 @@ class WindowsToolchainInstaller extends verify_1.VerifyingToolchainInstaller {
             const runtimePath = path.join(installation.runtime, 'usr', 'bin');
             const requirePaths = [swiftPath, swiftDev, icu67, tools, runtimePath];
             for (const envPath of requirePaths) {
-                core.debug(`Adding "${envPath}" to PATH`);
-                core.addPath(envPath);
+                try {
+                    yield fs_1.promises.access(envPath);
+                    core.debug(`Adding "${envPath}" to PATH`);
+                    core.addPath(envPath);
+                }
+                catch (_a) {
+                    core.debug(`"${envPath}" doesn't exist. Skip adding to PATH`);
+                }
             }
             core.debug(`Swift installed at "${swiftPath}"`);
             const visualStudio = yield utils_1.VisualStudio.setup(this.vsRequirement);
-            yield visualStudio.update(installation.sdkroot);
-            const swiftFlags = `-sdk %SDKROOT% -I %SDKROOT%/usr/lib/swift -L %SDKROOT%/usr/lib/swift/windows`;
+            yield visualStudio.update(sdkroot);
+            const swiftFlags = [
+                '-sdk',
+                sdkroot,
+                '-I',
+                path.join(sdkroot, 'usr', 'lib', 'swift'),
+                '-L',
+                path.join(sdkroot, 'usr', 'lib', 'swift', 'windows')
+            ].join(' ');
             core.exportVariable('SWIFTFLAGS', swiftFlags);
         });
     }
@@ -1580,7 +1594,7 @@ class Swiftorg {
             try {
                 yield fs_1.promises.access(swiftorg);
                 core.debug(`Removing existing "${swiftorg}" directory`);
-                yield fs_1.promises.rmdir(swiftorg, { recursive: true });
+                yield fs_1.promises.rm(swiftorg, { recursive: true });
             }
             catch (error) {
                 core.debug(`Failed removing "${swiftorg}" with "${error}"`);
@@ -1615,7 +1629,7 @@ class Swiftorg {
                 gitArgs.push('--recursive', '--remote');
             }
             core.debug(`Initializing submodules in "${const_1.MODULE_DIR}"`);
-            yield (0, exec_1.exec)('git', ['init'], { cwd: const_1.MODULE_DIR });
+            yield (0, exec_1.exec)('git', ['init', '-b', 'main'], { cwd: const_1.MODULE_DIR });
             core.debug(`Updating submodules in "${const_1.MODULE_DIR}" with args "${gitArgs}"`);
             yield (0, exec_1.exec)('git', gitArgs, { cwd: const_1.MODULE_DIR });
             const swiftorg = path.join(const_1.MODULE_DIR, 'swiftorg');
