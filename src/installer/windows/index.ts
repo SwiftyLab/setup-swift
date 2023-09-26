@@ -61,8 +61,17 @@ export class WindowsToolchainInstaller extends VerifyingToolchainInstaller<Windo
     const requirePaths = [swiftPath, swiftDev, icu67, tools, runtimePath]
 
     for (const envPath of requirePaths) {
-      core.debug(`Adding "${envPath}" to PATH`)
-      core.addPath(envPath)
+      try {
+        const file = await fs.stat(envPath)
+        if (file.isDirectory()) {
+          core.debug(`Adding "${envPath}" to PATH`)
+          core.addPath(envPath)
+        } else {
+          core.debug(`"${envPath}" is not a directory. Skip adding to PATH`)
+        }
+      } catch {
+        core.debug(`"${envPath}" doesn't exist. Skip adding to PATH`)
+      }
     }
     core.debug(`Swift installed at "${swiftPath}"`)
     const visualStudio = await VisualStudio.setup(this.vsRequirement)
