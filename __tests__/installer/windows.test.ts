@@ -23,15 +23,15 @@ describe('windows toolchain installation verification', () => {
   }
   const visualStudio = VisualStudio.createFromJSON({
     installationPath: path.join('C:', 'Visual Studio'),
-    installationVersion: '16',
-    catalog: {productDisplayVersion: '16'},
+    installationVersion: '17',
+    catalog: {productDisplayVersion: '17'},
     properties: {
       setupEngineFilePath: path.join('C:', 'Visual Studio', 'setup.exe')
     }
   })
   const vsEnvs = [
     `UniversalCRTSdkDir=${path.join('C:', 'Windows Kits')}`,
-    `UCRTVersion=10.0.17063`,
+    `UCRTVersion=10.0.19041`,
     `VCToolsInstallDir=${path.join('C:', 'Visual Studio', 'Tools')}`
   ]
 

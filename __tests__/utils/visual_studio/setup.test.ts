@@ -7,8 +7,8 @@ describe('visual studio setup validation', () => {
   const env = process.env
   const visualStudio = VisualStudio.createFromJSON({
     installationPath: path.join('C:', 'Visual Studio'),
-    installationVersion: '16',
-    catalog: {productDisplayVersion: '16'},
+    installationVersion: '17',
+    catalog: {productDisplayVersion: '17'},
     properties: {
       setupEngineFilePath: path.join('C:', 'Visual Studio', 'setup.exe')
     }
@@ -33,10 +33,10 @@ describe('visual studio setup validation', () => {
       stderr: ''
     })
     await expect(
-      VisualStudio.setup({version: '16', components: ['Component']})
+      VisualStudio.setup({version: '17', components: ['Component']})
     ).rejects.toMatchObject(
       new Error(
-        `Unable to find any Visual Studio installation for version: 16.`
+        `Unable to find any Visual Studio installation for version: 17.`
       )
     )
   })
@@ -51,7 +51,7 @@ describe('visual studio setup validation', () => {
       stderr: ''
     })
     await expect(
-      VisualStudio.setup({version: '16', components: ['Component']})
+      VisualStudio.setup({version: '17', components: ['Component']})
     ).resolves.toMatchObject(visualStudio)
   })
 })
