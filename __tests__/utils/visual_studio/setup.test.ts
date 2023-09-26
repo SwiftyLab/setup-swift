@@ -33,10 +33,10 @@ describe('visual studio setup validation', () => {
       stderr: ''
     })
     await expect(
-      VisualStudio.setup({version: '17', components: ['Component']})
+      VisualStudio.setup({version: '16', components: ['Component']})
     ).rejects.toMatchObject(
       new Error(
-        `Unable to find any Visual Studio installation for version: 17.`
+        `Unable to find any Visual Studio installation for version: 16.`
       )
     )
   })
@@ -51,7 +51,7 @@ describe('visual studio setup validation', () => {
       stderr: ''
     })
     await expect(
-      VisualStudio.setup({version: '17', components: ['Component']})
+      VisualStudio.setup({version: '16', components: ['Component']})
     ).resolves.toMatchObject(visualStudio)
   })
 })

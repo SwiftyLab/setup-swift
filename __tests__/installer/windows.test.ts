@@ -31,7 +31,7 @@ describe('windows toolchain installation verification', () => {
   })
   const vsEnvs = [
     `UniversalCRTSdkDir=${path.join('C:', 'Windows Kits')}`,
-    `UCRTVersion=10.0.19041`,
+    `UCRTVersion=10.0.22000`,
     `VCToolsInstallDir=${path.join('C:', 'Visual Studio', 'Tools')}`
   ]
 

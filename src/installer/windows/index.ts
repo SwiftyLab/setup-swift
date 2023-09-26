@@ -21,7 +21,7 @@ export class WindowsToolchainInstaller extends VerifyingToolchainInstaller<Windo
     const componentsStr = core.getInput('visual-studio-components')
     const providedComponents = componentsStr ? componentsStr.split(';') : []
     return {
-      version: '17',
+      version: '16',
       components: [
         'Microsoft.VisualStudio.Component.VC.Tools.x86.x64',
         `Microsoft.VisualStudio.Component.Windows${winsdkMajor}SDK.${winsdkMinor}`,
