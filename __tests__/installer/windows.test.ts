@@ -119,7 +119,8 @@ describe('windows toolchain installation verification', () => {
     const installer = new WindowsToolchainInstaller(toolchain)
     const installation = path.resolve('tool', 'installed', 'path')
     jest.spyOn(VisualStudio, 'setup').mockResolvedValue(visualStudio)
-    jest.spyOn(fs, 'access').mockRejectedValue(new Error())
+    jest.spyOn(fs, 'access').mockRejectedValueOnce(new Error())
+    jest.spyOn(fs, 'access').mockResolvedValue()
     jest.spyOn(fs, 'copyFile').mockResolvedValue()
     jest.spyOn(exec, 'exec').mockResolvedValue(0)
     jest.spyOn(exec, 'getExecOutput').mockResolvedValue({
@@ -176,7 +177,16 @@ describe('windows toolchain installation verification', () => {
     const setupSpy = jest
       .spyOn(VisualStudio, 'setup')
       .mockResolvedValue(visualStudio)
-    jest.spyOn(fs, 'access').mockRejectedValue(new Error())
+    jest.spyOn(fs, 'access').mockImplementation(p => {
+      if (
+        typeof p === 'string' &&
+        (p.startsWith(path.join(cached, 'Developer')) ||
+          p.startsWith(path.join(cached, 'Swift')))
+      ) {
+        return Promise.resolve()
+      }
+      return Promise.reject(new Error())
+    })
     jest.spyOn(fs, 'copyFile').mockResolvedValue()
     jest.spyOn(core, 'getBooleanInput').mockReturnValue(true)
     jest.spyOn(toolCache, 'find').mockReturnValue(cached)
@@ -192,7 +202,7 @@ describe('windows toolchain installation verification', () => {
     expect(setupSpy).toHaveBeenCalled()
     expect(process.env.PATH?.includes(swiftPath)).toBeTruthy()
     expect(process.env.PATH?.includes(swiftDev)).toBeTruthy()
-    expect(process.env.PATH?.includes(icu67)).toBeTruthy()
+    expect(process.env.PATH?.includes(icu67)).toBeFalsy()
     expect(process.env.SDKROOT).toBe(sdkroot)
   })
 
