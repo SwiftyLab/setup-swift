@@ -62,13 +62,9 @@ export class WindowsToolchainInstaller extends VerifyingToolchainInstaller<Windo
 
     for (const envPath of requirePaths) {
       try {
-        const file = await fs.stat(envPath)
-        if (file.isDirectory()) {
-          core.debug(`Adding "${envPath}" to PATH`)
-          core.addPath(envPath)
-        } else {
-          core.debug(`"${envPath}" is not a directory. Skip adding to PATH`)
-        }
+        await fs.access(envPath)
+        core.debug(`Adding "${envPath}" to PATH`)
+        core.addPath(envPath)
       } catch {
         core.debug(`"${envPath}" doesn't exist. Skip adding to PATH`)
       }
