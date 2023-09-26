@@ -11,17 +11,18 @@ import {Installation} from './installation'
 
 export class WindowsToolchainInstaller extends VerifyingToolchainInstaller<WindowsToolchainSnapshot> {
   private get vsRequirement() {
-    const reccommended = '10.0.17763'
+    const recommended = '10.0.17763'
     const current = os.release()
-    const version = semver.gte(current, reccommended) ? current : reccommended
-    const winsdk = semver.patch(version)
+    const version = semver.gte(current, recommended) ? current : recommended
+    const winsdkMajor = semver.gte(version, '10.0.22000') ? semver.major(version) : 11
+    const winsdkMinor = semver.patch(version)
     const componentsStr = core.getInput('visual-studio-components')
     const providedComponents = componentsStr ? componentsStr.split(';') : []
     return {
       version: '16',
       components: [
         'Microsoft.VisualStudio.Component.VC.Tools.x86.x64',
-        `Microsoft.VisualStudio.Component.Windows10SDK.${winsdk}`,
+        `Microsoft.VisualStudio.Component.Windows${winsdkMajor}SDK.${winsdkMinor}`,
         ...providedComponents
       ]
     }
