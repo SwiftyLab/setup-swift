@@ -72,6 +72,7 @@ export class WindowsToolchainInstaller extends VerifyingToolchainInstaller<Windo
     }
     core.debug(`Swift installed at "${swiftPath}"`)
     const visualStudio = await VisualStudio.setup(this.vsRequirement)
+    // FIXME(stevapple): This is no longer required for Swift 5.9+
     await visualStudio.update(installation.sdkroot)
     const swiftFlags = `-sdk %SDKROOT% -I %SDKROOT%/usr/lib/swift -L %SDKROOT%/usr/lib/swift/windows`
     core.exportVariable('SWIFTFLAGS', swiftFlags)
