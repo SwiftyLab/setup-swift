@@ -63,7 +63,7 @@ jobs:
     - name: Changed Files
       if: contains(steps.metadata.outputs.dependency-names, 'swiftorg')
       id: changed-submodule-files
-      uses: tj-actions/changed-files@v38.2.0
+      uses: tj-actions/changed-files@v39.2.1
       with:
         fetch_additional_submodule_history: true
         files: |
