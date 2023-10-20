@@ -511,6 +511,20 @@ jobs:
         VERSION: ${{ inputs.version }}
         NODE_PATH: ${{ github.workspace }}/node_modules
 
+    - name: Update latest major version tag
+      uses: actions/github-script@v6
+      with:
+        github-token: ${{ secrets.COMMIT_TOKEN }}
+        script: |
+          const semver = require('semver');
+          const fs = require('fs/promises');
+          const package = JSON.parse(await fs.readFile('package.json', 'utf8'));
+          const version = `v${semver.coerce(package.version).major}`;
+          await exec.exec('git', ['push', '--signed=if-asked', 'origin', `:refs/tags/${version}`]);
+          await exec.exec('git', ['tag', '-sfa', version, '-m', version]);
+          await exec.exec('git', ['push', '--signed=if-asked', 'origin', '--tags']);
+          return true;
+
     - name: Update latest tag
       run: |
         git push --signed=if-asked origin :refs/tags/latest
