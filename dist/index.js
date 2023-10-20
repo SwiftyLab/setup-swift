@@ -521,8 +521,14 @@ class WindowsToolchainInstaller extends verify_1.VerifyingToolchainInstaller {
             const runtimePath = path.join(installation.runtime, 'usr', 'bin');
             const requirePaths = [swiftPath, swiftDev, icu67, tools, runtimePath];
             for (const envPath of requirePaths) {
-                core.debug(`Adding "${envPath}" to PATH`);
-                core.addPath(envPath);
+                try {
+                    yield fs_1.promises.access(envPath);
+                    core.debug(`Adding "${envPath}" to PATH`);
+                    core.addPath(envPath);
+                }
+                catch (_a) {
+                    core.debug(`"${envPath}" doesn't exist. Skip adding to PATH`);
+                }
             }
             core.debug(`Swift installed at "${swiftPath}"`);
             const visualStudio = yield utils_1.VisualStudio.setup(this.vsRequirement);
@@ -1580,7 +1586,7 @@ class Swiftorg {
             try {
                 yield fs_1.promises.access(swiftorg);
                 core.debug(`Removing existing "${swiftorg}" directory`);
-                yield fs_1.promises.rmdir(swiftorg, { recursive: true });
+                yield fs_1.promises.rm(swiftorg, { recursive: true });
             }
             catch (error) {
                 core.debug(`Failed removing "${swiftorg}" with "${error}"`);
@@ -1615,7 +1621,7 @@ class Swiftorg {
                 gitArgs.push('--recursive', '--remote');
             }
             core.debug(`Initializing submodules in "${const_1.MODULE_DIR}"`);
-            yield (0, exec_1.exec)('git', ['init'], { cwd: const_1.MODULE_DIR });
+            yield (0, exec_1.exec)('git', ['init', '-b', 'main'], { cwd: const_1.MODULE_DIR });
             core.debug(`Updating submodules in "${const_1.MODULE_DIR}" with args "${gitArgs}"`);
             yield (0, exec_1.exec)('git', gitArgs, { cwd: const_1.MODULE_DIR });
             const swiftorg = path.join(const_1.MODULE_DIR, 'swiftorg');
@@ -6521,7 +6527,7 @@ class OidcClient {
                 .catch(error => {
                 throw new Error(`Failed to get ID Token. \n 
         Error Code : ${error.statusCode}\n 
-        Error Message: ${error.result.message}`);
+        Error Message: ${error.message}`);
             });
             const id_token = (_a = res.result) === null || _a === void 0 ? void 0 : _a.value;
             if (!id_token) {
