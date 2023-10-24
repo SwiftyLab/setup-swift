@@ -31,7 +31,7 @@ jobs:
     outputs:
       ci: ${{ !contains(steps.metadata.outputs.dependency-names, 'swiftorg') }}
       merge: ${{ steps.update-swiftorg.outputs.result == 'true' }}
-      approve: ${{ steps.auto-approve.outputs.result == 'true' }}
+      approve: ${{ fromJSON(steps.auto-changed-submodule-files.outputs.result).swift_release == 'true' }}
 
     steps:
     - name: Dependabot metadata
@@ -63,23 +63,40 @@ jobs:
     - name: Changed Files
       if: contains(steps.metadata.outputs.dependency-names, 'swiftorg')
       id: changed-submodule-files
-      uses: tj-actions/changed-files@v38.2.0
+      uses: actions/github-script@v6
       with:
-        fetch_additional_submodule_history: true
-        files: |
-          swiftorg/download/index.md
-          swiftorg/download/_older-releases.md
-          swiftorg/_data/builds/**/*
+        github-token: ${{ secrets.COMMIT_TOKEN }}
+        script: |
+          const fs = require('fs/promises');
+          const package = JSON.parse(await fs.readFile('package.json', 'utf8'));
+          const old = package.swiftorg.commit;
+          try {
+              const { stdout } = await exec.getExecOutput('git', ['diff', '--name-status', '--ignore-submodules=all', '--diff-filter=ACDMRTUX', `${old}..HEAD`], { cwd: 'swiftorg' });
+              const files = stdout.split('\n').filter(Boolean).flatMap((line) => {
+                  const parts = line.split('\t');
+                  return parts.length > 2 ? [parts[1], parts[2]] : [parts[1]];
+              }).filter((file) => /(download\/(index.md|_older-releases.md)|_data\/builds\/.*)/.exec(file));
+              return {
+                any_changed: files.length > 0,
+                swift_release: files.some(file => /_data\/builds\/(swift-.*-release.*|swift_releases\.yml)/.exec(file))
+              };
+          } catch (error) {
+              console.error(error);
+              return {
+                any_changed: true,
+                swift_release: false
+              };
+          }
 
     - name: Setup Node.js
-      if: steps.changed-submodule-files.outputs.any_changed == 'true'
+      if: fromJSON(steps.auto-changed-submodule-files.outputs.result).any_changed == 'true'
       id: setup-node
       uses: actions/setup-node@v3
       with:
         cache: npm
 
     - name: Cache dependencies
-      if: steps.changed-submodule-files.outputs.any_changed == 'true'
+      if: fromJSON(steps.auto-changed-submodule-files.outputs.result).any_changed == 'true'
       id: cache-node
       uses: actions/cache@v3.3.2
       with:
@@ -87,11 +104,11 @@ jobs:
         path: node_modules
 
     - name: Setup npm pacakges
-      if: steps.changed-submodule-files.outputs.any_changed == 'true'
+      if: fromJSON(steps.auto-changed-submodule-files.outputs.result).any_changed == 'true'
       run: npm install
 
     - name: Update submodule ref in package.json
-      if: steps.changed-submodule-files.outputs.any_changed == 'true'
+      if: fromJSON(steps.auto-changed-submodule-files.outputs.result).any_changed == 'true'
       id: update-swiftorg
       uses: actions/github-script@v6
       with:
@@ -102,15 +119,6 @@ jobs:
           await exec.exec('git', ['commit', '--all', '-S', '--message', `[skip dependabot] wip: update package.json`]);
           await exec.exec('git', ['push', '--signed=if-asked']);
           return true;
-
-    - name: Check if auto-approval needed
-      if: steps.changed-submodule-files.outputs.any_changed == 'true'
-      id: auto-approve
-      uses: actions/github-script@v6
-      with:
-        script: |
-          const changedFiles = '${{ steps.changed-submodule-files.outputs.all_changed_and_modified_files }}'.split(' ');
-          return changedFiles.some(file => /swiftorg\/_data\/builds\/(swift-.*-release.*|swift_releases\.yml)/.exec(file));
 
     - name: Close PR for unnecessary swiftorg changes
       if: contains(steps.metadata.outputs.dependency-names, 'swiftorg') && steps.update-swiftorg.outputs.result != 'true'
