@@ -31,7 +31,7 @@ jobs:
     outputs:
       ci: ${{ !contains(steps.metadata.outputs.dependency-names, 'swiftorg') }}
       merge: ${{ steps.update-swiftorg.outputs.result == 'true' }}
-      approve: ${{ fromJSON(steps.auto-changed-submodule-files.outputs.result).swift_release == 'true' }}
+      approve: ${{ fromJSON(steps.changed-submodule-files.outputs.result).swift_release == 'true' }}
 
     steps:
     - name: Dependabot metadata
@@ -89,14 +89,14 @@ jobs:
           }
 
     - name: Setup Node.js
-      if: fromJSON(steps.auto-changed-submodule-files.outputs.result).any_changed == 'true'
+      if: fromJSON(steps.changed-submodule-files.outputs.result).any_changed == 'true'
       id: setup-node
       uses: actions/setup-node@v3
       with:
         cache: npm
 
     - name: Cache dependencies
-      if: fromJSON(steps.auto-changed-submodule-files.outputs.result).any_changed == 'true'
+      if: fromJSON(steps.changed-submodule-files.outputs.result).any_changed == 'true'
       id: cache-node
       uses: actions/cache@v3.3.2
       with:
@@ -104,11 +104,11 @@ jobs:
         path: node_modules
 
     - name: Setup npm pacakges
-      if: fromJSON(steps.auto-changed-submodule-files.outputs.result).any_changed == 'true'
+      if: fromJSON(steps.changed-submodule-files.outputs.result).any_changed == 'true'
       run: npm install
 
     - name: Update submodule ref in package.json
-      if: fromJSON(steps.auto-changed-submodule-files.outputs.result).any_changed == 'true'
+      if: fromJSON(steps.changed-submodule-files.outputs.result).any_changed == 'true'
       id: update-swiftorg
       uses: actions/github-script@v6
       with:
