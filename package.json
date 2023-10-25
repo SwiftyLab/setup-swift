@@ -8,13 +8,13 @@
   "license": "MIT",
   "homepage": "https://github.com/SwiftyLab/setup-swift#readme",
   "swiftorg": {
-    "commit": "332574c8459304994580ac67605a8891d01da580",
+    "commit": "8485bd396d05e3a021c9b905d4f48ba204d1f589",
     "release": {
-      "name": 5.9,
-      "tag": "swift-5.9-RELEASE",
+      "name": "5.9.1",
+      "tag": "swift-5.9.1-RELEASE",
       "xcode": "Xcode 15",
-      "xcode_release": true,
-      "date": "2023-09-18T00:00:00.000Z",
+      "xcode_release": false,
+      "date": "2023-10-19T00:00:00.000Z",
       "platforms": [
         {
           "name": "Ubuntu 18.04",
@@ -24,7 +24,7 @@
         },
         {
           "name": "Ubuntu 20.04",
-          "docker": "5.9-focal",
+          "docker": "5.9.1-focal",
           "archs": [
             "x86_64",
             "aarch64"
@@ -32,7 +32,7 @@
         },
         {
           "name": "Ubuntu 22.04",
-          "docker": "5.9-jammy",
+          "docker": "5.9.1-jammy",
           "archs": [
             "x86_64",
             "aarch64"
@@ -40,14 +40,14 @@
         },
         {
           "name": "CentOS 7",
-          "docker": "5.9-centos7",
+          "docker": "5.9.1-centos7",
           "archs": [
             "x86_64"
           ]
         },
         {
           "name": "Amazon Linux 2",
-          "docker": "5.9-amazonlinux2",
+          "docker": "5.9.1-amazonlinux2",
           "archs": [
             "x86_64",
             "aarch64"
@@ -55,7 +55,7 @@
         },
         {
           "name": "Red Hat Universal Base Image 9",
-          "docker": "5.9-rhel-ubi9",
+          "docker": "5.9.1-rhel-ubi9",
           "dir": "ubi9",
           "archs": [
             "x86_64",
@@ -72,12 +72,12 @@
     },
     "dev": {
       "name": "5.10",
-      "date": "2023-09-09T16:10:00.000Z",
-      "tag": "swift-5.10-DEVELOPMENT-SNAPSHOT-2023-09-09-a"
+      "date": "2023-10-24T16:10:00.000Z",
+      "tag": "swift-5.10-DEVELOPMENT-SNAPSHOT-2023-10-24-a"
     },
     "snapshot": {
-      "date": "2023-09-23T16:10:00.000Z",
-      "tag": "swift-DEVELOPMENT-SNAPSHOT-2023-09-23-a"
+      "date": "2023-10-24T16:10:00.000Z",
+      "tag": "swift-DEVELOPMENT-SNAPSHOT-2023-10-24-a"
     }
   },
   "engines": {
