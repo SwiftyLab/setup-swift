@@ -31,7 +31,7 @@ jobs:
     outputs:
       ci: ${{ !contains(steps.metadata.outputs.dependency-names, 'swiftorg') }}
       merge: ${{ steps.update-swiftorg.outputs.result == 'true' }}
-      approve: ${{ fromJSON(steps.changed-submodule-files.outputs.result).swift_release == 'true' }}
+      approve: ${{ steps.changed-submodule-files.outputs.swift_release == 'true' }}
 
     steps:
     - name: Dependabot metadata
@@ -79,27 +79,24 @@ jobs:
                 const parts = line.split('\t');
                 return parts.length > 2 ? [parts[1], parts[2]] : [parts[1]];
             }).filter((file) => /(download\/(index.md|_older-releases.md)|_data\/builds\/.*)/.exec(file));
-            return {
-              any_changed: files.length > 0,
-              swift_release: files.some(file => /_data\/builds\/(swift-.*-release.*|swift_releases\.yml)/.exec(file))
-            };
+
+            core.setOutput('any_changed', files.length > 0);
+            core.setOutput('swift_release', files.some(file => /_data\/builds\/(swift-.*-release.*|swift_releases\.yml)/.exec(file)));
           } catch (error) {
             core.error(error);
-            return {
-              any_changed: true,
-              swift_release: false
-            };
+            core.setOutput('any_changed', true);
+            core.setOutput('swift_release', false);
           }
 
     - name: Setup Node.js
-      if: fromJSON(steps.changed-submodule-files.outputs.result).any_changed == 'true'
+      if: steps.changed-submodule-files.outputs.any_changed == 'true'
       id: setup-node
       uses: actions/setup-node@v3
       with:
         cache: npm
 
     - name: Cache dependencies
-      if: fromJSON(steps.changed-submodule-files.outputs.result).any_changed == 'true'
+      if: steps.changed-submodule-files.outputs.any_changed == 'true'
       id: cache-node
       uses: actions/cache@v3.3.2
       with:
@@ -107,11 +104,11 @@ jobs:
         path: node_modules
 
     - name: Setup npm pacakges
-      if: fromJSON(steps.changed-submodule-files.outputs.result).any_changed == 'true'
+      if: steps.changed-submodule-files.outputs.any_changed == 'true'
       run: npm install
 
     - name: Update submodule ref in package.json
-      if: fromJSON(steps.changed-submodule-files.outputs.result).any_changed == 'true'
+      if: steps.changed-submodule-files.outputs.any_changed == 'true'
       id: update-swiftorg
       uses: actions/github-script@v6
       with:
