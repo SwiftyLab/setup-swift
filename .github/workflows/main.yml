@@ -44,6 +44,7 @@ jobs:
       if: contains(steps.metadata.outputs.dependency-names, 'swiftorg')
       uses: actions/checkout@v4
       with:
+        ref: ${{ github.event.pull_request.head.ref }}
         token: ${{ secrets.COMMIT_TOKEN }}
 
     - name: Import GPG
