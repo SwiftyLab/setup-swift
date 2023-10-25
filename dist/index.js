@@ -1616,7 +1616,7 @@ class Swiftorg {
     }
     update() {
         return __awaiter(this, void 0, void 0, function* () {
-            const gitArgs = ['submodule', 'update', '--init'];
+            const gitArgs = ['submodule', 'update', '--init', '--checkout'];
             if (this.checkLatest) {
                 gitArgs.push('--recursive', '--remote');
             }

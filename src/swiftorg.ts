@@ -46,7 +46,7 @@ export class Swiftorg {
   }
 
   async update() {
-    const gitArgs = ['submodule', 'update', '--init']
+    const gitArgs = ['submodule', 'update', '--init', '--checkout']
     if (this.checkLatest) {
       gitArgs.push('--recursive', '--remote')
     }
