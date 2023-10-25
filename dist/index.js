@@ -395,6 +395,23 @@ const toolCache = __importStar(__nccwpck_require__(7784));
 const gpg = __importStar(__nccwpck_require__(9787));
 const base_1 = __nccwpck_require__(5686);
 class VerifyingToolchainInstaller extends base_1.ToolchainInstaller {
+    get signatureUrl() {
+        return `${this.baseUrl}/${this.data.download_signature}`;
+    }
+    downloadSignature() {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                return yield toolCache.downloadTool(this.signatureUrl);
+            }
+            catch (error) {
+                if (error instanceof toolCache.HTTPError &&
+                    error.httpStatusCode === 404) {
+                    return undefined;
+                }
+                throw error;
+            }
+        });
+    }
     download() {
         const _super = Object.create(null, {
             download: { get: () => super.download }
@@ -405,9 +422,11 @@ class VerifyingToolchainInstaller extends base_1.ToolchainInstaller {
             const [, toolchain, signature] = yield Promise.all([
                 gpg.setupKeys(),
                 _super.download.call(this),
-                toolCache.downloadTool(sigUrl)
+                this.downloadSignature()
             ]);
-            yield gpg.verify(signature, toolchain);
+            if (signature) {
+                yield gpg.verify(signature, toolchain);
+            }
             return toolchain;
         });
     }
