@@ -100,7 +100,7 @@
     "ci"
   ],
   "scripts": {
-    "prepare": "npm run build && git submodule update --init",
+    "prepare": "npm run build && git submodule update --init --checkout",
     "build": "tsc",
     "format": "prettier --write \"**/*.ts\"",
     "lint": "depcheck --ignores ts-node,ts-jest && eslint src/**/*.ts && prettier --check \"**/*.ts\"",
