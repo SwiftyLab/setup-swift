@@ -8,7 +8,7 @@
   "license": "MIT",
   "homepage": "https://github.com/SwiftyLab/setup-swift#readme",
   "swiftorg": {
-    "commit": "8485bd396d05e3a021c9b905d4f48ba204d1f589",
+    "commit": "9ce4db8fe5776cadf222daab8c69308a93e1c09d",
     "release": {
       "name": "5.9.1",
       "tag": "swift-5.9.1-RELEASE",
@@ -18,12 +18,14 @@
       "platforms": [
         {
           "name": "Ubuntu 18.04",
+          "platform": "Linux",
           "archs": [
             "x86_64"
           ]
         },
         {
           "name": "Ubuntu 20.04",
+          "platform": "Linux",
           "docker": "5.9.1-focal",
           "archs": [
             "x86_64",
@@ -32,6 +34,7 @@
         },
         {
           "name": "Ubuntu 22.04",
+          "platform": "Linux",
           "docker": "5.9.1-jammy",
           "archs": [
             "x86_64",
@@ -40,6 +43,7 @@
         },
         {
           "name": "CentOS 7",
+          "platform": "Linux",
           "docker": "5.9.1-centos7",
           "archs": [
             "x86_64"
@@ -47,6 +51,7 @@
         },
         {
           "name": "Amazon Linux 2",
+          "platform": "Linux",
           "docker": "5.9.1-amazonlinux2",
           "archs": [
             "x86_64",
@@ -55,6 +60,7 @@
         },
         {
           "name": "Red Hat Universal Base Image 9",
+          "platform": "Linux",
           "docker": "5.9.1-rhel-ubi9",
           "dir": "ubi9",
           "archs": [
@@ -64,6 +70,7 @@
         },
         {
           "name": "Windows 10",
+          "platform": "Windows",
           "archs": [
             "x86_64"
           ]
@@ -72,8 +79,8 @@
     },
     "dev": {
       "name": "5.10",
-      "date": "2023-10-24T16:10:00.000Z",
-      "tag": "swift-5.10-DEVELOPMENT-SNAPSHOT-2023-10-24-a"
+      "date": "2023-10-26T16:10:00.000Z",
+      "tag": "swift-5.10-DEVELOPMENT-SNAPSHOT-2023-10-26-a"
     },
     "snapshot": {
       "date": "2023-10-24T16:10:00.000Z",
