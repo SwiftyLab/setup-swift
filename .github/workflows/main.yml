@@ -92,7 +92,7 @@ jobs:
     - name: Setup Node.js
       if: steps.changed-submodule-files.outputs.any_changed == 'true'
       id: setup-node
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         cache: npm
 
@@ -205,7 +205,7 @@ jobs:
 
     - name: Setup Node.js
       id: setup-node
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         cache: npm
 
@@ -265,7 +265,7 @@ jobs:
 
     - name: Setup Node.js
       id: setup-node
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         cache: npm
 
@@ -315,7 +315,7 @@ jobs:
 
     - name: Setup Node.js
       id: setup-node
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         cache: npm
 
@@ -486,7 +486,7 @@ jobs:
 
     - name: Setup Node.js
       id: setup-node
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         cache: npm
 
