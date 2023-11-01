@@ -129,7 +129,7 @@
   },
   "devDependencies": {
     "@npmcli/package-json": "^5.0.0",
-    "@types/getos": "^3.0.1",
+    "@types/getos": "^3.0.3",
     "@types/jest": "^29.5.1",
     "@types/js-yaml": "^4.0.7",
     "@types/plist": "^3.0.3",
