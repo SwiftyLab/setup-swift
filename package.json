@@ -8,7 +8,7 @@
   "license": "MIT",
   "homepage": "https://github.com/SwiftyLab/setup-swift#readme",
   "swiftorg": {
-    "commit": "cd5a1a3443e1a0d23454d6494ee5e06d84899a6c",
+    "commit": "5630a7c9dc6bc1f767c0285326c412376af124eb",
     "release": {
       "name": "5.9.2",
       "tag": "swift-5.9.2-RELEASE",
@@ -80,8 +80,8 @@
     },
     "dev": {
       "name": "5.10",
-      "date": "2023-12-10T16:10:00.000Z",
-      "tag": "swift-5.10-DEVELOPMENT-SNAPSHOT-2023-12-10-a"
+      "date": "2023-12-11T16:10:00.000Z",
+      "tag": "swift-5.10-DEVELOPMENT-SNAPSHOT-2023-12-11-a"
     },
     "snapshot": {
       "date": "2023-12-07T16:10:00.000Z",
