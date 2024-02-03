@@ -99,7 +99,7 @@ jobs:
     - name: Cache dependencies
       if: steps.changed-submodule-files.outputs.any_changed == 'true'
       id: cache-node
-      uses: actions/cache@v3.3.2
+      uses: actions/cache@v4.0.0
       with:
         key: node-${{ github.ref }}
         path: node_modules
@@ -211,7 +211,7 @@ jobs:
 
     - name: Cache dependencies
       id: cache-node
-      uses: actions/cache@v3.3.2
+      uses: actions/cache@v4.0.0
       with:
         key: node-${{ github.ref }}
         path: node_modules
@@ -271,7 +271,7 @@ jobs:
 
     - name: Cache dependencies
       id: cache-node
-      uses: actions/cache@v3.3.2
+      uses: actions/cache@v4.0.0
       with:
         key: node-${{ github.ref }}
         path: node_modules
@@ -322,7 +322,7 @@ jobs:
 
     - name: Cache dependencies
       id: cache-node
-      uses: actions/cache@v3.3.2
+      uses: actions/cache@v4.0.0
       with:
         key: node-${{ github.ref }}
         path: node_modules
@@ -493,7 +493,7 @@ jobs:
 
     - name: Cache dependencies
       id: cache-node
-      uses: actions/cache@v3.3.2
+      uses: actions/cache@v4.0.0
       with:
         key: node-${{ github.ref }}
         path: node_modules
