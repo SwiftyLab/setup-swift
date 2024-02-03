@@ -135,7 +135,7 @@
     "@types/js-yaml": "^4.0.9",
     "@types/plist": "^3.0.3",
     "@types/semver": "^7.5.5",
-    "@typescript-eslint/eslint-plugin": "^6.7.0",
+    "@typescript-eslint/eslint-plugin": "^6.20.0",
     "@typescript-eslint/parser": "^6.7.5",
     "@vercel/ncc": "^0.38.0",
     "conventional-changelog-conventionalcommits": "^7.0.1",
