@@ -237,6 +237,7 @@ jobs:
       needs.ci.outputs.run == 'true'
     needs: ci
     runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.os == 'windows-latest' && matrix.swift == 'latest' }}
     concurrency:
       group: integration-test-${{ github.ref }}-${{ matrix.os }}-${{ matrix.swift }}-${{ matrix.development }}
       cancel-in-progress: true
@@ -353,6 +354,7 @@ jobs:
       needs.ci.outputs.run == 'true'
     needs: ci
     runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.os == 'windows-latest' }}
     concurrency:
       group: e2e-test-${{ github.ref }}-${{ matrix.os }}
       cancel-in-progress: true

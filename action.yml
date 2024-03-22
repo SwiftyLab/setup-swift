@@ -19,8 +19,9 @@ inputs:
     default: 'false'
   check-latest:
     description: >-
-      Whether to check with latest swift.org versions,
-      enabling this option may break this action,
+      Whether to use latest Swift toolchains available in swift.org,
+      instead of using the snapshot this action was tested with.
+      Enabling this option may break this action,
       use cautiously and disable if any issue.
     required: false
     default: 'false'
