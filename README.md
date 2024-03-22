@@ -10,7 +10,7 @@
 [GitHub Action](https://github.com/features/actions) that will setup [Swift](https://swift.org) environment with specified version.
 This action supports the following functionalities:
 
-- Works on Linux, macOS and Windows.
+- Works on Linux, macOS and Windows(Swift 5.10 and after not supported on Windows).
 - Supports [installing latest major/minor/patch](#specifying-version).
 - Provides snapshots as soon as published in `swift.org`.
 - Verifies toolchain snapshots before installation (`gpg` for Linux and Windows, `pkgutil` for macOS) .
