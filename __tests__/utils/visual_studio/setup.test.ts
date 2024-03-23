@@ -7,8 +7,8 @@ describe('visual studio setup validation', () => {
   const env = process.env
   const visualStudio = VisualStudio.createFromJSON({
     installationPath: path.join('C:', 'Visual Studio'),
-    installationVersion: '16',
-    catalog: {productDisplayVersion: '16'},
+    installationVersion: '17',
+    catalog: {productDisplayVersion: '17'},
     properties: {
       setupEngineFilePath: path.join('C:', 'Visual Studio', 'setup.exe')
     }

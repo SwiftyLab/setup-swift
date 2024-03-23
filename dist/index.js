@@ -486,17 +486,20 @@ const utils_1 = __nccwpck_require__(1606);
 const installation_1 = __nccwpck_require__(539);
 class WindowsToolchainInstaller extends verify_1.VerifyingToolchainInstaller {
     get vsRequirement() {
-        const reccommended = '10.0.17763';
+        const recommended = '10.0.19041';
         const current = os.release();
-        const version = semver.gte(current, reccommended) ? current : reccommended;
-        const winsdk = semver.patch(version);
+        const version = semver.gte(current, recommended) ? current : recommended;
+        const winsdkMajor = semver.lt(version, '10.0.22000')
+            ? semver.major(version)
+            : 11;
+        const winsdkMinor = semver.patch(version);
         const componentsStr = core.getInput('visual-studio-components');
         const providedComponents = componentsStr ? componentsStr.split(';') : [];
         return {
             version: '16',
             components: [
                 'Microsoft.VisualStudio.Component.VC.Tools.x86.x64',
-                `Microsoft.VisualStudio.Component.Windows10SDK.${winsdk}`,
+                `Microsoft.VisualStudio.Component.Windows${winsdkMajor}SDK.${winsdkMinor}`,
                 ...providedComponents
             ]
         };
@@ -551,6 +554,7 @@ class WindowsToolchainInstaller extends verify_1.VerifyingToolchainInstaller {
             }
             core.debug(`Swift installed at "${swiftPath}"`);
             const visualStudio = yield utils_1.VisualStudio.setup(this.vsRequirement);
+            // FIXME(stevapple): This is no longer required for Swift 5.9+
             yield visualStudio.update(installation.sdkroot);
             const swiftFlags = `-sdk %SDKROOT% -I %SDKROOT%/usr/lib/swift -L %SDKROOT%/usr/lib/swift/windows`;
             core.exportVariable('SWIFTFLAGS', swiftFlags);
