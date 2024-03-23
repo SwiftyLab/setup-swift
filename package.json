@@ -1,6 +1,6 @@
 {
   "name": "setup-swift",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "private": true,
   "description": "Setup Swift environment.",
   "main": "lib/main.js",
