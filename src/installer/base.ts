@@ -17,7 +17,7 @@ export abstract class ToolchainInstaller<Snapshot extends ToolchainSnapshot> {
   constructor(readonly data: Snapshot) {}
 
   protected get version() {
-    const match = SWIFT_BRANCH_REGEX.exec(this.data.branch)
+    const match = SWIFT_BRANCH_REGEX.exec(this.data.dir)
     return match && match.length > 1 ? parseSemVer(match[1]) : undefined
   }
 
@@ -37,10 +37,13 @@ export abstract class ToolchainInstaller<Snapshot extends ToolchainSnapshot> {
     const version = this.version?.raw
     let tool: string | undefined
     if (version) {
+      core.debug(
+        `Finding tool with key: "${key}", version: "${version}" and arch: "${arch}" in tool cache`
+      )
       tool = toolCache.find(key, version, arch).trim()
-      core.debug(`Found tool at "${tool}" in tool cache`)
     }
     if (!tool?.length) {
+      core.debug(`Found tool at "${tool}" in tool cache`)
       const tmpDir = process.env.RUNNER_TEMP || os.tmpdir()
       const restore = path.join(tmpDir, 'setup-swift', key)
       if (await cache.restoreCache([restore], key)) {
