@@ -41,7 +41,9 @@ export class WindowsToolchainInstaller extends VerifyingToolchainInstaller<Windo
 
   protected async unpack(exe: string) {
     core.debug(`Installing toolchain from "${exe}"`)
+    core.debug(`Environment variables before installation: ${process.env}`)
     await exec(`"${exe}"`, ['-q'])
+    core.debug(`Environment variables after installation: ${process.env}`)
     const installation = await Installation.detect()
     return installation.location
   }
