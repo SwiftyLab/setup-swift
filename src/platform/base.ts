@@ -37,12 +37,21 @@ export abstract class Platform<
     return snapshots.sort((item1, item2) => {
       const t1 = item1 as ToolchainSnapshot
       const t2 = item2 as ToolchainSnapshot
-      const ver1 = semver.coerce(SWIFT_BRANCH_REGEX.exec(t1.branch)?.[0])
-      const ver2 = semver.coerce(SWIFT_BRANCH_REGEX.exec(t2.branch)?.[0])
-      if (ver1 && ver2) {
-        const comparison = semver.compare(ver2, ver1)
-        if (comparison !== 0) {
-          return comparison
+      const ver1Match = SWIFT_BRANCH_REGEX.exec(t1.dir)
+      const ver2Match = SWIFT_BRANCH_REGEX.exec(t2.dir)
+      if (
+        ver1Match &&
+        ver2Match &&
+        ver1Match.length > 1 &&
+        ver2Match.length > 1
+      ) {
+        const ver1 = semver.coerce(ver1Match[1])
+        const ver2 = semver.coerce(ver2Match[1])
+        if (ver1 && ver2) {
+          const comparison = semver.compare(ver2, ver1)
+          if (comparison !== 0) {
+            return comparison
+          }
         }
       }
       return t2.date.getTime() - t1.date.getTime()
