@@ -8,12 +8,15 @@ export abstract class VerifyingToolchainInstaller<
   Snapshot extends SignedToolchainSnapshot
 > extends ToolchainInstaller<Snapshot> {
   private get signatureUrl() {
-    return `${this.baseUrl}/${this.data.download_signature}`
+    const signature = this.data.download_signature
+    return signature ? `${this.baseUrl}/${signature}` : undefined
   }
 
   private async downloadSignature() {
     try {
-      return await toolCache.downloadTool(this.signatureUrl)
+      if (this.signatureUrl) {
+        return await toolCache.downloadTool(this.signatureUrl)
+      }
     } catch (error) {
       if (
         error instanceof toolCache.HTTPError &&
@@ -26,10 +29,16 @@ export abstract class VerifyingToolchainInstaller<
   }
 
   protected async download() {
-    const sigUrl = `${this.baseUrl}/${this.data.download_signature}`
+    const sigUrl = this.signatureUrl
+    async function setupKeys() {
+      if (sigUrl) {
+        await gpg.setupKeys()
+      }
+    }
+
     core.debug(`Downloading snapshot signature from "${sigUrl}"`)
     const [, toolchain, signature] = await Promise.all([
-      gpg.setupKeys(),
+      setupKeys(),
       super.download(),
       this.downloadSignature()
     ])
