@@ -1,4 +1,5 @@
 import * as path from 'path'
+import {promises as fs} from 'fs'
 import * as core from '@actions/core'
 import * as exec from '@actions/exec'
 import * as cache from '@actions/cache'
@@ -74,6 +75,7 @@ describe('linux toolchain installation verification', () => {
     jest.spyOn(cache, 'restoreCache').mockResolvedValue(undefined)
     jest.spyOn(cache, 'saveCache').mockResolvedValue(1)
     jest.spyOn(toolCache, 'find').mockReturnValue('')
+    jest.spyOn(fs, 'cp').mockResolvedValue()
     const downloadSpy = jest.spyOn(toolCache, 'downloadTool')
     downloadSpy.mockResolvedValue(download)
     const extractSpy = jest.spyOn(toolCache, 'extractTar')

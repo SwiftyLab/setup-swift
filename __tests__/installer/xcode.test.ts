@@ -109,6 +109,7 @@ describe('macOS toolchain installation verification', () => {
     jest.spyOn(cache, 'saveCache').mockResolvedValue(1)
     jest.spyOn(toolCache, 'find').mockReturnValue('')
     jest.spyOn(exec, 'exec').mockResolvedValue(0)
+    jest.spyOn(fs, 'cp').mockResolvedValue()
     const downloadSpy = jest.spyOn(toolCache, 'downloadTool')
     downloadSpy.mockResolvedValue(download)
     const extractSpy = jest.spyOn(toolCache, 'extractXar')

@@ -78,6 +78,7 @@
     exports.ToolchainInstaller = void 0;
     const os = __importStar(__nccwpck_require__(2037));
     const path = __importStar(__nccwpck_require__(1017));
+    const fs_1 = __nccwpck_require__(7147);
     const core = __importStar(__nccwpck_require__(2186));
     const exec_1 = __nccwpck_require__(1514);
     const cache = __importStar(__nccwpck_require__(7799));
@@ -107,17 +108,18 @@
                 const key = `${this.data.dir}-${this.data.platform}`;
                 const version = (_a = this.version) === null || _a === void 0 ? void 0 : _a.raw;
                 let tool;
+                let cacheHit = false;
                 if (version) {
                     core.debug(`Finding tool with key: "${key}", version: "${version}" and arch: "${arch}" in tool cache`);
                     tool = toolCache.find(key, version, arch).trim();
                 }
+                const tmpDir = process.env.RUNNER_TEMP || os.tmpdir();
+                const restore = path.join(tmpDir, 'setup-swift', key);
                 if (!(tool === null || tool === void 0 ? void 0 : tool.length)) {
-                    core.debug(`Found tool at "${tool}" in tool cache`);
-                    const tmpDir = process.env.RUNNER_TEMP || os.tmpdir();
-                    const restore = path.join(tmpDir, 'setup-swift', key);
                     if (yield cache.restoreCache([restore], key)) {
                         core.debug(`Restored snapshot at "${restore}" from key "${key}"`);
                         tool = restore;
+                        cacheHit = true;
                     }
                     else {
                         const resource = yield this.download();
@@ -126,12 +128,17 @@
                         tool = installation;
                     }
                 }
+                else {
+                    core.debug(`Found tool at "${tool}" in tool cache`);
+                    cacheHit = true;
+                }
                 if (version) {
                     tool = yield toolCache.cacheDir(tool, key, version, arch);
                     core.debug(`Added to tool cache at "${tool}"`);
                 }
-                if (core.getBooleanInput('cache-snapshot')) {
-                    yield cache.saveCache([tool], key);
+                if (core.getBooleanInput('cache-snapshot') && !cacheHit) {
+                    yield fs_1.promises.cp(tool, restore, { recursive: true });
+                    yield cache.saveCache([restore], key);
                     core.debug(`Saved to cache with key "${key}"`);
                 }
                 yield this.add(tool);
@@ -530,10 +537,18 @@
         }
         unpack(exe) {
             return __awaiter(this, void 0, void 0, function* () {
+                function env() {
+                    return __awaiter(this, void 0, void 0, function* () {
+                        const { stdout } = yield (0, exec_1.getExecOutput)('cmd', ['/c', 'set'], {
+                            failOnStdErr: true
+                        });
+                        return stdout;
+                    });
+                }
                 core.debug(`Installing toolchain from "${exe}"`);
-                core.debug(`Environment variables before installation: ${process.env}`);
+                core.debug(`Environment variables before installation: ${yield env()}`);
                 yield (0, exec_1.exec)(`"${exe}"`, ['-q']);
-                core.debug(`Environment variables after installation: ${process.env}`);
+                core.debug(`Environment variables after installation: ${yield env()}`);
                 const installation = yield installation_1.Installation.detect();
                 return installation.location;
             });
