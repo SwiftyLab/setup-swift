@@ -23,6 +23,8 @@ inputs:
       instead of using the snapshot this action was tested with.
       Enabling this option may break this action,
       use cautiously and disable if any issue.
+      Specific git ref for apple/swift-org-website repo can be provided,
+      to use toolchains published in that ref.
     required: false
     default: 'false'
   dry-run:

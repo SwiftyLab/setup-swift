@@ -11,7 +11,7 @@ export async function run() {
     const version = ToolchainVersion.create(requestedVersion, development)
 
     core.startGroup('Syncing swift.org data')
-    const checkLatest = core.getBooleanInput('check-latest')
+    const checkLatest = core.getInput('check-latest')
     const submodule = new Swiftorg(checkLatest)
     await submodule.update()
     core.endGroup()
