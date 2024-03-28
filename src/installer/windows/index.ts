@@ -2,7 +2,7 @@ import * as os from 'os'
 import * as path from 'path'
 import {promises as fs} from 'fs'
 import * as core from '@actions/core'
-import {exec} from '@actions/exec'
+import {exec, getExecOutput} from '@actions/exec'
 import * as semver from 'semver'
 import {VerifyingToolchainInstaller} from '../verify'
 import {WindowsToolchainSnapshot} from '../../snapshot'
@@ -40,10 +40,16 @@ export class WindowsToolchainInstaller extends VerifyingToolchainInstaller<Windo
   }
 
   protected async unpack(exe: string) {
+    async function env() {
+      const {stdout} = await getExecOutput('cmd', ['/c', 'set'], {
+        failOnStdErr: true
+      })
+      return stdout
+    }
     core.debug(`Installing toolchain from "${exe}"`)
-    core.debug(`Environment variables before installation: ${process.env}`)
+    core.debug(`Environment variables before installation: ${await env()}`)
     await exec(`"${exe}"`, ['-q'])
-    core.debug(`Environment variables after installation: ${process.env}`)
+    core.debug(`Environment variables after installation: ${await env()}`)
     const installation = await Installation.detect()
     return installation.location
   }

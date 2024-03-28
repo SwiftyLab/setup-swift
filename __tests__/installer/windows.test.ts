@@ -91,6 +91,11 @@ describe('windows toolchain installation verification', () => {
     process.env.SystemDrive = 'C:'
     jest.spyOn(toolCache, 'extractTar').mockResolvedValue(extracted)
     jest.spyOn(exec, 'exec').mockResolvedValue(0)
+    jest.spyOn(exec, 'getExecOutput').mockResolvedValue({
+      exitCode: 0,
+      stdout: '',
+      stderr: ''
+    })
     jest.spyOn(fs, 'access').mockRejectedValueOnce(new Error())
     jest.spyOn(fs, 'access').mockResolvedValue()
     jest.spyOn(fs, 'cp').mockResolvedValue()
@@ -105,6 +110,11 @@ describe('windows toolchain installation verification', () => {
     process.env.SystemDrive = 'C:'
     jest.spyOn(toolCache, 'extractTar').mockResolvedValue(extracted)
     jest.spyOn(exec, 'exec').mockResolvedValue(0)
+    jest.spyOn(exec, 'getExecOutput').mockResolvedValue({
+      exitCode: 0,
+      stdout: '',
+      stderr: ''
+    })
     jest.spyOn(fs, 'access').mockResolvedValue()
     jest.spyOn(fs, 'cp').mockResolvedValue()
     const toolPath = path.join(
