@@ -902,7 +902,7 @@
                 const development = core.getBooleanInput('development');
                 const version = version_1.ToolchainVersion.create(requestedVersion, development);
                 core.startGroup('Syncing swift.org data');
-                const checkLatest = core.getBooleanInput('check-latest');
+                const checkLatest = core.getInput('check-latest');
                 const submodule = new swiftorg_1.Swiftorg(checkLatest);
                 yield submodule.update();
                 core.endGroup();
@@ -1631,6 +1631,19 @@
     class Swiftorg {
         constructor(checkLatest) {
             this.checkLatest = checkLatest;
+            if (typeof checkLatest === 'string') {
+                try {
+                    const checkLatestBool = JSON.parse(checkLatest);
+                    if (typeof checkLatestBool === 'boolean') {
+                        this.checkLatest = checkLatestBool;
+                        return;
+                    }
+                }
+                catch (error) {
+                    core.debug(`Parsing 'check-latest' failed with error: "${error}"`);
+                }
+            }
+            this.checkLatest = checkLatest;
         }
         addSwiftorgSubmodule() {
             var _a;
@@ -1651,28 +1664,35 @@
                     'https://github.com/apple/swift-org-website.git',
                     SWIFTORG
                 ], { cwd: const_1.MODULE_DIR });
-                if (this.checkLatest) {
+                const packagePath = path.join(const_1.MODULE_DIR, 'package.json');
+                const packageContent = yield fs_1.promises.readFile(packagePath, 'utf-8');
+                let ref = (_a = JSON.parse(packageContent)
+                    .swiftorg) === null || _a === void 0 ? void 0 : _a.commit;
+                if (typeof this.checkLatest === 'boolean' && this.checkLatest) {
                     core.debug(`Skipping switching to tracked commit`);
                     return;
                 }
-                const packagePath = path.join(const_1.MODULE_DIR, 'package.json');
-                const packageContent = yield fs_1.promises.readFile(packagePath, 'utf-8');
-                const commit = (_a = JSON.parse(packageContent)
-                    .swiftorg) === null || _a === void 0 ? void 0 : _a.commit;
-                if (!commit) {
+                else if (typeof this.checkLatest === 'string') {
+                    ref = this.checkLatest;
+                }
+                if (!ref) {
                     core.debug(`No commit tracked in "${packageContent}, skipping switching`);
                     return;
                 }
-                core.debug(`Switching to commit "${commit}`);
-                yield (0, exec_1.exec)('git', ['checkout', commit], { cwd: swiftorg });
+                core.debug(`Switching to commit "${ref}`);
+                yield (0, exec_1.exec)('git', ['checkout', ref], { cwd: swiftorg });
             });
         }
         update() {
             return __awaiter(this, void 0, void 0, function* () {
-                const gitArgs = ['submodule', 'update', '--init', '--checkout'];
-                if (this.checkLatest) {
-                    gitArgs.push('--recursive', '--remote');
-                }
+                const gitArgs = [
+                    'submodule',
+                    'update',
+                    '--init',
+                    '--checkout',
+                    '--recursive',
+                    '--remote'
+                ];
                 core.debug(`Initializing submodules in "${const_1.MODULE_DIR}"`);
                 yield (0, exec_1.exec)('git', ['init', '-b', 'main'], { cwd: const_1.MODULE_DIR });
                 core.debug(`Updating submodules in "${const_1.MODULE_DIR}" with args "${gitArgs}"`);
