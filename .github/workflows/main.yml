@@ -19,7 +19,7 @@ on:
 
 jobs:
   dependabot:
-    name: Check dependabot PR raised updating swiftorg
+    name: Auto-merge dependabot PR
     if: github.event_name == 'pull_request' && github.event.sender.login == 'dependabot[bot]'
     runs-on: ubuntu-latest
     concurrency:
@@ -28,143 +28,58 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+    steps:
+    - name: Approve and Auto-merge
+      run: |
+        gh pr review --approve "${{ github.event.pull_request.html_url }}"
+        gh pr merge --auto --squash "${{ github.event.pull_request.html_url }}"
+      env:
+        GITHUB_TOKEN: ${{ secrets.COMMIT_TOKEN }}
+
+  ci:
+    name: Check requirements
+    runs-on: ubuntu-latest
     outputs:
-      ci: ${{ !contains(steps.metadata.outputs.dependency-names, 'swiftorg') }}
-      merge: ${{ steps.update-swiftorg.outputs.result == 'true' }}
-      approve: ${{ steps.changed-submodule-files.outputs.swift_release == 'true' }}
+      run: ${{ github.event_name != 'push' }}
+      release: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.release == 'true' }}
+      check_latest: ${{ steps.swift-org.outputs.check_latest }}
+      update_latest: ${{ github.ref_name == github.event.repository.default_branch && steps.swift-org.outputs.update_latest == 'true' }}
 
     steps:
-    - name: Dependabot metadata
-      id: metadata
-      uses: dependabot/fetch-metadata@v1
-      with:
-        github-token: ${{ secrets.COMMIT_TOKEN }}
-
     - name: Checkout repository
-      if: contains(steps.metadata.outputs.dependency-names, 'swiftorg')
       uses: actions/checkout@v4
-      with:
-        ref: ${{ github.event.pull_request.head.ref }}
-        token: ${{ secrets.COMMIT_TOKEN }}
-
-    - name: Import GPG
-      if: contains(steps.metadata.outputs.dependency-names, 'swiftorg')
-      uses: crazy-max/ghaction-import-gpg@v6.1.0
-      with:
-        gpg_private_key: ${{ secrets.COMMIT_SIGN_KEY }}
-        passphrase: ${{ secrets.COMMIT_SIGN_KEY_PASSPHRASE }}
-        git_user_signingkey: true
-        git_commit_gpgsign: true
-        git_tag_gpgsign: true
-        git_push_gpgsign: if-asked
-
-    - name: Changed Files
-      if: contains(steps.metadata.outputs.dependency-names, 'swiftorg')
-      id: changed-submodule-files
-      uses: actions/github-script@v7
-      with:
-        github-token: ${{ secrets.COMMIT_TOKEN }}
-        script: |
-          const fs = require('fs/promises');
-          const package = JSON.parse(await fs.readFile('package.json', 'utf8'));
-          const old = package.swiftorg.commit;
-          try {
-            await exec.exec('git', ['submodule', 'update', '--init', '--no-recommend-shallow', '--checkout']);
-            try {
-              await exec.exec('git', ['fetch', '--unshallow'], { cwd: 'swiftorg' });
-            } catch (error) {
-              core.warning(error);
-            }
-            const { stdout } = await exec.getExecOutput('git', ['diff', '--name-status', '--ignore-submodules=all', '--diff-filter=ACDMRTUX', `${old}..HEAD`], { cwd: 'swiftorg' });
-            const files = stdout.split('\n').filter(Boolean).flatMap((line) => {
-                const parts = line.split('\t');
-                return parts.length > 2 ? [parts[1], parts[2]] : [parts[1]];
-            }).filter((file) => /(download\/(index.md|_older-releases.md)|_data\/builds\/.*)/.exec(file));
-
-            core.setOutput('any_changed', files.length > 0);
-            core.setOutput('swift_release', files.some(file => /_data\/builds\/(swift-.*-release.*|swift_releases\.yml)/.exec(file)));
-          } catch (error) {
-            core.error(error);
-            core.setOutput('any_changed', true);
-            core.setOutput('swift_release', false);
-          }
 
     - name: Setup Node.js
-      if: steps.changed-submodule-files.outputs.any_changed == 'true'
-      id: setup-node
       uses: actions/setup-node@v4
       with:
         cache: npm
 
     - name: Cache dependencies
-      if: steps.changed-submodule-files.outputs.any_changed == 'true'
-      id: cache-node
       uses: actions/cache@v4.0.2
       with:
         key: node-${{ github.ref }}
         path: node_modules
 
     - name: Setup npm pacakges
-      if: steps.changed-submodule-files.outputs.any_changed == 'true'
       run: npm install
+      env:
+        SETUPSWIFT_SWIFTORG_METADATA: ${{ github.event_name == 'schedule' && '{"commit":"HEAD"}' }}
 
-    - name: Update submodule ref in package.json
-      if: steps.changed-submodule-files.outputs.any_changed == 'true'
-      id: update-swiftorg
+    - name: Check latest swift.org
+      id: swift-org
       uses: actions/github-script@v7
       with:
-        github-token: ${{ secrets.COMMIT_TOKEN }}
         script: |
-          const hook = require('.github/changelog/pre_commit_hook.js');
-          await hook.preCommit();
-          await exec.exec('git', ['commit', '--all', '-S', '--message', `[skip dependabot] wip: update package.json`]);
-          await exec.exec('git', ['push', '--signed=if-asked']);
-          return true;
-
-    - name: Close PR for unnecessary swiftorg changes
-      if: contains(steps.metadata.outputs.dependency-names, 'swiftorg') && steps.update-swiftorg.outputs.result != 'true'
-      uses: actions/github-script@v7
-      with:
-        github-token: ${{ secrets.COMMIT_TOKEN }}
-        script: |
-          github.rest.issues.createComment({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            issue_number: context.issue.number,
-            state: 'closed'
-          });
-
-  ci:
-    name: Check requirements
-    if: |
-      always() &&
-      (needs.dependabot.result == 'skipped' || (needs.dependabot.result == 'success' && needs.dependabot.outputs.ci == 'true'))
-    needs: dependabot
-    runs-on: ubuntu-latest
-    outputs:
-      run: ${{ github.event_name != 'push' }}
-      release: ${{ (steps.check_version_bump.outputs.release_type != '' && github.event_name == 'push') || (github.event_name == 'workflow_dispatch' && github.event.inputs.release == 'true') }}
-
-    steps:
-    - name: Checkout repository
-      if: github.event_name == 'push' && startsWith(github.event.head_commit.message, 'build(swift-org-website):')
-      uses: actions/checkout@v4
-
-    - name: Check version bump
-      if: github.event_name == 'push' && startsWith(github.event.head_commit.message, 'build(swift-org-website):')
-      id: check_version_bump
-      uses: mathieudutour/github-tag-action@v6.1
-      with:
-        github_token: ${{ github.token }}
-        custom_release_rules: build(swift-org-website):patch
-        default_bump: false
-        dry_run: true
+          const hook = require('.github/utils/update_metadata.js');
+          const {stdout} = await exec.getExecOutput('git', ['rev-parse', 'HEAD'], {cwd: 'swiftorg'});
+          const oldCommit = (await hook.currentData()).commit;
+          const newCommit = stdout.trim();
+          core.setOutput('check_latest', newCommit);
+          core.setOutput('update_latest', newCommit != oldCommit);
 
   analyze:
     name: Run CodeQL analysis
-    if: |
-      always() && needs.ci.result == 'success' &&
-      github.event_name != 'workflow_dispatch'
+    if: github.event_name != 'workflow_dispatch'
     needs: ci
     runs-on: ubuntu-latest
     concurrency:
@@ -190,37 +105,32 @@ jobs:
 
   unit-test:
     name: Run unit tests
-    if: always() && needs.ci.result == 'success'
     needs: ci
     runs-on: ubuntu-latest
     concurrency:
       group: unit-test-${{ github.ref }}
       cancel-in-progress: true
+    env:
+      SETUPSWIFT_SWIFTORG_METADATA: ${{ format('{{"commit":"{0}"}}', needs.ci.outputs.check_latest) }}
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-      with:
-        submodules: true
 
     - name: Setup Node.js
-      id: setup-node
       uses: actions/setup-node@v4
       with:
         cache: npm
 
     - name: Cache dependencies
-      id: cache-node
       uses: actions/cache@v4.0.2
       with:
         key: node-${{ github.ref }}
         path: node_modules
 
-    - name: Setup npm pacakges
-      run: npm install
-
-    - name: Run unit tests
+    - name: Setup and Run unit tests
       run: |
+        npm install
         npm run lint
         npm run test
 
@@ -232,15 +142,15 @@ jobs:
 
   integration-test:
     name: Integrate Swift ${{ matrix.swift }} on ${{ matrix.os }} with development ${{ matrix.development }}
-    if: |
-      always() && needs.ci.result == 'success' &&
-      needs.ci.outputs.run == 'true'
+    if: needs.ci.outputs.run == 'true'
     needs: ci
     runs-on: ${{ matrix.os }}
     continue-on-error: ${{ matrix.os == 'windows-latest' && matrix.swift == 'latest' }}
     concurrency:
       group: integration-test-${{ github.ref }}-${{ matrix.os }}-${{ matrix.swift }}-${{ matrix.development }}
       cancel-in-progress: true
+    env:
+      SETUPSWIFT_SWIFTORG_METADATA: ${{ format('{{"commit":"{0}"}}', needs.ci.outputs.check_latest) }}
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
@@ -265,23 +175,21 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Setup Node.js
-      id: setup-node
       uses: actions/setup-node@v4
       with:
         cache: npm
 
     - name: Cache dependencies
-      id: cache-node
       uses: actions/cache@v4.0.2
       with:
         key: node-${{ github.ref }}
         path: node_modules
 
-    - name: Setup npm pacakges
-      run: npm install
-
-    - name: Build
-      run: npm run build && npm run package
+    - name: Setup and Build
+      run: |
+        npm install
+        npm run build
+        npm run package
 
     - name: Run
       id: setup-swift
@@ -289,7 +197,7 @@ jobs:
       with:
         swift-version: ${{ matrix.swift }}
         development: ${{ matrix.development }}
-        check-latest: ${{ github.event_name == 'schedule' }}
+        check-latest: ${{ needs.ci.outputs.check_latest }}
         cache-snapshot: ${{ !matrix.development }}
 
     - name: Verify Swift version in macos
@@ -301,44 +209,42 @@ jobs:
 
   dry-run:
     name: Check action with dry run
-    if: |
-      always() && needs.ci.result == 'success' &&
-      needs.ci.outputs.run == 'true'
+    if: needs.ci.outputs.run == 'true'
     needs: ci
     runs-on: ubuntu-latest
     continue-on-error: true
     concurrency:
       group: dry-run-${{ github.ref }}
       cancel-in-progress: true
+    env:
+      SETUPSWIFT_SWIFTORG_METADATA: ${{ format('{{"commit":"{0}"}}', needs.ci.outputs.check_latest) }}
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
 
     - name: Setup Node.js
-      id: setup-node
       uses: actions/setup-node@v4
       with:
         cache: npm
 
     - name: Cache dependencies
-      id: cache-node
       uses: actions/cache@v4.0.2
       with:
         key: node-${{ github.ref }}
         path: node_modules
 
-    - name: Setup npm pacakges
-      run: npm install
-
-    - name: Build
-      run: npm run build && npm run package
+    - name: Setup and Build
+      run: |
+        npm install
+        npm run build
+        npm run package
 
     - name: Run
       id: setup-swift
       uses: ./
       with:
-        check-latest: ${{ github.event_name == 'schedule' }}
+        check-latest: ${{ needs.ci.outputs.check_latest }}
         dry-run: true
 
     - name: Verify Swift version
@@ -349,9 +255,7 @@ jobs:
 
   e2e-test:
     name: End-to-end test latest Swift on ${{ matrix.os }}
-    if: |
-      always() && needs.ci.result == 'success' &&
-      needs.ci.outputs.run == 'true'
+    if: needs.ci.outputs.run == 'true'
     needs: ci
     runs-on: ${{ matrix.os }}
     continue-on-error: ${{ matrix.os == 'windows-latest' }}
@@ -395,7 +299,7 @@ jobs:
                   uses: `${repo}@${branch}`,
                   with: {
                     'swift-version': 'latest',
-                    'check-latest': '${{ github.event_name == 'schedule' }}'
+                    'check-latest': '${{ needs.ci.outputs.check_latest }}'
                   }
                 }
               ]
@@ -430,29 +334,68 @@ jobs:
         swift build --build-tests
         swift test
 
-  merge:
-    name: Auto-merge submodule update PR
-    if: needs.dependabot.outputs.merge == 'true'
-    needs: dependabot
-    runs-on: ubuntu-latest
+  pages:
+    name: Publish metadata to GitHub Pages
+    if: |
+      always() && needs.ci.outputs.update_latest == 'true' &&
+      (needs.analyze.result == 'success' || needs.analyze.result == 'skipped') &&
+      (needs.unit-test.result == 'success' || needs.unit-test.result == 'skipped') &&
+      (needs.integration-test.result == 'success' || needs.integration-test.result == 'skipped') &&
+      (needs.dry-run.result == 'success' || needs.dry-run.result == 'skipped') &&
+      (needs.e2e-test.result == 'success' || needs.e2e-test.result == 'skipped')
+    needs: [ci, analyze, unit-test, integration-test, dry-run, e2e-test]
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     concurrency:
-      group: swiftorg-update
+      group: pages-update
       cancel-in-progress: true
     permissions:
-      contents: write
-      pull-requests: write
-
+      id-token: write
+      pages: write
+    runs-on: ubuntu-latest
+    env:
+      SETUPSWIFT_SWIFTORG_METADATA: ${{ format('{{"commit":"{0}"}}', needs.ci.outputs.check_latest) }}
     steps:
-    - name: Approve
-      if: needs.dependabot.outputs.approve == 'true'
-      run: gh pr review --approve "${{ github.event.pull_request.html_url }}"
-      env:
-        GITHUB_TOKEN: ${{ secrets.COMMIT_TOKEN }}
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Auto-merge
-      run: gh pr merge --auto --squash "${{ github.event.pull_request.html_url }}"
-      env:
-        GITHUB_TOKEN: ${{ secrets.COMMIT_TOKEN }}
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          cache: npm
+
+      - name: Cache dependencies
+        uses: actions/cache@v4.0.2
+        with:
+          key: node-${{ github.ref }}
+          path: node_modules
+
+      - name: Setup npm pacakges
+        run: npm install
+
+      - name: Generate swift.org metadata
+        id: swiftorg-metadata
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const hook = require('.github/utils/update_metadata.js');
+            await hook.update();
+            return true;
+
+      - name: Upload artifact
+        if: steps.swiftorg-metadata.outputs.result == 'true'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: pages
+
+      - name: Deploy to GitHub Pages
+        if: steps.swiftorg-metadata.outputs.result == 'true'
+        id: deployment
+        uses: actions/deploy-pages@v4
 
   cd:
     name: Create release
@@ -468,13 +411,14 @@ jobs:
     concurrency:
       group: cd-${{ github.ref }}
       cancel-in-progress: true
+    env:
+      SETUPSWIFT_SWIFTORG_METADATA: ${{ format('{{"commit":"{0}"}}', needs.ci.outputs.check_latest) }}
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
         fetch-tags: true
-        submodules: true
         token: ${{ secrets.COMMIT_TOKEN }}
 
     - name: Import GPG
@@ -488,13 +432,11 @@ jobs:
         git_push_gpgsign: if-asked
 
     - name: Setup Node.js
-      id: setup-node
       uses: actions/setup-node@v4
       with:
         cache: npm
 
     - name: Cache dependencies
-      id: cache-node
       uses: actions/cache@v4.0.2
       with:
         key: node-${{ github.ref }}
