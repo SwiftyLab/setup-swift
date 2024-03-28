@@ -3,6 +3,7 @@ import {promises as fs} from 'fs'
 import * as core from '@actions/core'
 import {exec} from '@actions/exec'
 import {MODULE_DIR} from './const'
+import https from 'https'
 
 const SWIFTORG = 'swiftorg'
 
@@ -20,6 +21,51 @@ export class Swiftorg {
       }
     }
     this.checkLatest = checkLatest
+  }
+
+  private async swiftorgMetadata(): Promise<{commit?: string}> {
+    if (process.env.SETUPSWIFT_SWIFTORG_METADATA) {
+      return JSON.parse(process.env.SETUPSWIFT_SWIFTORG_METADATA)
+    }
+    return new Promise((resolve, reject) => {
+      https.get(
+        'https://swiftylab.github.io/setup-swift/metadata.json',
+        res => {
+          const {statusCode} = res
+          const contentType = res.headers['content-type']
+
+          let error
+          if (statusCode !== 200) {
+            error = new Error(`Request Failed Status Code: '${statusCode}'`)
+          } else if (!contentType?.startsWith('application/json')) {
+            error = new Error(`Invalid content-type: ${contentType}`)
+          }
+
+          if (error) {
+            core.error(error.message)
+            res.resume()
+            reject(error)
+            return
+          }
+
+          let rawData = ''
+          res.setEncoding('utf8')
+          res.on('data', chunk => {
+            rawData += chunk
+          })
+          res.on('end', () => {
+            try {
+              const parsedData = JSON.parse(rawData)
+              core.debug(`Recieved swift.org metadata: "${parsedData}"`)
+              resolve(parsedData)
+            } catch (e) {
+              core.error(`Parsing swift.org metadata error: '${e}'`)
+              reject(e)
+            }
+          })
+        }
+      )
+    })
   }
 
   private async addSwiftorgSubmodule() {
@@ -43,18 +89,18 @@ export class Swiftorg {
       {cwd: MODULE_DIR}
     )
 
-    const packagePath = path.join(MODULE_DIR, 'package.json')
-    const packageContent = await fs.readFile(packagePath, 'utf-8')
-    let ref = (JSON.parse(packageContent) as {swiftorg?: {commit: string}})
-      .swiftorg?.commit
+    let ref: string | undefined
     if (typeof this.checkLatest === 'boolean' && this.checkLatest) {
       core.debug(`Skipping switching to tracked commit`)
       return
     } else if (typeof this.checkLatest === 'string') {
       ref = this.checkLatest
+    } else {
+      const swiftorgMetadata = await this.swiftorgMetadata()
+      ref = swiftorgMetadata.commit
     }
     if (!ref) {
-      core.debug(`No commit tracked in "${packageContent}, skipping switching`)
+      core.debug(`No commit tracked, skipping switching`)
       return
     }
     core.debug(`Switching to commit "${ref}`)
