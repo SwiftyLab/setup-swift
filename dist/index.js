@@ -1620,6 +1620,9 @@
             step((generator = generator.apply(thisArg, _arguments || [])).next());
         });
     };
+    var __importDefault = (this && this.__importDefault) || function (mod) {
+        return (mod && mod.__esModule) ? mod : { "default": mod };
+    };
     Object.defineProperty(exports, "__esModule", ({ value: true }));
     exports.Swiftorg = void 0;
     const path = __importStar(__nccwpck_require__(1017));
@@ -1627,6 +1630,7 @@
     const core = __importStar(__nccwpck_require__(2186));
     const exec_1 = __nccwpck_require__(1514);
     const const_1 = __nccwpck_require__(6695);
+    const https_1 = __importDefault(__nccwpck_require__(5687));
     const SWIFTORG = 'swiftorg';
     class Swiftorg {
         constructor(checkLatest) {
@@ -1645,8 +1649,49 @@
             }
             this.checkLatest = checkLatest;
         }
+        swiftorgMetadata() {
+            return __awaiter(this, void 0, void 0, function* () {
+                if (process.env.SETUPSWIFT_SWIFTORG_METADATA) {
+                    return JSON.parse(process.env.SETUPSWIFT_SWIFTORG_METADATA);
+                }
+                return new Promise((resolve, reject) => {
+                    https_1.default.get('https://swiftylab.github.io/setup-swift/metadata.json', res => {
+                        const { statusCode } = res;
+                        const contentType = res.headers['content-type'];
+                        let error;
+                        if (statusCode !== 200) {
+                            error = new Error(`Request Failed Status Code: '${statusCode}'`);
+                        }
+                        else if (!(contentType === null || contentType === void 0 ? void 0 : contentType.startsWith('application/json'))) {
+                            error = new Error(`Invalid content-type: ${contentType}`);
+                        }
+                        if (error) {
+                            core.error(error.message);
+                            res.resume();
+                            reject(error);
+                            return;
+                        }
+                        let rawData = '';
+                        res.setEncoding('utf8');
+                        res.on('data', chunk => {
+                            rawData += chunk;
+                        });
+                        res.on('end', () => {
+                            try {
+                                const parsedData = JSON.parse(rawData);
+                                core.debug(`Recieved swift.org metadata: "${parsedData}"`);
+                                resolve(parsedData);
+                            }
+                            catch (e) {
+                                core.error(`Parsing swift.org metadata error: '${e}'`);
+                                reject(e);
+                            }
+                        });
+                    });
+                });
+            });
+        }
         addSwiftorgSubmodule() {
-            var _a;
             return __awaiter(this, void 0, void 0, function* () {
                 const swiftorg = path.join(const_1.MODULE_DIR, SWIFTORG);
                 try {
@@ -1664,10 +1709,7 @@
                     'https://github.com/apple/swift-org-website.git',
                     SWIFTORG
                 ], { cwd: const_1.MODULE_DIR });
-                const packagePath = path.join(const_1.MODULE_DIR, 'package.json');
-                const packageContent = yield fs_1.promises.readFile(packagePath, 'utf-8');
-                let ref = (_a = JSON.parse(packageContent)
-                    .swiftorg) === null || _a === void 0 ? void 0 : _a.commit;
+                let ref;
                 if (typeof this.checkLatest === 'boolean' && this.checkLatest) {
                     core.debug(`Skipping switching to tracked commit`);
                     return;
@@ -1675,8 +1717,12 @@
                 else if (typeof this.checkLatest === 'string') {
                     ref = this.checkLatest;
                 }
+                else {
+                    const swiftorgMetadata = yield this.swiftorgMetadata();
+                    ref = swiftorgMetadata.commit;
+                }
                 if (!ref) {
-                    core.debug(`No commit tracked in "${packageContent}, skipping switching`);
+                    core.debug(`No commit tracked, skipping switching`);
                     return;
                 }
                 core.debug(`Switching to commit "${ref}`);
