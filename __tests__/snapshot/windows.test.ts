@@ -103,7 +103,6 @@ describe('fetch windows tool data based on options', () => {
     expect(wTool.dir).toBeTruthy()
     expect(wTool.platform).toBeTruthy()
     expect(wTool.branch).toBeTruthy()
-    expect(wTool.download_signature).toBeTruthy()
   })
 
   it('fetches windows 10 named swift tool', async () => {

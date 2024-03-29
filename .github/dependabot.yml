@@ -7,13 +7,6 @@ updates:
     commit-message:
       prefix: 'ci(Deps): '
 
-  - package-ecosystem: gitsubmodule
-    directory: /
-    schedule:
-      interval: daily
-    commit-message:
-      prefix: 'build(swift-org-website): '
-
   - package-ecosystem: npm
     directory: /
     schedule:
