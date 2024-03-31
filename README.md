@@ -19,6 +19,8 @@ This action supports the following functionalities:
 - Caches installed setup in tool cache.
 - Allows fetching snapshot metadata without installation (can be used to setup docker images).
 
+## Latest supported toolchains
+
 | Release Type | Latest Available |
 |--------------|------------------|
 | Stable | [![Latest Release](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fswiftylab.github.io%2Fsetup-swift%2Fmetadata.json&query=%24.release.name&logo=swift&logoColor=white&label=Swift&color=orange)](https://www.swift.org/download/#releases)<br/>[![Latest Release Tag](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fswiftylab.github.io%2Fsetup-swift%2Fmetadata.json&query=%24.release.tag&logo=swift&logoColor=white&label=tag&color=orange)](https://www.swift.org/download/#releases) |
@@ -82,7 +84,7 @@ steps:
   run: swift --version
 ```
 
-**See [action.yml](action.yml) for complete list of inputs and outputs.**
+**See [action.yml](action.yml) for complete list of inputs and outputs, see [wiki](https://github.com/SwiftyLab/setup-swift/wiki) for inner workings of this action.**
 
 ## Specifying version
 

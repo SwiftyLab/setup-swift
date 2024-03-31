@@ -61,7 +61,7 @@ jobs:
         path: node_modules
 
     - name: Setup npm pacakges
-      run: npm install
+      run: npm install --legacy-peer-deps
       env:
         SETUPSWIFT_SWIFTORG_METADATA: ${{ github.event_name == 'schedule' && '{"commit":"HEAD"}' }}
 
@@ -130,7 +130,7 @@ jobs:
 
     - name: Setup and Run unit tests
       run: |
-        npm install
+        npm install --legacy-peer-deps
         npm run lint
         npm run test
 
@@ -187,7 +187,7 @@ jobs:
 
     - name: Setup and Build
       run: |
-        npm install
+        npm install --legacy-peer-deps
         npm run build
         npm run package
 
@@ -236,7 +236,7 @@ jobs:
 
     - name: Setup and Build
       run: |
-        npm install
+        npm install --legacy-peer-deps
         npm run build
         npm run package
 
@@ -375,7 +375,7 @@ jobs:
           path: node_modules
 
       - name: Setup npm pacakges
-        run: npm install
+        run: npm install --legacy-peer-deps
 
       - name: Generate swift.org metadata
         id: swiftorg-metadata
@@ -443,7 +443,7 @@ jobs:
         path: node_modules
 
     - name: Setup npm pacakges
-      run: npm install
+      run: npm install --legacy-peer-deps
 
     - name: Generate changelog
       id: changelog
