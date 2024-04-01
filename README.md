@@ -99,6 +99,16 @@ In other words specifying...
 - `"4"` will resolve to latest minor and patch version (aka `4.2.4`)
 - `"4.0.0"` will resolve to version `4.0`
 
+<details>
+  <summary>Additionally, to use custom toolchains, download URL can be provided. The download URL must point to a `tar` archive for `Linux`, `pkg` file for `macOS` and `exe` file for `Windows`.</summary>
+
+  i.e. for `macOS`: https://github.com/swiftwasm/swift/releases/download/swift-wasm-5.10-SNAPSHOT-2024-03-30-a/swift-wasm-5.10-SNAPSHOT-2024-03-30-a-macos_x86_64.pkg
+  for `Linux`: https://github.com/swiftwasm/swift/releases/download/swift-wasm-5.10-SNAPSHOT-2024-03-30-a/swift-wasm-5.10-SNAPSHOT-2024-03-30-a-ubuntu22.04_x86_64.tar.gz
+
+  > [!IMPORTANT]  
+  > When using custom toolchains, please ensure that the toolchain can be installed and used on the GitHub runner, this action won't be able to validate this for custom toolchains.
+</details>
+
 ### Caveats
 
 YAML interprets eg. `4.0` as a float, this action will then interpret that as `4` which will result in eg. Swift `4.2.4` being resolved. Quote your inputs! Thus surround version input with quotations:

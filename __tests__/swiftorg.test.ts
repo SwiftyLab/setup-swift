@@ -95,6 +95,23 @@ describe('swiftorg sync validation', () => {
     ])
   })
 
+  it('tests without latest sync success with matadata fetch', async () => {
+    execSpy.mockResolvedValue(0)
+    process.env.SETUPSWIFT_SWIFTORG_METADATA = undefined
+    const commit = '74caef941bc8ed6a01b9572ab6149e1d1f8a2d69'
+    const swiftorg = new Swiftorg(false)
+    nock(SWIFTORG_METADATA)
+      .get(/.*/)
+      .reply(200, {commit}, {'content-type': 'application/json'})
+    await swiftorg.update()
+    expect(execSpy).toHaveBeenCalledTimes(3)
+    expect(execSpy.mock.calls[1]).toStrictEqual([
+      'git',
+      ['fetch', SWIFTORG_ORIGIN, commit, '--depth=1', '--no-tags'],
+      {cwd: path.join(MODULE_DIR, SWIFTORG)}
+    ])
+  })
+
   it('tests without latest sync failure with matadata fetch failure', async () => {
     execSpy.mockResolvedValue(0)
     process.env.SETUPSWIFT_SWIFTORG_METADATA = undefined
@@ -109,7 +126,7 @@ describe('swiftorg sync validation', () => {
     expect(execSpy).toHaveBeenCalledTimes(0)
   })
 
-  it('tests without latest sync failure with invalid matadata', async () => {
+  it('tests without latest sync failure with invalid matadata content type', async () => {
     execSpy.mockResolvedValue(0)
     process.env.SETUPSWIFT_SWIFTORG_METADATA = undefined
     const contentType = 'application/txt'
@@ -120,6 +137,17 @@ describe('swiftorg sync validation', () => {
     await expect(swiftorg.update()).rejects.toMatchObject(
       new Error(`Invalid content-type: '${contentType}'`)
     )
+    expect(execSpy).toHaveBeenCalledTimes(0)
+  })
+
+  it('tests without latest sync failure with invalid matadata content', async () => {
+    execSpy.mockResolvedValue(0)
+    process.env.SETUPSWIFT_SWIFTORG_METADATA = undefined
+    const swiftorg = new Swiftorg(false)
+    nock(SWIFTORG_METADATA)
+      .get(/.*/)
+      .reply(200, 'invalid', {'content-type': 'application/json'})
+    await expect(swiftorg.update()).rejects.toBeInstanceOf(SyntaxError)
     expect(execSpy).toHaveBeenCalledTimes(0)
   })
 })

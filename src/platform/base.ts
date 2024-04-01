@@ -33,6 +33,10 @@ export abstract class Platform<
     return yaml.load(data) as SwiftRelease[]
   }
 
+  abstract snapshotFor(
+    snapshot: ToolchainSnapshot
+  ): SnapshotForInstaller<Installer>
+
   private sortSnapshots(snapshots: SnapshotForInstaller<Installer>[]) {
     return snapshots.sort((item1, item2) => {
       const t1 = item1 as ToolchainSnapshot
@@ -65,6 +69,11 @@ export abstract class Platform<
   async tools(
     version: ToolchainVersion
   ): Promise<SnapshotForInstaller<Installer>[]> {
+    const verSnapshot = version.toolchainSnapshot(this.file)
+    if (verSnapshot) {
+      return [this.snapshotFor(verSnapshot)]
+    }
+
     const snapshots = await this.releasedTools(version)
     if (snapshots.length && !version.dev) {
       return this.sortSnapshots(snapshots)
@@ -92,7 +101,8 @@ export abstract class Platform<
           return {
             ...data,
             platform: collection.platform,
-            branch: collection.branch
+            branch: collection.branch,
+            preventCaching: false
           } as SnapshotForInstaller<Installer>
         })
       })

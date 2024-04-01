@@ -81,6 +81,7 @@ exports.ToolchainInstaller = void 0;
 const os = __importStar(__nccwpck_require__(2037));
 const path = __importStar(__nccwpck_require__(1017));
 const fs_1 = __nccwpck_require__(7147);
+const url_1 = __nccwpck_require__(7310);
 const core = __importStar(__nccwpck_require__(2186));
 const exec_1 = __nccwpck_require__(1514);
 const cache = __importStar(__nccwpck_require__(7799));
@@ -96,7 +97,12 @@ class ToolchainInstaller {
         return match && match.length > 1 ? (0, semver_1.coerce)(match[1]) : undefined;
     }
     get baseUrl() {
-        return `https://download.swift.org/${this.data.branch}/${this.data.platform}/${this.data.dir}`;
+        const data = this.data;
+        if (data.baseUrl) {
+            return data.baseUrl;
+        }
+        const base = 'https://download.swift.org';
+        return new url_1.URL(path.posix.join(base, data.branch, data.platform, data.dir));
     }
     swiftVersionCommand() {
         return {
@@ -138,7 +144,9 @@ class ToolchainInstaller {
                 tool = yield toolCache.cacheDir(tool, key, version, arch);
                 core.debug(`Added to tool cache at "${tool}"`);
             }
-            if (core.getBooleanInput('cache-snapshot') && !cacheHit) {
+            if (core.getBooleanInput('cache-snapshot') &&
+                !cacheHit &&
+                !this.data.preventCaching) {
                 yield fs_1.promises.cp(tool, restore, { recursive: true });
                 yield cache.saveCache([restore], key);
                 core.debug(`Saved to cache with key "${key}"`);
@@ -148,7 +156,8 @@ class ToolchainInstaller {
     }
     download() {
         return __awaiter(this, void 0, void 0, function* () {
-            const url = `${this.baseUrl}/${this.data.download}`;
+            var _a;
+            const url = path.posix.join((_a = this.baseUrl) === null || _a === void 0 ? void 0 : _a.href, this.data.download);
             core.debug(`Downloading snapshot from "${url}"`);
             return yield toolCache.downloadTool(url);
         });
@@ -400,6 +409,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.VerifyingToolchainInstaller = void 0;
+const path_1 = __nccwpck_require__(1017);
 const core = __importStar(__nccwpck_require__(2186));
 const toolCache = __importStar(__nccwpck_require__(7784));
 const gpg = __importStar(__nccwpck_require__(9787));
@@ -407,18 +417,19 @@ const base_1 = __nccwpck_require__(5686);
 class VerifyingToolchainInstaller extends base_1.ToolchainInstaller {
     get signatureUrl() {
         const signature = this.data.download_signature;
-        return signature ? `${this.baseUrl}/${signature}` : undefined;
+        return signature ? path_1.posix.join(this.baseUrl.href, signature) : undefined;
     }
     downloadSignature() {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                if (this.signatureUrl) {
-                    return yield toolCache.downloadTool(this.signatureUrl);
-                }
+                return this.signatureUrl
+                    ? yield toolCache.downloadTool(this.signatureUrl)
+                    : undefined;
             }
             catch (error) {
                 if (error instanceof toolCache.HTTPError &&
                     error.httpStatusCode === 404) {
+                    core.warning(`No signature at "${this.signatureUrl}"`);
                     return undefined;
                 }
                 throw error;
@@ -541,16 +552,24 @@ class WindowsToolchainInstaller extends verify_1.VerifyingToolchainInstaller {
         return __awaiter(this, void 0, void 0, function* () {
             function env() {
                 return __awaiter(this, void 0, void 0, function* () {
-                    const { stdout } = yield (0, exec_1.getExecOutput)('cmd', ['/c', 'set'], {
-                        failOnStdErr: true
-                    });
-                    return stdout;
+                    for (const target of ['Machine', 'User']) {
+                        const { stdout } = yield (0, exec_1.getExecOutput)('powershell', [
+                            '-NoProfile',
+                            '-Command',
+                            `& {[Environment]::GetEnvironmentVariables('${target}') | ConvertTo-Json}`
+                        ], { failOnStdErr: true });
+                        core.debug(`${target} variables: "${stdout}"`);
+                    }
                 });
             }
             core.debug(`Installing toolchain from "${exe}"`);
-            core.debug(`Environment variables before installation: ${yield env()}`);
+            core.startGroup('Environment variables before installation');
+            yield env();
+            core.endGroup();
             yield (0, exec_1.exec)(`"${exe}"`, ['-q']);
-            core.debug(`Environment variables after installation: ${yield env()}`);
+            core.startGroup('Environment variables after installation');
+            yield env();
+            core.endGroup();
             const installation = yield installation_1.Installation.detect();
             return installation.location;
         });
@@ -903,11 +922,13 @@ function run() {
             const requestedVersion = (_a = core.getInput('swift-version')) !== null && _a !== void 0 ? _a : 'latest';
             const development = core.getBooleanInput('development');
             const version = version_1.ToolchainVersion.create(requestedVersion, development);
-            core.startGroup('Syncing swift.org data');
-            const checkLatest = core.getInput('check-latest');
-            const submodule = new swiftorg_1.Swiftorg(checkLatest);
-            yield submodule.update();
-            core.endGroup();
+            if (version.requiresSwiftOrg) {
+                core.startGroup('Syncing swift.org data');
+                const checkLatest = core.getInput('check-latest');
+                const submodule = new swiftorg_1.Swiftorg(checkLatest);
+                yield submodule.update();
+                core.endGroup();
+            }
             const dryRun = core.getBooleanInput('dry-run');
             let snapshot;
             let installedVersion;
@@ -1035,6 +1056,10 @@ class Platform {
     }
     tools(version) {
         return __awaiter(this, void 0, void 0, function* () {
+            const verSnapshot = version.toolchainSnapshot(this.file);
+            if (verSnapshot) {
+                return [this.snapshotFor(verSnapshot)];
+            }
             const snapshots = yield this.releasedTools(version);
             if (snapshots.length && !version.dev) {
                 return this.sortSnapshots(snapshots);
@@ -1055,7 +1080,7 @@ class Platform {
             const devSnapshots = snapshotsCollection
                 .flatMap(collection => {
                 return collection.data.map(data => {
-                    return Object.assign(Object.assign({}, data), { platform: collection.platform, branch: collection.branch });
+                    return Object.assign(Object.assign({}, data), { platform: collection.platform, branch: collection.branch, preventCaching: false });
                 });
             })
                 .filter(item => version.satisfiedBy(item.dir));
@@ -1250,6 +1275,9 @@ class LinuxPlatform extends versioned_1.VersionedPlatform {
             const content = yield fs_1.promises.readFile(doc, 'utf8');
             return content;
         });
+    }
+    snapshotFor(snapshot) {
+        return Object.assign(Object.assign({}, snapshot), { download_signature: `${snapshot.download}.sig` });
     }
     tools(version) {
         const _super = Object.create(null, {
@@ -1457,7 +1485,8 @@ class VersionedPlatform extends base_1.Platform {
                             platform: pName + this.archSuffix,
                             branch: release.tag.toLocaleLowerCase(),
                             docker: platform.docker,
-                            windows: pName.startsWith('windows')
+                            windows: pName.startsWith('windows'),
+                            preventCaching: false
                         }
                         : [];
                 });
@@ -1507,6 +1536,9 @@ class WindowsPlatform extends versioned_1.VersionedPlatform {
     get downloadExtension() {
         return 'exe';
     }
+    snapshotFor(snapshot) {
+        return Object.assign(Object.assign({}, snapshot), { download_signature: `${snapshot.download}.sig`, windows: true });
+    }
     install(data) {
         return __awaiter(this, void 0, void 0, function* () {
             const installer = new installer_1.WindowsToolchainInstaller(data);
@@ -1525,6 +1557,29 @@ exports.WindowsPlatform = WindowsPlatform;
 
 "use strict";
 
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -1536,6 +1591,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.XcodePlatform = void 0;
+const path = __importStar(__nccwpck_require__(1017));
 const base_1 = __nccwpck_require__(1568);
 const installer_1 = __nccwpck_require__(8979);
 class XcodePlatform extends base_1.Platform {
@@ -1552,6 +1608,11 @@ class XcodePlatform extends base_1.Platform {
     get fileGlob() {
         return this.name;
     }
+    snapshotFor(snapshot) {
+        const fileExt = path.extname(snapshot.download);
+        const fileName = path.basename(snapshot.download, fileExt);
+        return Object.assign(Object.assign({}, snapshot), { debug_info: `${fileName}-symbols.${fileExt}` });
+    }
     releasedTools(version) {
         return __awaiter(this, void 0, void 0, function* () {
             const releases = yield this.releases();
@@ -1563,11 +1624,12 @@ class XcodePlatform extends base_1.Platform {
                     name: `Xcode Swift ${release.name}`,
                     date: release.date,
                     download: `${release.tag}-osx.pkg`,
-                    symbols: `${release.tag}-osx-symbols.pkg`,
+                    debug_info: `${release.tag}-osx-symbols.pkg`,
                     dir: release.tag,
                     xcode: xMatch && xMatch.length > 1 ? xMatch[1] : undefined,
                     platform: this.name,
-                    branch: release.tag.toLocaleLowerCase()
+                    branch: release.tag.toLocaleLowerCase(),
+                    preventCaching: false
                 };
             });
         });
@@ -1916,7 +1978,7 @@ class VisualStudio {
         this.catalog = catalog;
         this.properties = properties;
     }
-    // eslint-disable-next-line no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     static createFromJSON(json) {
         return new VisualStudio(json.installationPath, json.installationVersion, json.catalog, json.properties);
     }
@@ -2295,12 +2357,20 @@ const glob_1 = __nccwpck_require__(8211);
 const const_1 = __nccwpck_require__(6695);
 exports.SWIFT_RELEASE_REGEX = /swift-(.*)-release/;
 class ToolchainVersion {
+    get requiresSwiftOrg() {
+        return true;
+    }
     constructor(dev) {
         this.dev = dev;
     }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    toolchainSnapshot(platform) {
+        return undefined;
+    }
     toolFiles(fileGlob) {
         return __awaiter(this, void 0, void 0, function* () {
-            const pattern = `swiftorg/_data/builds/${this.dirGlob}/${fileGlob}.yml`;
+            const builds = 'swiftorg/_data/builds';
+            const pattern = path.posix.join(builds, this.dirGlob, `${fileGlob}.yml`);
             core.debug(`Searching for glob "${pattern}"`);
             let files = yield (0, glob_1.glob)(pattern, { absolute: true, cwd: const_1.MODULE_DIR });
             core.debug(`Retrieved files "${files}" for glob "${pattern}"`);
@@ -2356,13 +2426,22 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+const url_1 = __nccwpck_require__(7310);
 const core = __importStar(__nccwpck_require__(2186));
 const semver_1 = __nccwpck_require__(1383);
 const base_1 = __nccwpck_require__(2120);
 const latest_1 = __nccwpck_require__(8363);
 const semver_2 = __nccwpck_require__(916);
 const name_1 = __nccwpck_require__(3987);
+const location_1 = __nccwpck_require__(9785);
 base_1.ToolchainVersion.create = (requested, dev = false) => {
+    try {
+        const toolchainUrl = new url_1.URL(requested);
+        return new location_1.ToolchainSnapshotLocation(toolchainUrl, dev);
+    }
+    catch (_a) {
+        core.debug(`Input "${requested}" not an URL`);
+    }
     if (requested === 'latest' || requested === 'current') {
         core.debug(`Using latest ${dev ? 'development ' : ''}toolchain requirement`);
         return new latest_1.LatestToolchainVersion(dev);
@@ -2391,6 +2470,7 @@ __exportStar(__nccwpck_require__(2120), exports);
 __exportStar(__nccwpck_require__(8363), exports);
 __exportStar(__nccwpck_require__(916), exports);
 __exportStar(__nccwpck_require__(3987), exports);
+__exportStar(__nccwpck_require__(9785), exports);
 
 
 /***/ }),
@@ -2415,6 +2495,57 @@ class LatestToolchainVersion extends base_1.ToolchainVersion {
     }
 }
 exports.LatestToolchainVersion = LatestToolchainVersion;
+
+
+/***/ }),
+
+/***/ 9785:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ToolchainSnapshotLocation = void 0;
+const url_1 = __nccwpck_require__(7310);
+const path_1 = __nccwpck_require__(1017);
+const base_1 = __nccwpck_require__(2120);
+class ToolchainSnapshotLocation extends base_1.ToolchainVersion {
+    constructor(url, dev) {
+        super(dev);
+        this.url = url;
+    }
+    get dirGlob() {
+        return '';
+    }
+    get dirRegex() {
+        return /a^/;
+    }
+    get requiresSwiftOrg() {
+        return false;
+    }
+    toolchainSnapshot(platform) {
+        try {
+            const baseUrl = path_1.posix.dirname(this.url.href);
+            return {
+                name: 'Swift Custom Snapshot',
+                date: new Date(),
+                download: path_1.posix.basename(this.url.href),
+                dir: path_1.posix.basename(baseUrl),
+                platform,
+                branch: this.url.pathname.split(path_1.posix.sep)[1],
+                baseUrl: new url_1.URL(baseUrl),
+                preventCaching: true
+            };
+        }
+        catch (e) {
+            throw new Error(`Swift resource: "${this.url}" failed with error ${e}`);
+        }
+    }
+    toString() {
+        return `url: "${this.url}", dev: ${this.dev}`;
+    }
+}
+exports.ToolchainSnapshotLocation = ToolchainSnapshotLocation;
 
 
 /***/ }),
@@ -74588,35 +74719,43 @@ const coerce = (version, options) => {
 
   let match = null
   if (!options.rtl) {
-    match = version.match(re[t.COERCE])
+    match = version.match(options.includePrerelease ? re[t.COERCEFULL] : re[t.COERCE])
   } else {
     // Find the right-most coercible string that does not share
     // a terminus with a more left-ward coercible string.
     // Eg, '1.2.3.4' wants to coerce '2.3.4', not '3.4' or '4'
+    // With includePrerelease option set, '1.2.3.4-rc' wants to coerce '2.3.4-rc', not '2.3.4'
     //
     // Walk through the string checking with a /g regexp
     // Manually set the index so as to pick up overlapping matches.
     // Stop when we get a match that ends at the string end, since no
     // coercible string can be more right-ward without the same terminus.
+    const coerceRtlRegex = options.includePrerelease ? re[t.COERCERTLFULL] : re[t.COERCERTL]
     let next
-    while ((next = re[t.COERCERTL].exec(version)) &&
+    while ((next = coerceRtlRegex.exec(version)) &&
         (!match || match.index + match[0].length !== version.length)
     ) {
       if (!match ||
             next.index + next[0].length !== match.index + match[0].length) {
         match = next
       }
-      re[t.COERCERTL].lastIndex = next.index + next[1].length + next[2].length
+      coerceRtlRegex.lastIndex = next.index + next[1].length + next[2].length
     }
     // leave it in a clean state
-    re[t.COERCERTL].lastIndex = -1
+    coerceRtlRegex.lastIndex = -1
   }
 
   if (match === null) {
     return null
   }
 
-  return parse(`${match[2]}.${match[3] || '0'}.${match[4] || '0'}`, options)
+  const major = match[2]
+  const minor = match[3] || '0'
+  const patch = match[4] || '0'
+  const prerelease = options.includePrerelease && match[5] ? `-${match[5]}` : ''
+  const build = options.includePrerelease && match[6] ? `+${match[6]}` : ''
+
+  return parse(`${major}.${minor}.${patch}${prerelease}${build}`, options)
 }
 module.exports = coerce
 
@@ -75308,12 +75447,17 @@ createToken('XRANGELOOSE', `^${src[t.GTLT]}\\s*${src[t.XRANGEPLAINLOOSE]}$`)
 
 // Coercion.
 // Extract anything that could conceivably be a part of a valid semver
-createToken('COERCE', `${'(^|[^\\d])' +
+createToken('COERCEPLAIN', `${'(^|[^\\d])' +
               '(\\d{1,'}${MAX_SAFE_COMPONENT_LENGTH}})` +
               `(?:\\.(\\d{1,${MAX_SAFE_COMPONENT_LENGTH}}))?` +
-              `(?:\\.(\\d{1,${MAX_SAFE_COMPONENT_LENGTH}}))?` +
+              `(?:\\.(\\d{1,${MAX_SAFE_COMPONENT_LENGTH}}))?`)
+createToken('COERCE', `${src[t.COERCEPLAIN]}(?:$|[^\\d])`)
+createToken('COERCEFULL', src[t.COERCEPLAIN] +
+              `(?:${src[t.PRERELEASE]})?` +
+              `(?:${src[t.BUILD]})?` +
               `(?:$|[^\\d])`)
 createToken('COERCERTL', src[t.COERCE], true)
+createToken('COERCERTLFULL', src[t.COERCEFULL], true)
 
 // Tilde ranges.
 // Meaning is "reasonably at or greater than"

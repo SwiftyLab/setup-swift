@@ -1,3 +1,4 @@
+import {posix} from 'path'
 import * as core from '@actions/core'
 import * as toolCache from '@actions/tool-cache'
 import * as gpg from '../utils/gpg'
@@ -9,19 +10,20 @@ export abstract class VerifyingToolchainInstaller<
 > extends ToolchainInstaller<Snapshot> {
   private get signatureUrl() {
     const signature = this.data.download_signature
-    return signature ? `${this.baseUrl}/${signature}` : undefined
+    return signature ? posix.join(this.baseUrl.href, signature) : undefined
   }
 
   private async downloadSignature() {
     try {
-      if (this.signatureUrl) {
-        return await toolCache.downloadTool(this.signatureUrl)
-      }
+      return this.signatureUrl
+        ? await toolCache.downloadTool(this.signatureUrl)
+        : undefined
     } catch (error) {
       if (
         error instanceof toolCache.HTTPError &&
         error.httpStatusCode === 404
       ) {
+        core.warning(`No signature at "${this.signatureUrl}"`)
         return undefined
       }
       throw error

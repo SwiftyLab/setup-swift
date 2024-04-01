@@ -119,7 +119,8 @@ export abstract class VersionedPlatform<
                 platform: pName + this.archSuffix,
                 branch: release.tag.toLocaleLowerCase(),
                 docker: platform.docker,
-                windows: pName.startsWith('windows')
+                windows: pName.startsWith('windows'),
+                preventCaching: false
               } as ToolchainSnapshot)
             : []
         })

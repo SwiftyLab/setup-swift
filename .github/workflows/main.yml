@@ -169,6 +169,10 @@ jobs:
         - os: windows-latest
           swift: '5.3'
           development: false
+        - os: ubuntu-22.04
+          swift: ${{ fromJSON(vars.SETUPSWIFT_CUSTOM_TOOLCHAINS).ubuntu2204 }}
+          development: true
+          noverify: true
 
     steps:
     - name: Checkout repository
@@ -201,10 +205,11 @@ jobs:
         cache-snapshot: ${{ !matrix.development }}
 
     - name: Verify Swift version in macos
-      if: runner.os == 'macOS'
+      if: runner.os == 'macOS' && matrix.noverify != 'true'
       run: xcrun --toolchain ${{ env.TOOLCHAINS || '""' }} swift --version | grep ${{ steps.setup-swift.outputs.swift-version }} || exit 1
 
     - name: Verify Swift version
+      if: matrix.noverify != 'true'
       run: swift --version | grep ${{ steps.setup-swift.outputs.swift-version }} || exit 1
 
   dry-run:

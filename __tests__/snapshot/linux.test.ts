@@ -1,4 +1,5 @@
 import os from 'os'
+import {posix} from 'path'
 // @ts-ignore
 import {__setos as setos} from 'getos'
 import {ToolchainVersion} from '../../src/version'
@@ -30,6 +31,7 @@ describe('fetch linux tool data based on options', () => {
       'swift-4.2.4-RELEASE-ubuntu18.04.tar.gz.sig'
     )
     expect(lTool.docker).toBeUndefined()
+    expect(lTool.preventCaching).toBe(false)
   })
 
   it('fetches ubuntu 18.04 latest swift 5.0 tool', async () => {
@@ -46,6 +48,7 @@ describe('fetch linux tool data based on options', () => {
       'swift-5.0.3-RELEASE-ubuntu18.04.tar.gz.sig'
     )
     expect(lTool.docker).toBe('5.0.3-bionic')
+    expect(lTool.preventCaching).toBe(false)
   })
 
   it('fetches ubuntu 18.04 latest swift 5.5.0 tool', async () => {
@@ -62,6 +65,7 @@ describe('fetch linux tool data based on options', () => {
       'swift-5.5-RELEASE-ubuntu18.04.tar.gz.sig'
     )
     expect(lTool.docker).toBe('5.5-bionic')
+    expect(lTool.preventCaching).toBe(false)
   })
 
   it('fetches ubuntu 20.04 arm64 latest swift 5.6.0 tool', async () => {
@@ -79,6 +83,7 @@ describe('fetch linux tool data based on options', () => {
       'swift-5.6-RELEASE-ubuntu20.04-aarch64.tar.gz.sig'
     )
     expect(lTool.docker).toBe('5.6-focal')
+    expect(lTool.preventCaching).toBe(false)
   })
 
   it('fetches ubuntu 18.04 latest swift 5.5 tool', async () => {
@@ -95,6 +100,7 @@ describe('fetch linux tool data based on options', () => {
       'swift-5.5.3-RELEASE-ubuntu18.04.tar.gz.sig'
     )
     expect(lTool.docker).toBe('5.5.3-bionic')
+    expect(lTool.preventCaching).toBe(false)
   })
 
   it('fetches ubuntu 18.04 latest swift 5.5 tool including dev snapshot', async () => {
@@ -111,6 +117,7 @@ describe('fetch linux tool data based on options', () => {
       'swift-5.5.3-RELEASE-ubuntu18.04.tar.gz.sig'
     )
     expect(lTool.docker).toBe('5.5.3-bionic')
+    expect(lTool.preventCaching).toBe(false)
   })
 
   it('fetches ubuntu 18.04 latest swift tool', async () => {
@@ -124,6 +131,7 @@ describe('fetch linux tool data based on options', () => {
     expect(lTool.platform).toBeTruthy()
     expect(lTool.branch).toBeTruthy()
     expect(lTool.download_signature).toBeTruthy()
+    expect(lTool.preventCaching).toBe(false)
   })
 
   it('fetches ubuntu 18.04 latest swift tool including dev snapshot', async () => {
@@ -138,6 +146,7 @@ describe('fetch linux tool data based on options', () => {
     expect(lTool.branch).toBeTruthy()
     expect(lTool.download_signature).toBeTruthy()
     expect(lTool.docker).toBeTruthy()
+    expect(lTool.preventCaching).toBe(false)
   })
 
   it('handles swift tool version not present by returning undefined', async () => {
@@ -163,6 +172,7 @@ describe('fetch linux tool data based on options', () => {
       'swift-5.6.1-RELEASE-ubuntu20.04.tar.gz.sig'
     )
     expect(lTool.docker).toBe('5.6.1-focal')
+    expect(lTool.preventCaching).toBe(false)
   })
 
   it('fetches ubuntu 20.04 latest swift 5.2 tool', async () => {
@@ -180,6 +190,7 @@ describe('fetch linux tool data based on options', () => {
       'swift-5.2.5-RELEASE-ubuntu20.04.tar.gz.sig'
     )
     expect(lTool.docker).toBe('5.2.5-focal')
+    expect(lTool.preventCaching).toBe(false)
   })
 
   it('fetches centos 7 latest swift tool', async () => {
@@ -194,6 +205,7 @@ describe('fetch linux tool data based on options', () => {
     expect(lTool.branch).toBeTruthy()
     expect(lTool.download_signature).toBeTruthy()
     expect(lTool.docker).toBeTruthy()
+    expect(lTool.preventCaching).toBe(false)
   })
 
   it('fetches ubuntu 22.04 named swift tool', async () => {
@@ -213,6 +225,7 @@ describe('fetch linux tool data based on options', () => {
     expect(lTool.download_signature).toBe(
       'swift-DEVELOPMENT-SNAPSHOT-2023-09-02-a-ubuntu22.04.tar.gz.sig'
     )
+    expect(lTool.preventCaching).toBe(false)
   })
 
   it('fetches ubuntu 22.04 named versioned swift tool', async () => {
@@ -232,6 +245,7 @@ describe('fetch linux tool data based on options', () => {
     expect(lTool.download_signature).toBe(
       'swift-5.9-DEVELOPMENT-SNAPSHOT-2023-09-01-a-ubuntu22.04.tar.gz.sig'
     )
+    expect(lTool.preventCaching).toBe(false)
   })
 
   it('fetches ubuntu 18.04 latest swift 5.5 tools', async () => {
@@ -270,5 +284,25 @@ describe('fetch linux tool data based on options', () => {
     const ver5_2 = ToolchainVersion.create('5.2', false)
     const tools = await Platform.toolchains(ver5_2)
     expect(tools.length).toBe(2)
+  })
+
+  it('fetches ubuntu 22.04 custom swift tools', async () => {
+    setos({os: 'linux', dist: 'Ubuntu', release: '22.04'})
+    jest.spyOn(os, 'arch').mockReturnValue('x64')
+    const swiftwasm = 'https://github.com/swiftwasm/swift/releases/download'
+    const name = 'swift-wasm-5.10-SNAPSHOT-2024-03-30-a'
+    const resource = `${name}-ubuntu22.04_x86_64.tar.gz`
+    const toolchainUrl = `${swiftwasm}/${name}/${resource}`
+    const cVer = ToolchainVersion.create(toolchainUrl, false)
+    const tools = await Platform.toolchains(cVer)
+    expect(tools.length).toBe(1)
+    const tool = tools[0]
+    expect(tool.baseUrl?.href).toBe(posix.dirname(toolchainUrl))
+    expect(tool.preventCaching).toBe(true)
+    expect(tool.name).toBe('Swift Custom Snapshot')
+    expect(tool.platform).toBe('ubuntu2204')
+    expect(tool.download).toBe(resource)
+    expect(tool.dir).toBe(name)
+    expect(tool.branch).toBe('swiftwasm')
   })
 })
