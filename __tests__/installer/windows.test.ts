@@ -19,7 +19,8 @@ describe('windows toolchain installation verification', () => {
     dir: 'swift-5.8-RELEASE',
     platform: 'windows10',
     branch: 'swift-5.8-release',
-    windows: true
+    windows: true,
+    preventCaching: false
   }
   const visualStudio = VisualStudio.createFromJSON({
     installationPath: path.join('C:', 'Visual Studio'),
@@ -61,7 +62,7 @@ describe('windows toolchain installation verification', () => {
   it('tests download without caching', async () => {
     const installer = new WindowsToolchainInstaller(toolchain)
     expect(installer['version']).toStrictEqual(parseSemVer('5.8'))
-    expect(installer['baseUrl']).toBe(
+    expect(installer['baseUrl'].href).toBe(
       'https://download.swift.org/swift-5.8-release/windows10/swift-5.8-RELEASE'
     )
 

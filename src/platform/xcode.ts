@@ -1,6 +1,7 @@
+import * as path from 'path'
 import {Platform} from './base'
 import {ToolchainVersion} from '../version'
-import {XcodeToolchainSnapshot} from '../snapshot'
+import {XcodeToolchainSnapshot, ToolchainSnapshot} from '../snapshot'
 import {XcodeToolchainInstaller} from '../installer'
 
 export class XcodePlatform extends Platform<XcodeToolchainInstaller> {
@@ -18,6 +19,15 @@ export class XcodePlatform extends Platform<XcodeToolchainInstaller> {
     return this.name
   }
 
+  snapshotFor(snapshot: ToolchainSnapshot) {
+    const fileExt = path.extname(snapshot.download)
+    const fileName = path.basename(snapshot.download, fileExt)
+    return {
+      ...snapshot,
+      debug_info: `${fileName}-symbols.${fileExt}`
+    }
+  }
+
   protected async releasedTools(version: ToolchainVersion) {
     const releases = await this.releases()
     return releases
@@ -28,11 +38,12 @@ export class XcodePlatform extends Platform<XcodeToolchainInstaller> {
           name: `Xcode Swift ${release.name}`,
           date: release.date,
           download: `${release.tag}-osx.pkg`,
-          symbols: `${release.tag}-osx-symbols.pkg`,
+          debug_info: `${release.tag}-osx-symbols.pkg`,
           dir: release.tag,
           xcode: xMatch && xMatch.length > 1 ? xMatch[1] : undefined,
           platform: this.name,
-          branch: release.tag.toLocaleLowerCase()
+          branch: release.tag.toLocaleLowerCase(),
+          preventCaching: false
         } as XcodeToolchainSnapshot
       })
   }

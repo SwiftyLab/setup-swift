@@ -2,7 +2,7 @@ import * as path from 'path'
 import {promises as fs} from 'fs'
 import {VersionedPlatform} from './versioned'
 import {ToolchainVersion, SWIFT_BRANCH_REGEX} from '../version'
-import {LinuxToolchainSnapshot} from '../snapshot'
+import {LinuxToolchainSnapshot, ToolchainSnapshot} from '../snapshot'
 import {LinuxToolchainInstaller} from '../installer'
 import {MODULE_DIR} from '../const'
 
@@ -15,6 +15,10 @@ export class LinuxPlatform extends VersionedPlatform<LinuxToolchainInstaller> {
     const doc = path.join(MODULE_DIR, 'swiftorg', 'download', 'index.md')
     const content = await fs.readFile(doc, 'utf8')
     return content
+  }
+
+  snapshotFor(snapshot: ToolchainSnapshot) {
+    return {...snapshot, download_signature: `${snapshot.download}.sig`}
   }
 
   async tools(version: ToolchainVersion) {

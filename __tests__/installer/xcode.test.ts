@@ -16,12 +16,13 @@ describe('macOS toolchain installation verification', () => {
     name: 'Xcode Swift 5.8.1',
     date: new Date('2023-05-31T18:30:00.000Z'),
     download: 'swift-5.8.1-RELEASE-osx.pkg',
-    symbols: 'swift-5.8.1-RELEASE-osx-symbols.pkg',
+    debug_info: 'swift-5.8.1-RELEASE-osx-symbols.pkg',
     dir: 'swift-5.8.1-RELEASE',
     xcode: '14.3.1',
     platform: 'xcode',
     branch: 'swift-5.8.1-release',
-    xcodePath: '/Applications/Xcode_14.3.1.app'
+    xcodePath: '/Applications/Xcode_14.3.1.app',
+    preventCaching: false
   }
 
   beforeEach(() => {
@@ -56,7 +57,7 @@ describe('macOS toolchain installation verification', () => {
   it('tests download', async () => {
     const installer = new XcodeToolchainInstaller(toolchain)
     expect(installer['version']).toStrictEqual(parseSemVer('5.8.1'))
-    expect(installer['baseUrl']).toBe(
+    expect(installer['baseUrl'].href).toBe(
       'https://download.swift.org/swift-5.8.1-release/xcode/swift-5.8.1-RELEASE'
     )
 

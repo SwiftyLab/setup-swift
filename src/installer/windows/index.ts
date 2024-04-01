@@ -41,15 +41,27 @@ export class WindowsToolchainInstaller extends VerifyingToolchainInstaller<Windo
 
   protected async unpack(exe: string) {
     async function env() {
-      const {stdout} = await getExecOutput('cmd', ['/c', 'set'], {
-        failOnStdErr: true
-      })
-      return stdout
+      for (const target of ['Machine', 'User']) {
+        const {stdout} = await getExecOutput(
+          'powershell',
+          [
+            '-NoProfile',
+            '-Command',
+            `& {[Environment]::GetEnvironmentVariables('${target}') | ConvertTo-Json}`
+          ],
+          {failOnStdErr: true}
+        )
+        core.debug(`${target} variables: "${stdout}"`)
+      }
     }
     core.debug(`Installing toolchain from "${exe}"`)
-    core.debug(`Environment variables before installation: ${await env()}`)
+    core.startGroup('Environment variables before installation')
+    await env()
+    core.endGroup()
     await exec(`"${exe}"`, ['-q'])
-    core.debug(`Environment variables after installation: ${await env()}`)
+    core.startGroup('Environment variables after installation')
+    await env()
+    core.endGroup()
     const installation = await Installation.detect()
     return installation.location
   }

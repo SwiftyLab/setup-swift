@@ -1,11 +1,16 @@
+import os from 'os'
 import * as path from 'path'
 import {promises as fs} from 'fs'
+// @ts-ignore
+import {__setos as setos} from 'getos'
 import * as core from '@actions/core'
 import * as exec from '@actions/exec'
 import * as cache from '@actions/cache'
 import * as toolCache from '@actions/tool-cache'
 import {coerce as parseSemVer} from 'semver'
 import {LinuxToolchainInstaller} from '../../src/installer/linux'
+import {ToolchainVersion} from '../../src/version'
+import {Platform} from '../../src/platform'
 
 describe('linux toolchain installation verification', () => {
   const env = process.env
@@ -17,7 +22,8 @@ describe('linux toolchain installation verification', () => {
     dir: 'swift-5.8-RELEASE',
     docker: '5.8-jammy',
     platform: 'ubuntu2204',
-    branch: 'swift-5.8-release'
+    branch: 'swift-5.8-release',
+    preventCaching: false
   }
 
   beforeEach(() => {
@@ -32,7 +38,7 @@ describe('linux toolchain installation verification', () => {
   it('tests download', async () => {
     const installer = new LinuxToolchainInstaller(toolchain)
     expect(installer['version']).toStrictEqual(parseSemVer('5.8'))
-    expect(installer['baseUrl']).toBe(
+    expect(installer['baseUrl'].href).toBe(
       'https://download.swift.org/swift-5.8-release/ubuntu2204/swift-5.8-RELEASE'
     )
 
@@ -126,5 +132,36 @@ describe('linux toolchain installation verification', () => {
     })
     const devVersion = await installer.installedSwiftVersion()
     expect(devVersion).toBe('5.9-dev')
+  })
+
+  it('tests custom swift tool caching', async () => {
+    setos({os: 'linux', dist: 'Ubuntu', release: '22.04'})
+    jest.spyOn(os, 'arch').mockReturnValue('x64')
+    const swiftwasm = 'https://github.com/swiftwasm/swift/releases/download'
+    const name = 'swift-wasm-5.10-SNAPSHOT-2024-03-30-a'
+    const resource = `${name}-ubuntu22.04_x86_64.tar.gz`
+    const toolchainUrl = `${swiftwasm}/${name}/${resource}`
+    const cVer = ToolchainVersion.create(toolchainUrl, false)
+    const download = path.resolve('tool', 'download', 'path')
+    const extracted = path.resolve('tool', 'extracted', 'path')
+    const cached = path.resolve('tool', 'cached', 'path')
+    jest.spyOn(core, 'getBooleanInput').mockReturnValue(true)
+    jest.spyOn(cache, 'restoreCache').mockResolvedValue(undefined)
+    jest.spyOn(toolCache, 'find').mockReturnValue('')
+    jest.spyOn(fs, 'cp').mockResolvedValue()
+    jest.spyOn(toolCache, 'downloadTool').mockResolvedValue(download)
+    jest.spyOn(toolCache, 'extractTar').mockResolvedValue(extracted)
+    jest.spyOn(toolCache, 'cacheDir').mockResolvedValue(cached)
+    jest.spyOn(exec, 'exec').mockResolvedValue(0)
+    const cacheSpy = jest.spyOn(cache, 'saveCache')
+    const installer = await Platform.install(cVer)
+    expect(cacheSpy).not.toHaveBeenCalled()
+    expect(installer.data.baseUrl?.href).toBe(path.posix.dirname(toolchainUrl))
+    expect(installer.data.preventCaching).toBe(true)
+    expect(installer.data.name).toBe('Swift Custom Snapshot')
+    expect(installer.data.platform).toBe('ubuntu2204')
+    expect(installer.data.download).toBe(resource)
+    expect(installer.data.dir).toBe(name)
+    expect(installer.data.branch).toBe('swiftwasm')
   })
 })

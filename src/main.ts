@@ -10,11 +10,13 @@ export async function run() {
     const development = core.getBooleanInput('development')
     const version = ToolchainVersion.create(requestedVersion, development)
 
-    core.startGroup('Syncing swift.org data')
-    const checkLatest = core.getInput('check-latest')
-    const submodule = new Swiftorg(checkLatest)
-    await submodule.update()
-    core.endGroup()
+    if (version.requiresSwiftOrg) {
+      core.startGroup('Syncing swift.org data')
+      const checkLatest = core.getInput('check-latest')
+      const submodule = new Swiftorg(checkLatest)
+      await submodule.update()
+      core.endGroup()
+    }
 
     const dryRun = core.getBooleanInput('dry-run')
     let snapshot: ToolchainSnapshot

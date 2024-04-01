@@ -1,6 +1,7 @@
 import * as os from 'os'
 import * as path from 'path'
 import {promises as fs} from 'fs'
+import {URL} from 'url'
 import * as core from '@actions/core'
 import {getExecOutput} from '@actions/exec'
 import * as cache from '@actions/cache'
@@ -23,7 +24,12 @@ export abstract class ToolchainInstaller<Snapshot extends ToolchainSnapshot> {
   }
 
   protected get baseUrl() {
-    return `https://download.swift.org/${this.data.branch}/${this.data.platform}/${this.data.dir}`
+    const data = this.data
+    if (data.baseUrl) {
+      return data.baseUrl
+    }
+    const base = 'https://download.swift.org'
+    return new URL(path.posix.join(base, data.branch, data.platform, data.dir))
   }
 
   protected swiftVersionCommand() {
@@ -67,7 +73,11 @@ export abstract class ToolchainInstaller<Snapshot extends ToolchainSnapshot> {
       tool = await toolCache.cacheDir(tool, key, version, arch)
       core.debug(`Added to tool cache at "${tool}"`)
     }
-    if (core.getBooleanInput('cache-snapshot') && !cacheHit) {
+    if (
+      core.getBooleanInput('cache-snapshot') &&
+      !cacheHit &&
+      !this.data.preventCaching
+    ) {
       await fs.cp(tool, restore, {recursive: true})
       await cache.saveCache([restore], key)
       core.debug(`Saved to cache with key "${key}"`)
@@ -76,7 +86,7 @@ export abstract class ToolchainInstaller<Snapshot extends ToolchainSnapshot> {
   }
 
   protected async download() {
-    const url = `${this.baseUrl}/${this.data.download}`
+    const url = path.posix.join(this.baseUrl?.href, this.data.download)
     core.debug(`Downloading snapshot from "${url}"`)
     return await toolCache.downloadTool(url)
   }

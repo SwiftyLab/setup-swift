@@ -1,4 +1,5 @@
 import os from 'os'
+import {posix} from 'path'
 import {glob} from 'glob'
 // @ts-ignore
 import {__setos as setos} from 'getos'
@@ -28,6 +29,7 @@ describe('fetch macos tool data based on options', () => {
     expect(xTool.platform).toBe('xcode')
     expect(xTool.branch).toBe('swift-4.2.4-release')
     expect(xTool.xcode).toBe('10.1')
+    expect(xTool.preventCaching).toBe(false)
   })
 
   it('fetches macOS latest swift 5.0 tool', async () => {
@@ -41,6 +43,7 @@ describe('fetch macos tool data based on options', () => {
     expect(xTool.platform).toBe('xcode')
     expect(xTool.branch).toBe('swift-5.0.3-release')
     expect(xTool.xcode).toBe('10.2.1')
+    expect(xTool.preventCaching).toBe(false)
   })
 
   it('fetches macOS latest swift 5.5.0 tool', async () => {
@@ -54,6 +57,7 @@ describe('fetch macos tool data based on options', () => {
     expect(xTool.platform).toBe('xcode')
     expect(xTool.branch).toBe('swift-5.5-release')
     expect(xTool.xcode).toBe('13')
+    expect(xTool.preventCaching).toBe(false)
   })
 
   it('fetches macOS latest swift 5.5 tool', async () => {
@@ -67,6 +71,7 @@ describe('fetch macos tool data based on options', () => {
     expect(xTool.platform).toBe('xcode')
     expect(xTool.branch).toBe('swift-5.5.3-release')
     expect(xTool.xcode).toBe('13.2')
+    expect(xTool.preventCaching).toBe(false)
   })
 
   it('fetches macOS latest swift 5.5 tool including dev snapshot', async () => {
@@ -80,6 +85,7 @@ describe('fetch macos tool data based on options', () => {
     expect(xTool.platform).toBe('xcode')
     expect(xTool.branch).toBe('swift-5.5.3-release')
     expect(xTool.xcode).toBe('13.2')
+    expect(xTool.preventCaching).toBe(false)
   })
 
   it('fetches macOS latest swift tool', async () => {
@@ -93,6 +99,7 @@ describe('fetch macos tool data based on options', () => {
     expect(xTool.platform).toBeTruthy()
     expect(xTool.branch).toBeTruthy()
     expect(xTool.xcode).toBeTruthy()
+    expect(xTool.preventCaching).toBe(false)
   })
 
   it('fetches macOS latest swift tool including dev snapshot', async () => {
@@ -105,6 +112,7 @@ describe('fetch macos tool data based on options', () => {
     expect(xTool.dir).toBeTruthy()
     expect(xTool.platform).toBeTruthy()
     expect(xTool.branch).toBeTruthy()
+    expect(xTool.preventCaching).toBe(false)
   })
 
   it('fetches macOS latest swift beta version tool', async () => {
@@ -135,6 +143,8 @@ describe('fetch macos tool data based on options', () => {
         ToolchainVersion.create(betaVersion, false)
       )
       expect(tool).toBeTruthy()
+      const xTool = tool as XcodeToolchainSnapshot
+      expect(xTool.preventCaching).toBe(false)
     }
   })
 
@@ -145,13 +155,14 @@ describe('fetch macos tool data based on options', () => {
     const version = ToolchainVersion.create(name, false)
     const tool = await Platform.toolchain(version)
     expect(tool).toBeTruthy()
-    const lTool = tool as XcodeToolchainSnapshot
-    expect(lTool.download).toBe(
+    const xTool = tool as XcodeToolchainSnapshot
+    expect(xTool.download).toBe(
       'swift-DEVELOPMENT-SNAPSHOT-2023-09-02-a-osx.pkg'
     )
-    expect(lTool.dir).toBe('swift-DEVELOPMENT-SNAPSHOT-2023-09-02-a')
-    expect(lTool.platform).toBe('xcode')
-    expect(lTool.branch).toBe('development')
+    expect(xTool.dir).toBe('swift-DEVELOPMENT-SNAPSHOT-2023-09-02-a')
+    expect(xTool.platform).toBe('xcode')
+    expect(xTool.branch).toBe('development')
+    expect(xTool.preventCaching).toBe(false)
   })
 
   it('fetches macOS named versioned swift tool', async () => {
@@ -161,13 +172,14 @@ describe('fetch macos tool data based on options', () => {
     const version = ToolchainVersion.create(name, false)
     const tool = await Platform.toolchain(version)
     expect(tool).toBeTruthy()
-    const lTool = tool as XcodeToolchainSnapshot
-    expect(lTool.download).toBe(
+    const xTool = tool as XcodeToolchainSnapshot
+    expect(xTool.download).toBe(
       'swift-5.9-DEVELOPMENT-SNAPSHOT-2023-09-01-a-osx.pkg'
     )
-    expect(lTool.dir).toBe('swift-5.9-DEVELOPMENT-SNAPSHOT-2023-09-01-a')
-    expect(lTool.platform).toBe('xcode')
-    expect(lTool.branch).toBe('swift-5.9-branch')
+    expect(xTool.dir).toBe('swift-5.9-DEVELOPMENT-SNAPSHOT-2023-09-01-a')
+    expect(xTool.platform).toBe('xcode')
+    expect(xTool.branch).toBe('swift-5.9-branch')
+    expect(xTool.preventCaching).toBe(false)
   })
 
   it('detects earliest toolchains', async () => {
@@ -181,6 +193,7 @@ describe('fetch macos tool data based on options', () => {
     expect(earliestTool.platform).toBe('xcode')
     expect(earliestTool.branch).toBe('swift-2.2-release')
     expect(earliestTool.download).toBe('swift-2.2-RELEASE-osx.pkg')
+    expect(earliestTool.preventCaching).toBe(false)
   })
 
   it('fetches macOS latest swift 5.5 tools', async () => {
@@ -195,5 +208,25 @@ describe('fetch macos tool data based on options', () => {
     jest.spyOn(os, 'arch').mockReturnValue('x64')
     const tools = await Platform.toolchains(dev5_5)
     expect(tools.length).toBe(103)
+  })
+
+  it('fetches macOS custom swift tools', async () => {
+    setos({os: 'darwin', dist: 'macOS', release: '21'})
+    jest.spyOn(os, 'arch').mockReturnValue('x64')
+    const swiftwasm = 'https://github.com/swiftwasm/swift/releases/download'
+    const name = 'swift-wasm-5.10-SNAPSHOT-2024-03-30-a'
+    const resource = `${name}-macos_arm64.pkg`
+    const toolchainUrl = `${swiftwasm}/${name}/${resource}`
+    const cVer = ToolchainVersion.create(toolchainUrl, false)
+    const tools = await Platform.toolchains(cVer)
+    expect(tools.length).toBe(1)
+    const tool = tools[0]
+    expect(tool.baseUrl?.href).toBe(posix.dirname(toolchainUrl))
+    expect(tool.preventCaching).toBe(true)
+    expect(tool.name).toBe('Swift Custom Snapshot')
+    expect(tool.platform).toBe('xcode')
+    expect(tool.download).toBe(resource)
+    expect(tool.dir).toBe(name)
+    expect(tool.branch).toBe('swiftwasm')
   })
 })
