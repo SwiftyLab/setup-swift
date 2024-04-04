@@ -107,6 +107,7 @@ jobs:
     name: Run unit tests
     needs: ci
     runs-on: ubuntu-latest
+    environment: development
     concurrency:
       group: unit-test-${{ github.ref }}
       cancel-in-progress: true
@@ -145,6 +146,7 @@ jobs:
     if: needs.ci.outputs.run == 'true'
     needs: ci
     runs-on: ${{ matrix.os }}
+    environment: development
     concurrency:
       group: integration-test-${{ github.ref }}-${{ matrix.os }}-${{ matrix.swift }}-${{ matrix.development }}
       cancel-in-progress: true
