@@ -69,11 +69,12 @@ export abstract class ToolchainInstaller<Snapshot extends ToolchainSnapshot> {
       cacheHit = true
     }
 
-    if (version) {
+    if (tool && version) {
       tool = await toolCache.cacheDir(tool, key, version, arch)
       core.debug(`Added to tool cache at "${tool}"`)
     }
     if (
+      tool &&
       core.getBooleanInput('cache-snapshot') &&
       !cacheHit &&
       !this.data.preventCaching

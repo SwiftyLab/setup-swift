@@ -111,7 +111,7 @@ exports.fetch = async () => {
   let checkoutData;
   if (process.env.SETUPSWIFT_SWIFTORG_METADATA) {
     checkoutData = JSON.parse(process.env.SETUPSWIFT_SWIFTORG_METADATA);
-  } 
+  }
   if (!checkoutData || !checkoutData.commit) {
     checkoutData = await this.currentData();
   }

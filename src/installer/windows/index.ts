@@ -2,7 +2,6 @@ import * as os from 'os'
 import * as path from 'path'
 import {promises as fs} from 'fs'
 import * as core from '@actions/core'
-import {exec, getExecOutput} from '@actions/exec'
 import * as semver from 'semver'
 import {VerifyingToolchainInstaller} from '../verify'
 import {WindowsToolchainSnapshot} from '../../snapshot'
@@ -40,34 +39,15 @@ export class WindowsToolchainInstaller extends VerifyingToolchainInstaller<Windo
   }
 
   protected async unpack(exe: string) {
-    async function env() {
-      for (const target of ['Machine', 'User']) {
-        const {stdout} = await getExecOutput(
-          'powershell',
-          [
-            '-NoProfile',
-            '-Command',
-            `& {[Environment]::GetEnvironmentVariables('${target}') | ConvertTo-Json}`
-          ],
-          {failOnStdErr: true}
-        )
-        core.debug(`${target} variables: "${stdout}"`)
-      }
-    }
-    core.debug(`Installing toolchain from "${exe}"`)
-    core.startGroup('Environment variables before installation')
-    await env()
-    core.endGroup()
-    await exec(`"${exe}"`, ['-q'])
-    core.startGroup('Environment variables after installation')
-    await env()
-    core.endGroup()
-    const installation = await Installation.detect()
-    return installation.location
+    const installation = await Installation.install(exe)
+    return installation?.location ?? ''
   }
 
   protected async add(installLocation: string) {
     const installation = await Installation.get(installLocation)
+    if (!installation) {
+      return
+    }
     core.exportVariable('SDKROOT', installation.sdkroot)
     if (installation.devdir) {
       core.exportVariable('DEVELOPER_DIR', installation.devdir)

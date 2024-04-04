@@ -8,7 +8,7 @@ export interface SwiftRelease {
   readonly platforms: SwiftRelease.Platform[]
 }
 
-// eslint-disable-next-line no-redeclare
+// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace SwiftRelease {
   export interface Platform {
     readonly name: string

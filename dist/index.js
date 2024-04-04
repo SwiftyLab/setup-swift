@@ -140,11 +140,12 @@ class ToolchainInstaller {
                 core.debug(`Found tool at "${tool}" in tool cache`);
                 cacheHit = true;
             }
-            if (version) {
+            if (tool && version) {
                 tool = yield toolCache.cacheDir(tool, key, version, arch);
                 core.debug(`Added to tool cache at "${tool}"`);
             }
-            if (core.getBooleanInput('cache-snapshot') &&
+            if (tool &&
+                core.getBooleanInput('cache-snapshot') &&
                 !cacheHit &&
                 !this.data.preventCaching) {
                 yield fs_1.promises.cp(tool, restore, { recursive: true });
@@ -510,11 +511,10 @@ const os = __importStar(__nccwpck_require__(2037));
 const path = __importStar(__nccwpck_require__(1017));
 const fs_1 = __nccwpck_require__(7147);
 const core = __importStar(__nccwpck_require__(2186));
-const exec_1 = __nccwpck_require__(1514);
 const semver = __importStar(__nccwpck_require__(1383));
 const verify_1 = __nccwpck_require__(8780);
 const utils_1 = __nccwpck_require__(1606);
-const installation_1 = __nccwpck_require__(539);
+const installation_1 = __nccwpck_require__(3554);
 class WindowsToolchainInstaller extends verify_1.VerifyingToolchainInstaller {
     get vsRequirement() {
         const reccommended = '10.0.17763';
@@ -550,33 +550,17 @@ class WindowsToolchainInstaller extends verify_1.VerifyingToolchainInstaller {
     }
     unpack(exe) {
         return __awaiter(this, void 0, void 0, function* () {
-            function env() {
-                return __awaiter(this, void 0, void 0, function* () {
-                    for (const target of ['Machine', 'User']) {
-                        const { stdout } = yield (0, exec_1.getExecOutput)('powershell', [
-                            '-NoProfile',
-                            '-Command',
-                            `& {[Environment]::GetEnvironmentVariables('${target}') | ConvertTo-Json}`
-                        ], { failOnStdErr: true });
-                        core.debug(`${target} variables: "${stdout}"`);
-                    }
-                });
-            }
-            core.debug(`Installing toolchain from "${exe}"`);
-            core.startGroup('Environment variables before installation');
-            yield env();
-            core.endGroup();
-            yield (0, exec_1.exec)(`"${exe}"`, ['-q']);
-            core.startGroup('Environment variables after installation');
-            yield env();
-            core.endGroup();
-            const installation = yield installation_1.Installation.detect();
-            return installation.location;
+            var _a;
+            const installation = yield installation_1.Installation.install(exe);
+            return (_a = installation === null || installation === void 0 ? void 0 : installation.location) !== null && _a !== void 0 ? _a : '';
         });
     }
     add(installLocation) {
         return __awaiter(this, void 0, void 0, function* () {
             const installation = yield installation_1.Installation.get(installLocation);
+            if (!installation) {
+                return;
+            }
             core.exportVariable('SDKROOT', installation.sdkroot);
             if (installation.devdir) {
                 core.exportVariable('DEVELOPER_DIR', installation.devdir);
@@ -611,7 +595,7 @@ exports.WindowsToolchainInstaller = WindowsToolchainInstaller;
 
 /***/ }),
 
-/***/ 539:
+/***/ 1124:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -649,10 +633,60 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.Installation = void 0;
+exports.secondDirectoryLayout = exports.firstDirectoryLayout = void 0;
 const path = __importStar(__nccwpck_require__(1017));
 const fs_1 = __nccwpck_require__(7147);
 const core = __importStar(__nccwpck_require__(2186));
+const base_1 = __nccwpck_require__(106);
+function firstDirectoryLayout(root) {
+    return __awaiter(this, void 0, void 0, function* () {
+        var _a;
+        core.debug('Trying first installation approach');
+        const systemDrive = (_a = process.env.SystemDrive) !== null && _a !== void 0 ? _a : 'C:';
+        const location = root !== null && root !== void 0 ? root : path.join(systemDrive, 'Library');
+        const devdir = path.join(location, 'Developer');
+        const toolchainName = 'unknown-Asserts-development.xctoolchain';
+        const toolchain = path.join(devdir, 'Toolchains', toolchainName);
+        yield fs_1.promises.access(toolchain);
+        const winsdk = path.join('Developer', 'SDKs', 'Windows.sdk');
+        const sdkroot = path.join(devdir, 'Platforms', 'Windows.platform', winsdk);
+        const runtime = path.join(location, 'Swift', 'runtime-development');
+        core.debug('First installation approach succeeded');
+        return new base_1.Installation(location, toolchain, sdkroot, runtime, devdir);
+    });
+}
+exports.firstDirectoryLayout = firstDirectoryLayout;
+function secondDirectoryLayout(root) {
+    return __awaiter(this, void 0, void 0, function* () {
+        var _a;
+        core.debug('Trying secong installation approach');
+        const systemDrive = (_a = root !== null && root !== void 0 ? root : process.env.SystemDrive) !== null && _a !== void 0 ? _a : 'C:';
+        const location = path.join(systemDrive, 'Program Files', 'Swift');
+        const toolchainName = '0.0.0+Asserts';
+        const toolchain = path.join(location, 'Toolchains', toolchainName);
+        yield fs_1.promises.access(toolchain);
+        const winsdk = path.join('Developer', 'SDKs', 'Windows.sdk');
+        const sdkroot = path.join(location, 'Platforms', 'Windows.platform', winsdk);
+        const runtime = path.join(location, 'Runtimes', '0.0.0');
+        const runtimeRoot = path.join(location, 'Swift');
+        const devPath = path.join(systemDrive, 'Program Files', 'Swift');
+        yield fs_1.promises.cp(devPath, runtimeRoot, { recursive: true });
+        core.debug('Second installation approach succeeded');
+        return new base_1.Installation(location, toolchain, sdkroot, runtime);
+    });
+}
+exports.secondDirectoryLayout = secondDirectoryLayout;
+
+
+/***/ }),
+
+/***/ 106:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.Installation = void 0;
 class Installation {
     constructor(location, toolchain, sdkroot, runtime, devdir) {
         this.location = location;
@@ -661,59 +695,204 @@ class Installation {
         this.runtime = runtime;
         this.devdir = devdir;
     }
-    static get(location, fallback) {
-        return __awaiter(this, void 0, void 0, function* () {
-            let toolchain;
-            let sdkroot;
-            let runtime;
-            let devdir;
-            try {
-                core.debug(`Checking for development snapshot installation`);
-                toolchain = path.join(location, 'Toolchains', '0.0.0+Asserts');
-                sdkroot = path.join(location, 'Platforms', 'Windows.platform', 'Developer', 'SDKs', 'Windows.sdk');
-                runtime = path.join(location, 'Runtimes', '0.0.0');
-                yield fs_1.promises.access(toolchain);
-            }
-            catch (error) {
-                core.debug(`Switching to default installation due to "${error}"`);
-                if (fallback) {
-                    location = fallback;
-                }
-                devdir = path.join(location, 'Developer');
-                toolchain = path.join(devdir, 'Toolchains', 'unknown-Asserts-development.xctoolchain');
-                sdkroot = path.join(devdir, 'Platforms', 'Windows.platform', 'Developer', 'SDKs', 'Windows.sdk');
-                runtime = path.join(location, 'Swift', 'runtime-development');
-            }
-            return new Installation(location, toolchain, sdkroot, runtime, devdir);
-        });
+}
+exports.Installation = Installation;
+
+
+/***/ }),
+
+/***/ 6848:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
     }
-    static detect() {
-        return __awaiter(this, void 0, void 0, function* () {
-            var _a;
-            const systemDrive = (_a = process.env.SystemDrive) !== null && _a !== void 0 ? _a : 'C:';
-            const defaultPath = path.join(systemDrive, 'Library');
-            const devPath = path.join(systemDrive, 'Program Files', 'Swift');
-            const installation = yield Installation.get(devPath, defaultPath);
-            if (path.relative(devPath, installation.location)) {
-                const runtimeRoot = path.join(installation.location, 'Swift');
-                try {
-                    yield fs_1.promises.access(devPath);
-                    yield fs_1.promises.cp(devPath, runtimeRoot, { recursive: true });
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.fallback = exports.env = void 0;
+const path = __importStar(__nccwpck_require__(1017));
+const core = __importStar(__nccwpck_require__(2186));
+const exec_1 = __nccwpck_require__(1514);
+function comapareEnvironment(oldJSON, newJSON) {
+    const difference = {};
+    let newPaths = [];
+    let before;
+    let after;
+    try {
+        before = JSON.parse(oldJSON);
+        after = JSON.parse(newJSON);
+        for (const [key, value] of Object.entries(after)) {
+            const old = before[key];
+            if (before[key] !== value) {
+                if (key.toUpperCase() === 'PATH' && old) {
+                    newPaths = value
+                        .replace(old, '')
+                        .split(path.delimiter)
+                        .filter(item => item);
                 }
-                catch (error) {
-                    core.debug(`Runtime check failed with "${error}"`);
+                else {
+                    difference[key] = value;
                 }
             }
+        }
+    }
+    catch (error) {
+        core.error(`Environment variables serialization error "${error}"`);
+    }
+    return { newPaths, variables: difference };
+}
+function env() {
+    return __awaiter(this, void 0, void 0, function* () {
+        return yield ['Machine', 'User'].reduce((previous, current) => __awaiter(this, void 0, void 0, function* () {
+            const modified = yield previous;
+            const command = `[Environment]::GetEnvironmentVariables('${current}') | ConvertTo-Json`;
+            const args = ['-NoProfile', '-Command', `& {${command}}`];
+            const options = { failOnStdErr: true };
+            const { stdout } = yield (0, exec_1.getExecOutput)('powershell', args, options);
+            modified[current] = stdout;
+            return modified;
+        }), Promise.resolve({}));
+    });
+}
+exports.env = env;
+function fallback(oldEnv, newEnv) {
+    return __awaiter(this, void 0, void 0, function* () {
+        core.debug('Procceding with fallback installation approach');
+        const data = Object.entries(newEnv).reduce((previous, current) => {
+            return Object.assign(Object.assign({}, previous), comapareEnvironment(oldEnv[current[0]], current[1]));
+        }, {});
+        core.debug(`Setting up environment with "${JSON.stringify(data)}"`);
+        for (const newPath of data.newPaths) {
+            core.addPath(newPath);
+        }
+        for (const pair of Object.entries(data.variables)) {
+            core.exportVariable(pair[0], pair[1]);
+        }
+    });
+}
+exports.fallback = fallback;
+
+
+/***/ }),
+
+/***/ 3554:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __exportStar = (this && this.__exportStar) || function(m, exports) {
+    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const core = __importStar(__nccwpck_require__(2186));
+const exec_1 = __nccwpck_require__(1514);
+const base_1 = __nccwpck_require__(106);
+const approach_1 = __nccwpck_require__(1124);
+const fallback_1 = __nccwpck_require__(6848);
+base_1.Installation.get = (install) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    if (!((_a = install === null || install === void 0 ? void 0 : install.length) !== null && _a !== void 0 ? _a : 1)) {
+        return undefined;
+    }
+    const approaches = [
+        () => __awaiter(void 0, void 0, void 0, function* () { return (0, approach_1.secondDirectoryLayout)(install); }),
+        () => __awaiter(void 0, void 0, void 0, function* () { return (0, approach_1.firstDirectoryLayout)(install); })
+    ];
+    let counter = 0;
+    for (const approach of approaches) {
+        counter += 1;
+        try {
+            const installation = yield approach();
             core.debug(`Installation location at "${installation.location}"`);
             core.debug(`Toolchain installed at "${installation.toolchain}"`);
             core.debug(`SDK installed at "${installation.sdkroot}"`);
             core.debug(`Runtime installed at "${installation.runtime}"`);
             core.debug(`Development directory at "${installation.devdir}"`);
             return installation;
-        });
+        }
+        catch (error) {
+            core.debug(`Failed ${counter} time(s)`);
+        }
     }
-}
-exports.Installation = Installation;
+    return undefined;
+});
+base_1.Installation.install = (exe) => __awaiter(void 0, void 0, void 0, function* () {
+    core.debug(`Installing toolchain from "${exe}"`);
+    const oldEnv = yield (0, fallback_1.env)();
+    yield (0, exec_1.exec)(`"${exe}"`, ['-q']);
+    const newEnv = yield (0, fallback_1.env)();
+    return base_1.Installation.detect(oldEnv, newEnv);
+});
+base_1.Installation.detect = (oldEnv, newEnv) => __awaiter(void 0, void 0, void 0, function* () {
+    const installation = yield base_1.Installation.get();
+    if (!installation) {
+        (0, fallback_1.fallback)(oldEnv, newEnv);
+    }
+    return installation;
+});
+__exportStar(__nccwpck_require__(106), exports);
 
 
 /***/ }),
@@ -2266,6 +2445,7 @@ const path = __importStar(__nccwpck_require__(1017));
 const fs_1 = __nccwpck_require__(7147);
 const io = __importStar(__nccwpck_require__(7436));
 const core = __importStar(__nccwpck_require__(2186));
+// eslint-disable-next-line @typescript-eslint/no-namespace
 var VSWhere;
 (function (VSWhere) {
     /// Get vswhere and vs_installer paths

@@ -126,6 +126,36 @@ describe('windows toolchain installation verification', () => {
     await expect(installer['unpack'](exe)).resolves.toBe(toolPath)
   })
 
+  it('tests unpack for failed path matching', async () => {
+    const installer = new WindowsToolchainInstaller(toolchain)
+    const exe = path.resolve('tool', 'downloaded', 'toolchain.exe')
+    process.env.SystemDrive = 'C:'
+    jest.spyOn(exec, 'exec').mockResolvedValue(0)
+    jest
+      .spyOn(exec, 'getExecOutput')
+      .mockResolvedValueOnce({exitCode: 0, stdout: '{}', stderr: ''})
+      .mockResolvedValueOnce({exitCode: 0, stdout: '{"PATH":"a"}', stderr: ''})
+      .mockResolvedValueOnce({exitCode: 0, stdout: '{}', stderr: ''})
+      .mockResolvedValue({
+        exitCode: 0,
+        stdout: `{"SDKROOT":"root","PATH":"a${path.delimiter}b${path.delimiter}c"}`,
+        stderr: ''
+      })
+    jest
+      .spyOn(fs, 'access')
+      .mockRejectedValueOnce(new Error())
+      .mockRejectedValueOnce(new Error())
+      .mockResolvedValue()
+    jest.spyOn(fs, 'cp').mockRejectedValue(new Error())
+    const addPathSpy = jest.spyOn(core, 'addPath')
+    const exportVariableSpy = jest.spyOn(core, 'exportVariable')
+    await expect(installer['unpack'](exe)).resolves.toBe('')
+    expect(addPathSpy).toHaveBeenCalledTimes(2)
+    expect(exportVariableSpy).toHaveBeenCalledTimes(1)
+    expect(addPathSpy.mock.calls).toStrictEqual([['b'], ['c']])
+    expect(exportVariableSpy.mock.calls).toStrictEqual([['SDKROOT', 'root']])
+  })
+
   it('tests add to PATH', async () => {
     const installer = new WindowsToolchainInstaller(toolchain)
     const installation = path.resolve('tool', 'installed', 'path')
@@ -188,7 +218,7 @@ describe('windows toolchain installation verification', () => {
     const setupSpy = jest
       .spyOn(VisualStudio, 'setup')
       .mockResolvedValue(visualStudio)
-    jest.spyOn(fs, 'access').mockImplementation(p => {
+    jest.spyOn(fs, 'access').mockImplementation(async p => {
       if (
         typeof p === 'string' &&
         (p.startsWith(path.join(cached, 'Developer')) ||

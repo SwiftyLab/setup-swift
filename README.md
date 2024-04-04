@@ -10,13 +10,13 @@
 [GitHub Action](https://github.com/features/actions) that will setup [Swift](https://swift.org) environment with specified version.
 This action supports the following functionalities:
 
-- Works on Linux, macOS and Windows(Swift 5.10 and after not supported on Windows).
+- Works on Linux, macOS and Windows.
 - Supports [installing latest major/minor/patch](#specifying-version).
 - Provides snapshots as soon as published in `swift.org`.
 - Verifies toolchain snapshots before installation (`gpg` for Linux and Windows, `pkgutil` for macOS) .
 - Allows development snapshots by enabling `development` flag and optional version.
 - Prefers existing Xcode installations.
-- Caches installed setup in tool cache.
+- Caches installed setup in tool cache and actions cache(Swift 5.10 and after does not support caching on Windows).
 - Allows fetching snapshot metadata without installation (can be used to setup docker images).
 
 ## Latest supported toolchains
@@ -105,7 +105,7 @@ In other words specifying...
   i.e. for `macOS`: https://github.com/swiftwasm/swift/releases/download/swift-wasm-5.10-SNAPSHOT-2024-03-30-a/swift-wasm-5.10-SNAPSHOT-2024-03-30-a-macos_x86_64.pkg
   for `Linux`: https://github.com/swiftwasm/swift/releases/download/swift-wasm-5.10-SNAPSHOT-2024-03-30-a/swift-wasm-5.10-SNAPSHOT-2024-03-30-a-ubuntu22.04_x86_64.tar.gz
 
-  > [!IMPORTANT]  
+  > [!IMPORTANT]
   > When using custom toolchains, please ensure that the toolchain can be installed and used on the GitHub runner, this action won't be able to validate this for custom toolchains.
 </details>
 
