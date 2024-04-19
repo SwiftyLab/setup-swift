@@ -1,3 +1,17 @@
+## [1.7.0](https://github.com/SwiftyLab/setup-swift/compare/v1.6.0...v1.7.0) (2024-04-19)
+
+
+### 🚀 Features
+
+* added custom toolchains support ([#273](https://github.com/SwiftyLab/setup-swift/issues/273)) ([dc93ecd](https://github.com/SwiftyLab/setup-swift/commit/dc93ecd7be099ce0f3b0487188cb995b025948b1))
+* added fallback windows installation without caching support ([#276](https://github.com/SwiftyLab/setup-swift/issues/276)) ([7030849](https://github.com/SwiftyLab/setup-swift/commit/7030849a1ca58b88175468ecd8b4c0b82bd1917f))
+
+
+### 📚 Documentation
+
+* added conduct and contributing guidelines ([#268](https://github.com/SwiftyLab/setup-swift/issues/268)) ([9409a11](https://github.com/SwiftyLab/setup-swift/commit/9409a1123f019286138345d02af08e7698a2b171))
+* added issue templates ([#267](https://github.com/SwiftyLab/setup-swift/issues/267)) ([b9e53af](https://github.com/SwiftyLab/setup-swift/commit/b9e53af632679d244c184dc63dd89e99aa03d781))
+
 ## [1.6.0](https://github.com/SwiftyLab/setup-swift/compare/v1.5.2...v1.6.0) (2024-03-29)
 
 
