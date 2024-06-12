@@ -48,7 +48,8 @@ export class WindowsToolchainInstaller extends VerifyingToolchainInstaller<Windo
     if (!installation) {
       return
     }
-    core.exportVariable('SDKROOT', installation.sdkroot)
+    const sdkroot = installation.sdkroot
+    core.exportVariable('SDKROOT', sdkroot)
     if (installation.devdir) {
       core.exportVariable('DEVELOPER_DIR', installation.devdir)
     }
@@ -71,8 +72,15 @@ export class WindowsToolchainInstaller extends VerifyingToolchainInstaller<Windo
     }
     core.debug(`Swift installed at "${swiftPath}"`)
     const visualStudio = await VisualStudio.setup(this.vsRequirement)
-    await visualStudio.update(installation.sdkroot)
-    const swiftFlags = `-sdk %SDKROOT% -I %SDKROOT%/usr/lib/swift -L %SDKROOT%/usr/lib/swift/windows`
+    await visualStudio.update(sdkroot)
+    const swiftFlags = [
+      '-sdk',
+      sdkroot,
+      '-I',
+      path.join(sdkroot, 'usr', 'lib', 'swift'),
+      '-L',
+      path.join(sdkroot, 'usr', 'lib', 'swift', 'windows')
+    ].join(' ')
     core.exportVariable('SWIFTFLAGS', swiftFlags)
   }
 }
