@@ -56,7 +56,7 @@
     "@typescript-eslint/eslint-plugin": "^7.11.0",
     "@typescript-eslint/parser": "^7.11.0",
     "@vercel/ncc": "^0.38.1",
-    "conventional-changelog-conventionalcommits": "^7.0.2",
+    "conventional-changelog-conventionalcommits": "^8.0.0",
     "depcheck": "^1.4.7",
     "eslint": "^8.57.0",
     "eslint-plugin-github": "^4.10.2",
