@@ -45,7 +45,7 @@
     "glob": "^11.0.0",
     "js-yaml": "^4.1.0",
     "plist": "^3.1.0",
-    "semver": "^7.6.2"
+    "semver": "^7.6.3"
   },
   "devDependencies": {
     "@types/getos": "^3.0.4",
