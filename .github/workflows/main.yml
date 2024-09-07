@@ -162,6 +162,9 @@ jobs:
         - os: macos-13
           swift: 'latest'
           development: false
+        - os: windows-latest
+          swift: '5.9'
+          development: false
         - os: ubuntu-latest
           swift: '5.3.0'
           development: false
