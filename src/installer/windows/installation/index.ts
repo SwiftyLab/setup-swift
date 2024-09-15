@@ -36,7 +36,7 @@ Installation.get = async (install?: string) => {
       core.debug(`Development directory at "${installation.devdir}"`)
       return installation
     } catch (error) {
-      core.debug(`Failed ${counter} time(s)`)
+      core.debug(`Failed ${counter} time(s), recent error "${error}"`)
     }
   }
   return undefined
