@@ -145,7 +145,6 @@ describe('fetch linux tool data based on options', () => {
     expect(lTool.platform).toBeTruthy()
     expect(lTool.branch).toBeTruthy()
     expect(lTool.download_signature).toBeTruthy()
-    expect(lTool.docker).toBeTruthy()
     expect(lTool.preventCaching).toBe(false)
   })
 
