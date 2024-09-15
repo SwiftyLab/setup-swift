@@ -184,6 +184,7 @@ describe('windows toolchain installation verification', () => {
       'SDKs',
       'Windows.sdk'
     )
+    const swiftLibs = path.join(sdkroot, 'usr', 'lib', 'swift')
     const swiftPath = path.join(toolPath, 'usr', 'bin')
     const swiftDev = path.join(installation, 'Swift-development', 'bin')
     const icu67 = path.join(installation, 'icu-67', 'usr', 'bin')
@@ -192,6 +193,11 @@ describe('windows toolchain installation verification', () => {
     expect(process.env.PATH?.includes(swiftDev)).toBeTruthy()
     expect(process.env.PATH?.includes(icu67)).toBeTruthy()
     expect(process.env.SDKROOT).toBe(sdkroot)
+    expect(process.env.SWIFTFLAGS).toContain(`-sdk ${sdkroot}`)
+    expect(process.env.SWIFTFLAGS).toContain(`-I ${swiftLibs}`)
+    expect(process.env.SWIFTFLAGS).toContain(
+      `-L ${path.join(swiftLibs, 'windows')}`
+    )
   })
 
   it('tests installation with cache', async () => {

@@ -561,7 +561,8 @@ class WindowsToolchainInstaller extends verify_1.VerifyingToolchainInstaller {
             if (!installation) {
                 return;
             }
-            core.exportVariable('SDKROOT', installation.sdkroot);
+            const sdkroot = installation.sdkroot;
+            core.exportVariable('SDKROOT', sdkroot);
             if (installation.devdir) {
                 core.exportVariable('DEVELOPER_DIR', installation.devdir);
             }
@@ -584,8 +585,15 @@ class WindowsToolchainInstaller extends verify_1.VerifyingToolchainInstaller {
             }
             core.debug(`Swift installed at "${swiftPath}"`);
             const visualStudio = yield utils_1.VisualStudio.setup(this.vsRequirement);
-            yield visualStudio.update(installation.sdkroot);
-            const swiftFlags = `-sdk %SDKROOT% -I %SDKROOT%/usr/lib/swift -L %SDKROOT%/usr/lib/swift/windows`;
+            yield visualStudio.update(sdkroot);
+            const swiftFlags = [
+                '-sdk',
+                sdkroot,
+                '-I',
+                path.join(sdkroot, 'usr', 'lib', 'swift'),
+                '-L',
+                path.join(sdkroot, 'usr', 'lib', 'swift', 'windows')
+            ].join(' ');
             core.exportVariable('SWIFTFLAGS', swiftFlags);
         });
     }
