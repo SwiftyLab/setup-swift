@@ -176,6 +176,10 @@ jobs:
           development: true
 
     steps:
+    - name: Check link
+      if: runner.os == 'Windows'
+      run: which link || exit 1
+
     - name: Checkout repository
       uses: actions/checkout@v4
 
@@ -211,6 +215,10 @@ jobs:
 
     - name: Verify Swift version
       run: swift --version | grep ${{ steps.setup-swift.outputs.swift-version }} || exit 1
+
+    - name: Check link
+      if: runner.os == 'Windows'
+      run: which link || exit 1
 
   dry-run:
     name: Check action with dry run
