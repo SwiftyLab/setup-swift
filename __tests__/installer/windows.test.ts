@@ -154,6 +154,16 @@ describe('windows toolchain installation verification', () => {
     expect(exportVariableSpy).toHaveBeenCalledTimes(1)
     expect(addPathSpy.mock.calls).toStrictEqual([['b'], ['c']])
     expect(exportVariableSpy.mock.calls).toStrictEqual([['SDKROOT', 'root']])
+
+    const setupSpy = jest
+      .spyOn(VisualStudio, 'setup')
+      .mockResolvedValue(visualStudio)
+    const updateSpy = jest
+      .spyOn(VisualStudio.prototype, 'update')
+      .mockResolvedValue()
+    await installer['add']('')
+    expect(setupSpy).toHaveBeenCalled()
+    expect(updateSpy).toHaveBeenCalledWith('root')
   })
 
   it('tests add to PATH', async () => {

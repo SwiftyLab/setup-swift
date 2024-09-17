@@ -6,7 +6,7 @@ import * as semver from 'semver'
 import {VerifyingToolchainInstaller} from '../verify'
 import {WindowsToolchainSnapshot} from '../../snapshot'
 import {VisualStudio} from '../../utils'
-import {Installation} from './installation'
+import {Installation, CustomInstallation} from './installation'
 
 export class WindowsToolchainInstaller extends VerifyingToolchainInstaller<WindowsToolchainSnapshot> {
   private get vsRequirement() {
@@ -40,37 +40,47 @@ export class WindowsToolchainInstaller extends VerifyingToolchainInstaller<Windo
 
   protected async unpack(exe: string) {
     const installation = await Installation.install(exe)
-    return installation?.location ?? ''
+    return installation instanceof Installation ? installation.location : ''
   }
 
   protected async add(installLocation: string) {
     const installation = await Installation.get(installLocation)
-    if (!installation) {
+    const sdkrootKey = 'SDKROOT'
+    let sdkroot: string | undefined
+    if (installation instanceof Installation) {
+      sdkroot = installation?.sdkroot ?? core
+      core.exportVariable(sdkrootKey, sdkroot)
+      if (installation.devdir) {
+        core.exportVariable('DEVELOPER_DIR', installation.devdir)
+      }
+
+      const location = installation.location
+      const swiftPath = path.join(installation.toolchain, 'usr', 'bin')
+      const swiftDev = path.join(location, 'Swift-development', 'bin')
+      const icu67 = path.join(location, 'icu-67', 'usr', 'bin')
+      const tools = path.join(location, 'Tools')
+      const runtimePath = path.join(installation.runtime, 'usr', 'bin')
+      const requirePaths = [swiftPath, swiftDev, icu67, tools, runtimePath]
+
+      for (const envPath of requirePaths) {
+        try {
+          await fs.access(envPath)
+          core.debug(`Adding "${envPath}" to PATH`)
+          core.addPath(envPath)
+        } catch {
+          core.debug(`"${envPath}" doesn't exist. Skip adding to PATH`)
+        }
+      }
+      core.debug(`Swift installed at "${swiftPath}"`)
+    } else if (installation instanceof CustomInstallation) {
+      sdkroot = installation.variables[sdkrootKey]
+    }
+
+    if (!sdkroot) {
+      core.warning(`Failed VS enviroment after installation ${installLocation}`)
       return
     }
-    const sdkroot = installation.sdkroot
-    core.exportVariable('SDKROOT', sdkroot)
-    if (installation.devdir) {
-      core.exportVariable('DEVELOPER_DIR', installation.devdir)
-    }
-    const location = installation.location
-    const swiftPath = path.join(installation.toolchain, 'usr', 'bin')
-    const swiftDev = path.join(location, 'Swift-development', 'bin')
-    const icu67 = path.join(location, 'icu-67', 'usr', 'bin')
-    const tools = path.join(location, 'Tools')
-    const runtimePath = path.join(installation.runtime, 'usr', 'bin')
-    const requirePaths = [swiftPath, swiftDev, icu67, tools, runtimePath]
 
-    for (const envPath of requirePaths) {
-      try {
-        await fs.access(envPath)
-        core.debug(`Adding "${envPath}" to PATH`)
-        core.addPath(envPath)
-      } catch {
-        core.debug(`"${envPath}" doesn't exist. Skip adding to PATH`)
-      }
-    }
-    core.debug(`Swift installed at "${swiftPath}"`)
     const visualStudio = await VisualStudio.setup(this.vsRequirement)
     await visualStudio.update(sdkroot)
     const swiftFlags = [

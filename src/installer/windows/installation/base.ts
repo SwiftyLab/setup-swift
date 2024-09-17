@@ -7,3 +7,10 @@ export class Installation {
     readonly devdir?: string
   ) {}
 }
+
+export class CustomInstallation {
+  constructor(
+    readonly newPaths: string[],
+    readonly variables: Record<string, string>
+  ) {}
+}
