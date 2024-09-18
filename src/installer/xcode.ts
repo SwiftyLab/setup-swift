@@ -41,7 +41,7 @@ export class XcodeToolchainInstaller extends ToolchainInstaller<XcodeToolchainSn
     return this.data.dir !== `swift-${version}-RELEASE`
   }
 
-  async install(arch?: string | undefined) {
+  async install(arch: string) {
     if (!(await this.isInstallationNeeded())) {
       return
     }

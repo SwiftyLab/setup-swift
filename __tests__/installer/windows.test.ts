@@ -255,7 +255,7 @@ describe('windows toolchain installation verification', () => {
       stdout: vsEnvs.join(os.EOL),
       stderr: ''
     })
-    await installer.install()
+    await installer.install('x86_64')
     expect(setupSpy).toHaveBeenCalled()
     expect(process.env.PATH?.includes(swiftPath)).toBeTruthy()
     expect(process.env.PATH?.includes(swiftDev)).toBeTruthy()

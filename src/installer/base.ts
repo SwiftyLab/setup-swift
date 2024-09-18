@@ -39,23 +39,26 @@ export abstract class ToolchainInstaller<Snapshot extends ToolchainSnapshot> {
     }
   }
 
-  async install(arch?: string) {
-    const key = `${this.data.dir}-${this.data.platform}`
+  async install(arch: string) {
+    const toolCacheKey = `${this.data.dir}-${this.data.platform}`
+    const actionCacheKey = arch ? `${toolCacheKey}-${arch}` : toolCacheKey
     const version = this.version?.raw
     let tool: string | undefined
     let cacheHit = false
     if (version) {
       core.debug(
-        `Finding tool with key: "${key}", version: "${version}" and arch: "${arch}" in tool cache`
+        `Finding tool with key: "${toolCacheKey}", version: "${version}" and arch: "${arch}" in tool cache`
       )
-      tool = toolCache.find(key, version, arch).trim()
+      tool = toolCache.find(toolCacheKey, version, arch).trim()
     }
 
     const tmpDir = process.env.RUNNER_TEMP || os.tmpdir()
-    const restore = path.join(tmpDir, 'setup-swift', key)
+    const restore = path.join(tmpDir, 'setup-swift', toolCacheKey)
     if (!tool?.length) {
-      if (await cache.restoreCache([restore], key)) {
-        core.debug(`Restored snapshot at "${restore}" from key "${key}"`)
+      if (await cache.restoreCache([restore], actionCacheKey)) {
+        core.debug(
+          `Restored snapshot at "${restore}" from key "${actionCacheKey}"`
+        )
         tool = restore
         cacheHit = true
       } else {
@@ -70,9 +73,9 @@ export abstract class ToolchainInstaller<Snapshot extends ToolchainSnapshot> {
     }
 
     if (tool && version) {
-      tool = await toolCache.cacheDir(tool, key, version, arch)
+      tool = await toolCache.cacheDir(tool, toolCacheKey, version, arch)
       if (core.isDebug()) {
-        core.exportVariable('SWIFT_SETUP_TOOL_KEY', key)
+        core.exportVariable('SWIFT_SETUP_TOOL_KEY', toolCacheKey)
       }
       core.debug(`Added to tool cache at "${tool}"`)
     }
@@ -83,8 +86,8 @@ export abstract class ToolchainInstaller<Snapshot extends ToolchainSnapshot> {
       !this.data.preventCaching
     ) {
       await fs.cp(tool, restore, {recursive: true})
-      await cache.saveCache([restore], key)
-      core.debug(`Saved to cache with key "${key}"`)
+      await cache.saveCache([restore], actionCacheKey)
+      core.debug(`Saved to cache with key "${actionCacheKey}"`)
     }
     await this.add(tool)
   }

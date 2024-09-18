@@ -113,19 +113,20 @@ class ToolchainInstaller {
     install(arch) {
         return __awaiter(this, void 0, void 0, function* () {
             var _a;
-            const key = `${this.data.dir}-${this.data.platform}`;
+            const toolCacheKey = `${this.data.dir}-${this.data.platform}`;
+            const actionCacheKey = arch ? `${toolCacheKey}-${arch}` : toolCacheKey;
             const version = (_a = this.version) === null || _a === void 0 ? void 0 : _a.raw;
             let tool;
             let cacheHit = false;
             if (version) {
-                core.debug(`Finding tool with key: "${key}", version: "${version}" and arch: "${arch}" in tool cache`);
-                tool = toolCache.find(key, version, arch).trim();
+                core.debug(`Finding tool with key: "${toolCacheKey}", version: "${version}" and arch: "${arch}" in tool cache`);
+                tool = toolCache.find(toolCacheKey, version, arch).trim();
             }
             const tmpDir = process.env.RUNNER_TEMP || os.tmpdir();
-            const restore = path.join(tmpDir, 'setup-swift', key);
+            const restore = path.join(tmpDir, 'setup-swift', toolCacheKey);
             if (!(tool === null || tool === void 0 ? void 0 : tool.length)) {
-                if (yield cache.restoreCache([restore], key)) {
-                    core.debug(`Restored snapshot at "${restore}" from key "${key}"`);
+                if (yield cache.restoreCache([restore], actionCacheKey)) {
+                    core.debug(`Restored snapshot at "${restore}" from key "${actionCacheKey}"`);
                     tool = restore;
                     cacheHit = true;
                 }
@@ -141,9 +142,9 @@ class ToolchainInstaller {
                 cacheHit = true;
             }
             if (tool && version) {
-                tool = yield toolCache.cacheDir(tool, key, version, arch);
+                tool = yield toolCache.cacheDir(tool, toolCacheKey, version, arch);
                 if (core.isDebug()) {
-                    core.exportVariable('SWIFT_SETUP_TOOL_KEY', key);
+                    core.exportVariable('SWIFT_SETUP_TOOL_KEY', toolCacheKey);
                 }
                 core.debug(`Added to tool cache at "${tool}"`);
             }
@@ -152,8 +153,8 @@ class ToolchainInstaller {
                 !cacheHit &&
                 !this.data.preventCaching) {
                 yield fs_1.promises.cp(tool, restore, { recursive: true });
-                yield cache.saveCache([restore], key);
-                core.debug(`Saved to cache with key "${key}"`);
+                yield cache.saveCache([restore], actionCacheKey);
+                core.debug(`Saved to cache with key "${actionCacheKey}"`);
             }
             yield this.add(tool);
         });
