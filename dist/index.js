@@ -142,6 +142,9 @@ class ToolchainInstaller {
             }
             if (tool && version) {
                 tool = yield toolCache.cacheDir(tool, key, version, arch);
+                if (core.isDebug()) {
+                    core.exportVariable('SWIFT_SETUP_TOOL_KEY', key);
+                }
                 core.debug(`Added to tool cache at "${tool}"`);
             }
             if (tool &&
@@ -1687,7 +1690,7 @@ class VersionedPlatform extends base_1.Platform {
                     const pName = (_a = platform.dir) !== null && _a !== void 0 ? _a : platform.name.replaceAll(/\s+|\./g, '').toLowerCase();
                     const pDownloadName = (_b = platform.dir) !== null && _b !== void 0 ? _b : platform.name.replaceAll(/\s+/g, '').toLowerCase();
                     const download = `${release.tag}-${pDownloadName}${this.archSuffix}.${this.downloadExtension}`;
-                    return platform.archs.includes(this.arch)
+                    return platform.archs && platform.archs.includes(this.arch)
                         ? {
                             name: platform.name,
                             date: release.date,

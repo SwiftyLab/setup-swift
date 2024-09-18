@@ -160,7 +160,7 @@ jobs:
           swift: '5.0.0'
           development: false
         - os: macos-13
-          swift: 'latest'
+          swift: '5.9'
           development: false
         - os: windows-latest
           swift: '5.9'
@@ -215,6 +215,50 @@ jobs:
     - name: Check link
       if: runner.os == 'Windows'
       run: which link | grep "Microsoft Visual Studio" || exit 1
+
+    - name: Get cached installation
+      id: get-tool
+      if: failure()
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const os = require('os');
+          const fs = require('fs/promises');
+          const toolCache = require('@actions/tool-cache');
+          let arch = '';
+          switch (os.arch()) {
+            case 'x64':
+              arch = 'x86_64';
+              break;
+            case 'arm64':
+              arch = 'aarch64';
+              break;
+            default:
+              arch = os.arch();
+              break;
+          }
+          const key = process.env['SWIFT_SETUP_TOOL_KEY'];
+          if (!key) {
+            core.debug(`Toolcache not set`);
+            return;
+          }
+          const tools = toolCache.findAllVersions(key, arch);
+          if (!tools.length) {
+            core.debug(`No tools found for "${key}" with arch ${arch}`);
+            return;
+          } else {
+            core.debug(`Found tools "${tools.join(', ')}" for "${key}" with arch ${arch}`);
+          }
+          const tool = tools[0];
+          await fs.access(tool);
+          return { key: key, tool: tool };
+
+    - name: Upload cached installation as artifact
+      if: always() && steps.get-tool.outputs.result != ''
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ fromJson(steps.get-tool.outputs.result).key }}-tool
+        path: ${{ fromJson(steps.get-tool.outputs.result).tool }}
 
   dry-run:
     name: Check action with dry run
