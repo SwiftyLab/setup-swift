@@ -71,6 +71,9 @@ export abstract class ToolchainInstaller<Snapshot extends ToolchainSnapshot> {
 
     if (tool && version) {
       tool = await toolCache.cacheDir(tool, key, version, arch)
+      if (core.isDebug()) {
+        core.exportVariable('SWIFT_SETUP_TOOL_KEY', key)
+      }
       core.debug(`Added to tool cache at "${tool}"`)
     }
     if (

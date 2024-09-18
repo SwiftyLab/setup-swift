@@ -109,7 +109,7 @@ export abstract class VersionedPlatform<
           const pDownloadName =
             platform.dir ?? platform.name.replaceAll(/\s+/g, '').toLowerCase()
           const download = `${release.tag}-${pDownloadName}${this.archSuffix}.${this.downloadExtension}`
-          return platform.archs.includes(this.arch)
+          return platform.archs && platform.archs.includes(this.arch)
             ? ({
                 name: platform.name,
                 date: release.date,
