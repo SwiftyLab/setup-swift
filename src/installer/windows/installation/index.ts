@@ -1,25 +1,30 @@
 import * as core from '@actions/core'
 import {exec} from '@actions/exec'
-import {Installation} from './base'
+import {Installation, CustomInstallation} from './base'
 import {firstDirectoryLayout, secondDirectoryLayout} from './approach'
 import {env, fallback} from './fallback'
 
 declare module './base' {
   // eslint-disable-next-line no-shadow, @typescript-eslint/no-namespace
   export namespace Installation {
-    export function get(install?: string): Promise<Installation | undefined>
-    export function install(exe: string): Promise<Installation | undefined>
+    export function get(
+      install?: string
+    ): Promise<Installation | CustomInstallation | undefined>
+    export function install(
+      exe: string
+    ): Promise<Installation | CustomInstallation>
     export function detect(
       oldEnv: Record<string, string>,
       newEnv: Record<string, string>
-    ): Promise<Installation | undefined>
+    ): Promise<Installation | CustomInstallation>
   }
 }
 
 Installation.get = async (install?: string) => {
   if (!(install?.length ?? 1)) {
-    return undefined
+    return lastInstallation
   }
+
   const approaches = [
     async () => secondDirectoryLayout(install),
     async () => firstDirectoryLayout(install)
@@ -42,12 +47,14 @@ Installation.get = async (install?: string) => {
   return undefined
 }
 
+let lastInstallation: Installation | CustomInstallation
 Installation.install = async (exe: string) => {
   core.debug(`Installing toolchain from "${exe}"`)
   const oldEnv = await env()
   await exec(`"${exe}"`, ['-q'])
   const newEnv = await env()
-  return Installation.detect(oldEnv, newEnv)
+  lastInstallation = await Installation.detect(oldEnv, newEnv)
+  return lastInstallation
 }
 
 Installation.detect = async (
@@ -56,7 +63,7 @@ Installation.detect = async (
 ) => {
   const installation = await Installation.get()
   if (!installation) {
-    fallback(oldEnv, newEnv)
+    return fallback(oldEnv, newEnv)
   }
   return installation
 }

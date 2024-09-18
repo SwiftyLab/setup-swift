@@ -550,40 +550,48 @@ class WindowsToolchainInstaller extends verify_1.VerifyingToolchainInstaller {
     }
     unpack(exe) {
         return __awaiter(this, void 0, void 0, function* () {
-            var _a;
             const installation = yield installation_1.Installation.install(exe);
-            return (_a = installation === null || installation === void 0 ? void 0 : installation.location) !== null && _a !== void 0 ? _a : '';
+            return installation instanceof installation_1.Installation ? installation.location : '';
         });
     }
     add(installLocation) {
         return __awaiter(this, void 0, void 0, function* () {
+            var _a;
             const installation = yield installation_1.Installation.get(installLocation);
-            if (!installation) {
+            const sdkrootKey = 'SDKROOT';
+            let sdkroot;
+            if (installation instanceof installation_1.Installation) {
+                sdkroot = (_a = installation === null || installation === void 0 ? void 0 : installation.sdkroot) !== null && _a !== void 0 ? _a : core;
+                core.exportVariable(sdkrootKey, sdkroot);
+                if (installation.devdir) {
+                    core.exportVariable('DEVELOPER_DIR', installation.devdir);
+                }
+                const location = installation.location;
+                const swiftPath = path.join(installation.toolchain, 'usr', 'bin');
+                const swiftDev = path.join(location, 'Swift-development', 'bin');
+                const icu67 = path.join(location, 'icu-67', 'usr', 'bin');
+                const tools = path.join(location, 'Tools');
+                const runtimePath = path.join(installation.runtime, 'usr', 'bin');
+                const requirePaths = [swiftPath, swiftDev, icu67, tools, runtimePath];
+                for (const envPath of requirePaths) {
+                    try {
+                        yield fs_1.promises.access(envPath);
+                        core.debug(`Adding "${envPath}" to PATH`);
+                        core.addPath(envPath);
+                    }
+                    catch (_b) {
+                        core.debug(`"${envPath}" doesn't exist. Skip adding to PATH`);
+                    }
+                }
+                core.debug(`Swift installed at "${swiftPath}"`);
+            }
+            else if (installation instanceof installation_1.CustomInstallation) {
+                sdkroot = installation.variables[sdkrootKey];
+            }
+            if (!sdkroot) {
+                core.warning(`Failed VS enviroment after installation ${installLocation}`);
                 return;
             }
-            const sdkroot = installation.sdkroot;
-            core.exportVariable('SDKROOT', sdkroot);
-            if (installation.devdir) {
-                core.exportVariable('DEVELOPER_DIR', installation.devdir);
-            }
-            const location = installation.location;
-            const swiftPath = path.join(installation.toolchain, 'usr', 'bin');
-            const swiftDev = path.join(location, 'Swift-development', 'bin');
-            const icu67 = path.join(location, 'icu-67', 'usr', 'bin');
-            const tools = path.join(location, 'Tools');
-            const runtimePath = path.join(installation.runtime, 'usr', 'bin');
-            const requirePaths = [swiftPath, swiftDev, icu67, tools, runtimePath];
-            for (const envPath of requirePaths) {
-                try {
-                    yield fs_1.promises.access(envPath);
-                    core.debug(`Adding "${envPath}" to PATH`);
-                    core.addPath(envPath);
-                }
-                catch (_a) {
-                    core.debug(`"${envPath}" doesn't exist. Skip adding to PATH`);
-                }
-            }
-            core.debug(`Swift installed at "${swiftPath}"`);
             const visualStudio = yield utils_1.VisualStudio.setup(this.vsRequirement);
             yield visualStudio.update(sdkroot);
             const swiftFlags = [
@@ -700,7 +708,7 @@ exports.secondDirectoryLayout = secondDirectoryLayout;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.Installation = void 0;
+exports.CustomInstallation = exports.Installation = void 0;
 class Installation {
     constructor(location, toolchain, sdkroot, runtime, devdir) {
         this.location = location;
@@ -711,6 +719,13 @@ class Installation {
     }
 }
 exports.Installation = Installation;
+class CustomInstallation {
+    constructor(newPaths, variables) {
+        this.newPaths = newPaths;
+        this.variables = variables;
+    }
+}
+exports.CustomInstallation = CustomInstallation;
 
 
 /***/ }),
@@ -757,6 +772,7 @@ exports.fallback = exports.env = void 0;
 const path = __importStar(__nccwpck_require__(1017));
 const core = __importStar(__nccwpck_require__(2186));
 const exec_1 = __nccwpck_require__(1514);
+const base_1 = __nccwpck_require__(106);
 function comapareEnvironment(oldJSON, newJSON) {
     const difference = {};
     let newPaths = [];
@@ -812,6 +828,7 @@ function fallback(oldEnv, newEnv) {
         for (const pair of Object.entries(data.variables)) {
             core.exportVariable(pair[0], pair[1]);
         }
+        return new base_1.CustomInstallation(data.newPaths, data.variables);
     });
 }
 exports.fallback = fallback;
@@ -868,7 +885,7 @@ const fallback_1 = __nccwpck_require__(6848);
 base_1.Installation.get = (install) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     if (!((_a = install === null || install === void 0 ? void 0 : install.length) !== null && _a !== void 0 ? _a : 1)) {
-        return undefined;
+        return lastInstallation;
     }
     const approaches = [
         () => __awaiter(void 0, void 0, void 0, function* () { return (0, approach_1.secondDirectoryLayout)(install); }),
@@ -892,17 +909,19 @@ base_1.Installation.get = (install) => __awaiter(void 0, void 0, void 0, functio
     }
     return undefined;
 });
+let lastInstallation;
 base_1.Installation.install = (exe) => __awaiter(void 0, void 0, void 0, function* () {
     core.debug(`Installing toolchain from "${exe}"`);
     const oldEnv = yield (0, fallback_1.env)();
     yield (0, exec_1.exec)(`"${exe}"`, ['-q']);
     const newEnv = yield (0, fallback_1.env)();
-    return base_1.Installation.detect(oldEnv, newEnv);
+    lastInstallation = yield base_1.Installation.detect(oldEnv, newEnv);
+    return lastInstallation;
 });
 base_1.Installation.detect = (oldEnv, newEnv) => __awaiter(void 0, void 0, void 0, function* () {
     const installation = yield base_1.Installation.get();
     if (!installation) {
-        (0, fallback_1.fallback)(oldEnv, newEnv);
+        return (0, fallback_1.fallback)(oldEnv, newEnv);
     }
     return installation;
 });

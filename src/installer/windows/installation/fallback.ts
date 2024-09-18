@@ -1,6 +1,7 @@
 import * as path from 'path'
 import * as core from '@actions/core'
 import {getExecOutput} from '@actions/exec'
+import {CustomInstallation} from './base'
 
 function comapareEnvironment(oldJSON: string, newJSON: string) {
   const difference: Record<string, string> = {}
@@ -65,4 +66,5 @@ export async function fallback(
   for (const pair of Object.entries(data.variables)) {
     core.exportVariable(pair[0], pair[1])
   }
+  return new CustomInstallation(data.newPaths, data.variables)
 }

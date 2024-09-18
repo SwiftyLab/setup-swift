@@ -212,6 +212,10 @@ jobs:
     - name: Verify Swift version
       run: swift --version | grep ${{ steps.setup-swift.outputs.swift-version }} || exit 1
 
+    - name: Check link
+      if: runner.os == 'Windows'
+      run: which link | grep "Microsoft Visual Studio" || exit 1
+
   dry-run:
     name: Check action with dry run
     if: needs.ci.outputs.run == 'true'
@@ -331,6 +335,10 @@ jobs:
 
     - name: Verify Swift version
       run: swift --version | grep ${{ steps.setup-swift.outputs.swift-version }} || exit 1
+
+    - name: Check link
+      if: runner.os == 'Windows'
+      run: which link | grep "Microsoft Visual Studio" || exit 1
 
     - name: Test Swift package
       run: |
