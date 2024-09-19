@@ -157,22 +157,25 @@ jobs:
         development: [false, true]
         include:
         - os: macos-latest
-          swift: '5.0.0'
+          swift: '5.0.0' # oldest
           development: false
         - os: macos-13
-          swift: '5.9'
+          swift: 'latest' # action caching architecture mismatch
+          development: false
+        - os: macos-13
+          swift: '5.9' # Xcode toolchain inclusion optimization
           development: false
         - os: windows-latest
-          swift: '5.9'
+          swift: '5.9' # 2nd installation approach
           development: false
         - os: ubuntu-latest
-          swift: '5.3.0'
+          swift: '5.3.0' # oldest
           development: false
         - os: windows-latest
-          swift: '5.3'
+          swift: '5.3' # 1st installation approach
           development: false
         - os: ubuntu-22.04
-          swift: ${{ fromJSON(vars.SETUPSWIFT_CUSTOM_TOOLCHAINS).ubuntu2204 }}
+          swift: ${{ fromJSON(vars.SETUPSWIFT_CUSTOM_TOOLCHAINS).ubuntu2204 }} # custom toolchain
           development: true
 
     steps:
@@ -223,8 +226,10 @@ jobs:
       with:
         script: |
           const os = require('os');
+          const path = require('path');
           const fs = require('fs/promises');
           const toolCache = require('@actions/tool-cache');
+          const {exec: actionExec} = require('@actions/exec');
           let arch = '';
           switch (os.arch()) {
             case 'x64':
@@ -242,22 +247,25 @@ jobs:
             core.debug(`Toolcache not set`);
             return;
           }
-          const tools = toolCache.findAllVersions(key, arch);
-          if (!tools.length) {
-            core.debug(`No tools found for "${key}" with arch ${arch}`);
+          const versions = toolCache.findAllVersions(key, arch);
+          if (!versions.length) {
+            core.debug(`No versions found for "${key}" with arch ${arch}`);
             return;
           } else {
-            core.debug(`Found tools "${tools.join(', ')}" for "${key}" with arch ${arch}`);
+            core.debug(`Found versions "${versions.join(', ')}" for "${key}" with arch ${arch}`);
           }
-          const tool = tools[0];
+          const tool = toolCache.find(key, versions[0], arch).trim();
           await fs.access(tool);
-          return { key: key, tool: tool };
+          const tmpDir = process.env.RUNNER_TEMP || os.tmpdir();
+          const zip = path.join(tmpDir, `${key}.zip`);
+          await actionExec('zip', ['-r', zip, tool, '-x', '*.DS_Store']);
+          return { key: key, tool: zip };
 
     - name: Upload cached installation as artifact
       if: always() && steps.get-tool.outputs.result != ''
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ fromJson(steps.get-tool.outputs.result).key }}-tool
+        name: ${{ fromJson(steps.get-tool.outputs.result).key }}-${{ matrix.os }}-tool
         path: ${{ fromJson(steps.get-tool.outputs.result).tool }}
 
   dry-run:
