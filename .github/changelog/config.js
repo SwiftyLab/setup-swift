@@ -1,5 +1,5 @@
 'use strict'
-import config from 'conventional-changelog-conventionalcommits';
+const config = require('conventional-changelog-conventionalcommits');
 
 module.exports = config({
   types: [

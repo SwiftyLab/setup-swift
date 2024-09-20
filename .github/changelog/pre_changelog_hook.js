@@ -1,6 +1,6 @@
 'use strict'
-import semver from 'semver';
-import core from '@actions/core';
+const semver = require('semver');
+const core = require('@actions/core');
 
 exports.preVersionGeneration = (version) => {
   const {VERSION} = process.env;
