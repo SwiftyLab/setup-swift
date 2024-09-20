@@ -1,3 +1,17 @@
+## [1.8.0](https://github.com/SwiftyLab/setup-swift/compare/v1.7.0...v1.8.0) (2024-09-20)
+
+
+### 🚀 Features
+
+* expand `SWIFTFLAGS` with full paths ensure CMD and PowerShell compatibility ([#74](https://github.com/SwiftyLab/setup-swift/issues/74)) ([8573d06](https://github.com/SwiftyLab/setup-swift/commit/8573d0697a49e239a7e50df61f1555597a12e64e))
+
+
+### 🐛 Fixes
+
+* fixed macOS action cache architecture mismatch ([#317](https://github.com/SwiftyLab/setup-swift/issues/317)) ([8822077](https://github.com/SwiftyLab/setup-swift/commit/8822077d38869be2e4c57dce79d18515621e5498))
+* fixed older Swift toolchain installations on Windows ([#307](https://github.com/SwiftyLab/setup-swift/issues/307)) ([420581b](https://github.com/SwiftyLab/setup-swift/commit/420581bc75610ae2a394df7f2a6f457200a2c715))
+* fixed Visual Studio setup with fallback windows installation ([#314](https://github.com/SwiftyLab/setup-swift/issues/314)) ([f2a737f](https://github.com/SwiftyLab/setup-swift/commit/f2a737f69b00c97c2704514174842e5577914597))
+
 ## [1.7.0](https://github.com/SwiftyLab/setup-swift/compare/v1.6.0...v1.7.0) (2024-04-19)
 
 
