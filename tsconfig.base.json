@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-        "target": "es6",
+        "target": "ESNext",
         "module": "nodenext",
         "moduleResolution": "nodenext",
         "strict": true,
@@ -9,6 +9,7 @@
         "allowUnreachableCode": false,
         "allowUnusedLabels": false,
         "noImplicitReturns": true,
+        "strictBuiltinIteratorReturn": false,
         "lib": [
             "ES2021.String",
         ]

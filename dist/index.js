@@ -67,15 +67,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ToolchainInstaller = void 0;
 const os = __importStar(__nccwpck_require__(857));
@@ -89,6 +80,7 @@ const toolCache = __importStar(__nccwpck_require__(3472));
 const semver_1 = __nccwpck_require__(2088);
 const version_1 = __nccwpck_require__(191);
 class ToolchainInstaller {
+    data;
     constructor(data) {
         this.data = data;
     }
@@ -110,79 +102,71 @@ class ToolchainInstaller {
             args: ['--version']
         };
     }
-    install(arch) {
-        return __awaiter(this, void 0, void 0, function* () {
-            var _a;
-            const toolCacheKey = `${this.data.dir}-${this.data.platform}`;
-            const actionCacheKey = arch ? `${toolCacheKey}-${arch}` : toolCacheKey;
-            const version = (_a = this.version) === null || _a === void 0 ? void 0 : _a.raw;
-            let tool;
-            let toolCacheHit = false;
-            let actionCacheHit = false;
-            if (version) {
-                core.debug(`Finding tool with key: "${toolCacheKey}", version: "${version}" and arch: "${arch}" in tool cache`);
-                tool = toolCache.find(toolCacheKey, version, arch).trim();
-            }
-            const tmpDir = process.env.RUNNER_TEMP || os.tmpdir();
-            const restore = path.join(tmpDir, 'setup-swift', toolCacheKey);
-            if (!(tool === null || tool === void 0 ? void 0 : tool.length)) {
-                if (yield cache.restoreCache([restore], actionCacheKey)) {
-                    core.debug(`Restored snapshot at "${restore}" from key "${actionCacheKey}"`);
-                    tool = restore;
-                    actionCacheHit = true;
-                }
-                else {
-                    const resource = yield this.download();
-                    const installation = yield this.unpack(resource);
-                    core.debug(`Downloaded and installed snapshot at "${installation}"`);
-                    tool = installation;
-                }
+    async install(arch) {
+        const toolCacheKey = `${this.data.dir}-${this.data.platform}`;
+        const actionCacheKey = arch ? `${toolCacheKey}-${arch}` : toolCacheKey;
+        const version = this.version?.raw;
+        let tool;
+        let toolCacheHit = false;
+        let actionCacheHit = false;
+        if (version) {
+            core.debug(`Finding tool with key: "${toolCacheKey}", version: "${version}" and arch: "${arch}" in tool cache`);
+            tool = toolCache.find(toolCacheKey, version, arch).trim();
+        }
+        const tmpDir = process.env.RUNNER_TEMP || os.tmpdir();
+        const restore = path.join(tmpDir, 'setup-swift', toolCacheKey);
+        if (!tool?.length) {
+            if (await cache.restoreCache([restore], actionCacheKey)) {
+                core.debug(`Restored snapshot at "${restore}" from key "${actionCacheKey}"`);
+                tool = restore;
+                actionCacheHit = true;
             }
             else {
-                core.debug(`Found tool at "${tool}" in tool cache`);
-                actionCacheHit = true;
-                toolCacheHit = true;
+                const resource = await this.download();
+                const installation = await this.unpack(resource);
+                core.debug(`Downloaded and installed snapshot at "${installation}"`);
+                tool = installation;
             }
-            if (tool && version) {
-                if (!toolCacheHit) {
-                    tool = yield toolCache.cacheDir(tool, toolCacheKey, version, arch);
-                    core.debug(`Added to tool cache at "${tool}"`);
-                }
-                if (core.isDebug()) {
-                    core.exportVariable('SWIFT_SETUP_TOOL_KEY', toolCacheKey);
-                }
+        }
+        else {
+            core.debug(`Found tool at "${tool}" in tool cache`);
+            actionCacheHit = true;
+            toolCacheHit = true;
+        }
+        if (tool && version) {
+            if (!toolCacheHit) {
+                tool = await toolCache.cacheDir(tool, toolCacheKey, version, arch);
+                core.debug(`Added to tool cache at "${tool}"`);
             }
-            if (tool &&
-                core.getBooleanInput('cache-snapshot') &&
-                !actionCacheHit &&
-                !toolCacheHit &&
-                !this.data.preventCaching) {
-                yield fs_1.promises.cp(tool, restore, { recursive: true });
-                yield cache.saveCache([restore], actionCacheKey);
-                core.debug(`Saved to cache with key "${actionCacheKey}"`);
+            if (core.isDebug()) {
+                core.exportVariable('SWIFT_SETUP_TOOL_KEY', toolCacheKey);
             }
-            yield this.add(tool);
-        });
+        }
+        if (tool &&
+            core.getBooleanInput('cache-snapshot') &&
+            !actionCacheHit &&
+            !toolCacheHit &&
+            !this.data.preventCaching) {
+            await fs_1.promises.cp(tool, restore, { recursive: true });
+            await cache.saveCache([restore], actionCacheKey);
+            core.debug(`Saved to cache with key "${actionCacheKey}"`);
+        }
+        await this.add(tool);
     }
-    download() {
-        return __awaiter(this, void 0, void 0, function* () {
-            var _a;
-            const url = path.posix.join((_a = this.baseUrl) === null || _a === void 0 ? void 0 : _a.href, this.data.download);
-            core.debug(`Downloading snapshot from "${url}"`);
-            return yield toolCache.downloadTool(url);
-        });
+    async download() {
+        const url = path.posix.join(this.baseUrl?.href, this.data.download);
+        core.debug(`Downloading snapshot from "${url}"`);
+        return await toolCache.downloadTool(url);
     }
-    installedSwiftVersion(command) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const { bin, args } = command !== null && command !== void 0 ? command : this.swiftVersionCommand();
-            core.debug(`Getting swift version with command "${bin} ${args}"`);
-            const { stdout } = yield (0, exec_1.getExecOutput)(bin, args);
-            const match = /Swift\s+version\s+(?<version>\S+)/.exec(stdout);
-            if (!(match === null || match === void 0 ? void 0 : match.groups) || !match.groups.version) {
-                throw new Error('Error getting swift version');
-            }
-            return match.groups.version;
-        });
+    async installedSwiftVersion(command) {
+        const { bin, args } = command ?? this.swiftVersionCommand();
+        core.debug(`Getting swift version with command "${bin} ${args}"`);
+        const { stdout } = await (0, exec_1.getExecOutput)(bin, args);
+        const match = /Swift\s+version\s+(?<version>\S+)/.exec(stdout);
+        if (!match?.groups || !match.groups.version) {
+            throw new Error('Error getting swift version');
+        }
+        return match.groups.version;
     }
 }
 exports.ToolchainInstaller = ToolchainInstaller;
@@ -247,15 +231,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.LinuxToolchainInstaller = void 0;
 const path = __importStar(__nccwpck_require__(6928));
@@ -266,72 +241,61 @@ const verify_1 = __nccwpck_require__(6298);
 const package_manager_1 = __nccwpck_require__(7872);
 const const_1 = __nccwpck_require__(6575);
 class LinuxToolchainInstaller extends verify_1.VerifyingToolchainInstaller {
-    installDependencies() {
-        return __awaiter(this, void 0, void 0, function* () {
-            const platform = this.data.platform;
-            const linuxRequirements = 'swiftorg/_includes/linux';
-            const file = path.join(const_1.MODULE_DIR, linuxRequirements, `${platform}.html`);
-            try {
-                yield fs_1.promises.access(file);
-            }
-            catch (error) {
-                core.debug(`Skipping dependencies install due to "${error}"`);
-                return;
-            }
-            const content = yield fs_1.promises.readFile(file, 'utf-8');
-            const match = /(?=\$)[^{]+/gs.exec(content);
-            if (!match) {
-                core.debug(`Skipping dependencies install as no match in "${content}"`);
-                return;
-            }
-            const commands = match[0].split('\n').flatMap(line => {
-                const command = line
-                    .trim()
-                    .replace(/^\\+|\\+$|^\$+|\$+$/g, '')
-                    .trim();
-                return command.length ? command.split(' ') : [];
-            });
-            if (!commands.length) {
-                core.debug(`Skipping dependencies install as no commands in "${content}"`);
-                return;
-            }
-            try {
-                const packageManager = new package_manager_1.PackageManager(commands);
-                yield packageManager.install();
-            }
-            catch (error) {
-                core.debug(`Dependencies installation failed with "${error}"`);
-            }
+    async installDependencies() {
+        const platform = this.data.platform;
+        const linuxRequirements = 'swiftorg/_includes/linux';
+        const file = path.join(const_1.MODULE_DIR, linuxRequirements, `${platform}.html`);
+        try {
+            await fs_1.promises.access(file);
+        }
+        catch (error) {
+            core.debug(`Skipping dependencies install due to "${error}"`);
+            return;
+        }
+        const content = await fs_1.promises.readFile(file, 'utf-8');
+        const match = /(?=\$)[^{]+/gs.exec(content);
+        if (!match) {
+            core.debug(`Skipping dependencies install as no match in "${content}"`);
+            return;
+        }
+        const commands = match[0].split('\n').flatMap(line => {
+            const command = line
+                .trim()
+                .replace(/^\\+|\\+$|^\$+|\$+$/g, '')
+                .trim();
+            return command.length ? command.split(' ') : [];
         });
+        if (!commands.length) {
+            core.debug(`Skipping dependencies install as no commands in "${content}"`);
+            return;
+        }
+        try {
+            const packageManager = new package_manager_1.PackageManager(commands);
+            await packageManager.install();
+        }
+        catch (error) {
+            core.debug(`Dependencies installation failed with "${error}"`);
+        }
     }
-    download() {
-        const _super = Object.create(null, {
-            download: { get: () => super.download }
-        });
-        return __awaiter(this, void 0, void 0, function* () {
-            const [, archive] = yield Promise.all([
-                this.installDependencies(),
-                _super.download.call(this)
-            ]);
-            return archive;
-        });
+    async download() {
+        const [, archive] = await Promise.all([
+            this.installDependencies(),
+            super.download()
+        ]);
+        return archive;
     }
-    unpack(archive) {
-        return __awaiter(this, void 0, void 0, function* () {
-            core.debug(`Extracting toolchain from "${archive}"`);
-            const extractPath = yield toolCache.extractTar(archive);
-            core.debug(`Toolchain extracted to "${extractPath}"`);
-            const archiveName = path.basename(this.data.download, '.tar.gz');
-            return path.join(extractPath, archiveName);
-        });
+    async unpack(archive) {
+        core.debug(`Extracting toolchain from "${archive}"`);
+        const extractPath = await toolCache.extractTar(archive);
+        core.debug(`Toolchain extracted to "${extractPath}"`);
+        const archiveName = path.basename(this.data.download, '.tar.gz');
+        return path.join(extractPath, archiveName);
     }
-    add(toolchain) {
-        return __awaiter(this, void 0, void 0, function* () {
-            core.debug(`Adding toolchain "${toolchain}" to path`);
-            const swiftPath = path.join(toolchain, 'usr', 'bin');
-            core.addPath(swiftPath);
-            core.debug(`Swift installed at "${swiftPath}"`);
-        });
+    async add(toolchain) {
+        core.debug(`Adding toolchain "${toolchain}" to path`);
+        const swiftPath = path.join(toolchain, 'usr', 'bin');
+        core.addPath(swiftPath);
+        core.debug(`Swift installed at "${swiftPath}"`);
     }
 }
 exports.LinuxToolchainInstaller = LinuxToolchainInstaller;
@@ -340,39 +304,27 @@ exports.LinuxToolchainInstaller = LinuxToolchainInstaller;
 /***/ }),
 
 /***/ 7872:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.PackageManager = void 0;
 const exec_1 = __nccwpck_require__(5236);
 class PackageManager {
+    installationCommands;
     constructor(installationCommands) {
         this.installationCommands = installationCommands;
     }
     get name() {
         return this.installationCommands[0];
     }
-    update() {
-        return __awaiter(this, void 0, void 0, function* () {
-            yield (0, exec_1.exec)('sudo', [this.name, 'update']);
-        });
+    async update() {
+        await (0, exec_1.exec)('sudo', [this.name, 'update']);
     }
-    install() {
-        return __awaiter(this, void 0, void 0, function* () {
-            yield this.update();
-            yield (0, exec_1.exec)('sudo', [...this.installationCommands, '-y']);
-        });
+    async install() {
+        await this.update();
+        await (0, exec_1.exec)('sudo', [...this.installationCommands, '-y']);
     }
 }
 exports.PackageManager = PackageManager;
@@ -408,15 +360,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.VerifyingToolchainInstaller = void 0;
 const path_1 = __nccwpck_require__(6928);
@@ -429,47 +372,38 @@ class VerifyingToolchainInstaller extends base_1.ToolchainInstaller {
         const signature = this.data.download_signature;
         return signature ? path_1.posix.join(this.baseUrl.href, signature) : undefined;
     }
-    downloadSignature() {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                return this.signatureUrl
-                    ? yield toolCache.downloadTool(this.signatureUrl)
-                    : undefined;
+    async downloadSignature() {
+        try {
+            return this.signatureUrl
+                ? await toolCache.downloadTool(this.signatureUrl)
+                : undefined;
+        }
+        catch (error) {
+            if (error instanceof toolCache.HTTPError &&
+                error.httpStatusCode === 404) {
+                core.warning(`No signature at "${this.signatureUrl}"`);
+                return undefined;
             }
-            catch (error) {
-                if (error instanceof toolCache.HTTPError &&
-                    error.httpStatusCode === 404) {
-                    core.warning(`No signature at "${this.signatureUrl}"`);
-                    return undefined;
-                }
-                throw error;
-            }
-        });
+            throw error;
+        }
     }
-    download() {
-        const _super = Object.create(null, {
-            download: { get: () => super.download }
-        });
-        return __awaiter(this, void 0, void 0, function* () {
-            const sigUrl = this.signatureUrl;
-            function setupKeys() {
-                return __awaiter(this, void 0, void 0, function* () {
-                    if (sigUrl) {
-                        yield gpg.setupKeys();
-                    }
-                });
+    async download() {
+        const sigUrl = this.signatureUrl;
+        async function setupKeys() {
+            if (sigUrl) {
+                await gpg.setupKeys();
             }
-            core.debug(`Downloading snapshot signature from "${sigUrl}"`);
-            const [, toolchain, signature] = yield Promise.all([
-                setupKeys(),
-                _super.download.call(this),
-                this.downloadSignature()
-            ]);
-            if (signature) {
-                yield gpg.verify(signature, toolchain);
-            }
-            return toolchain;
-        });
+        }
+        core.debug(`Downloading snapshot signature from "${sigUrl}"`);
+        const [, toolchain, signature] = await Promise.all([
+            setupKeys(),
+            super.download(),
+            this.downloadSignature()
+        ]);
+        if (signature) {
+            await gpg.verify(signature, toolchain);
+        }
+        return toolchain;
     }
 }
 exports.VerifyingToolchainInstaller = VerifyingToolchainInstaller;
@@ -505,15 +439,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.WindowsToolchainInstaller = void 0;
 const os = __importStar(__nccwpck_require__(857));
@@ -541,78 +466,68 @@ class WindowsToolchainInstaller extends verify_1.VerifyingToolchainInstaller {
             ]
         };
     }
-    download() {
-        const _super = Object.create(null, {
-            download: { get: () => super.download }
-        });
-        return __awaiter(this, void 0, void 0, function* () {
-            core.debug(`Using VS requirement ${JSON.stringify(this.vsRequirement)}`);
-            const [, toolchain] = yield Promise.all([
-                utils_1.VisualStudio.setup(this.vsRequirement),
-                _super.download.call(this)
-            ]);
-            const exeFile = `${toolchain}.exe`;
-            yield fs_1.promises.rename(toolchain, exeFile);
-            core.debug(`Toolchain installer downloaded at "${exeFile}"`);
-            return exeFile;
-        });
+    async download() {
+        core.debug(`Using VS requirement ${JSON.stringify(this.vsRequirement)}`);
+        const [, toolchain] = await Promise.all([
+            utils_1.VisualStudio.setup(this.vsRequirement),
+            super.download()
+        ]);
+        const exeFile = `${toolchain}.exe`;
+        await fs_1.promises.rename(toolchain, exeFile);
+        core.debug(`Toolchain installer downloaded at "${exeFile}"`);
+        return exeFile;
     }
-    unpack(exe) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const installation = yield installation_1.Installation.install(exe);
-            return installation instanceof installation_1.Installation ? installation.location : '';
-        });
+    async unpack(exe) {
+        const installation = await installation_1.Installation.install(exe);
+        return installation instanceof installation_1.Installation ? installation.location : '';
     }
-    add(installLocation) {
-        return __awaiter(this, void 0, void 0, function* () {
-            var _a;
-            const installation = yield installation_1.Installation.get(installLocation);
-            const sdkrootKey = 'SDKROOT';
-            let sdkroot;
-            if (installation instanceof installation_1.Installation) {
-                sdkroot = (_a = installation === null || installation === void 0 ? void 0 : installation.sdkroot) !== null && _a !== void 0 ? _a : core;
-                core.exportVariable(sdkrootKey, sdkroot);
-                if (installation.devdir) {
-                    core.exportVariable('DEVELOPER_DIR', installation.devdir);
+    async add(installLocation) {
+        const installation = await installation_1.Installation.get(installLocation);
+        const sdkrootKey = 'SDKROOT';
+        let sdkroot;
+        if (installation instanceof installation_1.Installation) {
+            sdkroot = installation?.sdkroot ?? core;
+            core.exportVariable(sdkrootKey, sdkroot);
+            if (installation.devdir) {
+                core.exportVariable('DEVELOPER_DIR', installation.devdir);
+            }
+            const location = installation.location;
+            const swiftPath = path.join(installation.toolchain, 'usr', 'bin');
+            const swiftDev = path.join(location, 'Swift-development', 'bin');
+            const icu67 = path.join(location, 'icu-67', 'usr', 'bin');
+            const tools = path.join(location, 'Tools');
+            const runtimePath = path.join(installation.runtime, 'usr', 'bin');
+            const requirePaths = [swiftPath, swiftDev, icu67, tools, runtimePath];
+            for (const envPath of requirePaths) {
+                try {
+                    await fs_1.promises.access(envPath);
+                    core.debug(`Adding "${envPath}" to PATH`);
+                    core.addPath(envPath);
                 }
-                const location = installation.location;
-                const swiftPath = path.join(installation.toolchain, 'usr', 'bin');
-                const swiftDev = path.join(location, 'Swift-development', 'bin');
-                const icu67 = path.join(location, 'icu-67', 'usr', 'bin');
-                const tools = path.join(location, 'Tools');
-                const runtimePath = path.join(installation.runtime, 'usr', 'bin');
-                const requirePaths = [swiftPath, swiftDev, icu67, tools, runtimePath];
-                for (const envPath of requirePaths) {
-                    try {
-                        yield fs_1.promises.access(envPath);
-                        core.debug(`Adding "${envPath}" to PATH`);
-                        core.addPath(envPath);
-                    }
-                    catch (_b) {
-                        core.debug(`"${envPath}" doesn't exist. Skip adding to PATH`);
-                    }
+                catch {
+                    core.debug(`"${envPath}" doesn't exist. Skip adding to PATH`);
                 }
-                core.debug(`Swift installed at "${swiftPath}"`);
             }
-            else if (installation instanceof installation_1.CustomInstallation) {
-                sdkroot = installation.variables[sdkrootKey];
-            }
-            if (!sdkroot) {
-                core.warning(`Failed VS enviroment after installation ${installLocation}`);
-                return;
-            }
-            const visualStudio = yield utils_1.VisualStudio.setup(this.vsRequirement);
-            yield visualStudio.update(sdkroot);
-            const swiftFlags = [
-                '-sdk',
-                sdkroot,
-                '-I',
-                path.join(sdkroot, 'usr', 'lib', 'swift'),
-                '-L',
-                path.join(sdkroot, 'usr', 'lib', 'swift', 'windows')
-            ].join(' ');
-            core.exportVariable('SWIFTFLAGS', swiftFlags);
-        });
+            core.debug(`Swift installed at "${swiftPath}"`);
+        }
+        else if (installation instanceof installation_1.CustomInstallation) {
+            sdkroot = installation.variables[sdkrootKey];
+        }
+        if (!sdkroot) {
+            core.warning(`Failed VS enviroment after installation ${installLocation}`);
+            return;
+        }
+        const visualStudio = await utils_1.VisualStudio.setup(this.vsRequirement);
+        await visualStudio.update(sdkroot);
+        const swiftFlags = [
+            '-sdk',
+            sdkroot,
+            '-I',
+            path.join(sdkroot, 'usr', 'lib', 'swift'),
+            '-L',
+            path.join(sdkroot, 'usr', 'lib', 'swift', 'windows')
+        ].join(' ');
+        core.exportVariable('SWIFTFLAGS', swiftFlags);
     }
 }
 exports.WindowsToolchainInstaller = WindowsToolchainInstaller;
@@ -648,65 +563,49 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.secondDirectoryLayout = exports.firstDirectoryLayout = void 0;
+exports.firstDirectoryLayout = firstDirectoryLayout;
+exports.secondDirectoryLayout = secondDirectoryLayout;
 const path = __importStar(__nccwpck_require__(6928));
 const fs_1 = __nccwpck_require__(9896);
 const core = __importStar(__nccwpck_require__(7484));
 const base_1 = __nccwpck_require__(2349);
-function firstDirectoryLayout(root) {
-    return __awaiter(this, void 0, void 0, function* () {
-        var _a;
-        core.debug('Trying first installation approach');
-        const systemDrive = (_a = process.env.SystemDrive) !== null && _a !== void 0 ? _a : 'C:';
-        const location = root !== null && root !== void 0 ? root : path.join(systemDrive, 'Library');
-        const devdir = path.join(location, 'Developer');
-        const toolchainName = 'unknown-Asserts-development.xctoolchain';
-        const toolchain = path.join(devdir, 'Toolchains', toolchainName);
-        yield fs_1.promises.access(toolchain);
-        const winsdk = path.join('Developer', 'SDKs', 'Windows.sdk');
-        const sdkroot = path.join(devdir, 'Platforms', 'Windows.platform', winsdk);
-        const runtimeRoot = path.join(location, 'Swift');
-        const runtime = path.join(runtimeRoot, 'runtime-development');
-        const devPath = path.join(systemDrive, 'Program Files', 'Swift');
-        try {
-            yield fs_1.promises.access(devPath);
-            yield fs_1.promises.cp(devPath, runtimeRoot, { recursive: true });
-        }
-        catch (error) {
-            core.debug(`Runtime check failed with "${error}"`);
-        }
-        core.debug('First installation approach succeeded');
-        return new base_1.Installation(location, toolchain, sdkroot, runtime, devdir);
-    });
+async function firstDirectoryLayout(root) {
+    core.debug('Trying first installation approach');
+    const systemDrive = process.env.SystemDrive ?? 'C:';
+    const location = root ?? path.join(systemDrive, 'Library');
+    const devdir = path.join(location, 'Developer');
+    const toolchainName = 'unknown-Asserts-development.xctoolchain';
+    const toolchain = path.join(devdir, 'Toolchains', toolchainName);
+    await fs_1.promises.access(toolchain);
+    const winsdk = path.join('Developer', 'SDKs', 'Windows.sdk');
+    const sdkroot = path.join(devdir, 'Platforms', 'Windows.platform', winsdk);
+    const runtimeRoot = path.join(location, 'Swift');
+    const runtime = path.join(runtimeRoot, 'runtime-development');
+    const devPath = path.join(systemDrive, 'Program Files', 'Swift');
+    try {
+        await fs_1.promises.access(devPath);
+        await fs_1.promises.cp(devPath, runtimeRoot, { recursive: true });
+    }
+    catch (error) {
+        core.debug(`Runtime check failed with "${error}"`);
+    }
+    core.debug('First installation approach succeeded');
+    return new base_1.Installation(location, toolchain, sdkroot, runtime, devdir);
 }
-exports.firstDirectoryLayout = firstDirectoryLayout;
-function secondDirectoryLayout(root) {
-    return __awaiter(this, void 0, void 0, function* () {
-        var _a;
-        core.debug('Trying second installation approach');
-        const systemDrive = (_a = root !== null && root !== void 0 ? root : process.env.SystemDrive) !== null && _a !== void 0 ? _a : 'C:';
-        const location = path.join(systemDrive, 'Program Files', 'Swift');
-        const toolchainName = '0.0.0+Asserts';
-        const toolchain = path.join(location, 'Toolchains', toolchainName);
-        yield fs_1.promises.access(toolchain);
-        const winsdk = path.join('Developer', 'SDKs', 'Windows.sdk');
-        const sdkroot = path.join(location, 'Platforms', 'Windows.platform', winsdk);
-        const runtime = path.join(location, 'Runtimes', '0.0.0');
-        core.debug('Second installation approach succeeded');
-        return new base_1.Installation(location, toolchain, sdkroot, runtime);
-    });
+async function secondDirectoryLayout(root) {
+    core.debug('Trying second installation approach');
+    const systemDrive = root ?? process.env.SystemDrive ?? 'C:';
+    const location = path.join(systemDrive, 'Program Files', 'Swift');
+    const toolchainName = '0.0.0+Asserts';
+    const toolchain = path.join(location, 'Toolchains', toolchainName);
+    await fs_1.promises.access(toolchain);
+    const winsdk = path.join('Developer', 'SDKs', 'Windows.sdk');
+    const sdkroot = path.join(location, 'Platforms', 'Windows.platform', winsdk);
+    const runtime = path.join(location, 'Runtimes', '0.0.0');
+    core.debug('Second installation approach succeeded');
+    return new base_1.Installation(location, toolchain, sdkroot, runtime);
 }
-exports.secondDirectoryLayout = secondDirectoryLayout;
 
 
 /***/ }),
@@ -719,6 +618,11 @@ exports.secondDirectoryLayout = secondDirectoryLayout;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CustomInstallation = exports.Installation = void 0;
 class Installation {
+    location;
+    toolchain;
+    sdkroot;
+    runtime;
+    devdir;
     constructor(location, toolchain, sdkroot, runtime, devdir) {
         this.location = location;
         this.toolchain = toolchain;
@@ -729,6 +633,8 @@ class Installation {
 }
 exports.Installation = Installation;
 class CustomInstallation {
+    newPaths;
+    variables;
     constructor(newPaths, variables) {
         this.newPaths = newPaths;
         this.variables = variables;
@@ -767,17 +673,9 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.fallback = exports.env = void 0;
+exports.env = env;
+exports.fallback = fallback;
 const path = __importStar(__nccwpck_require__(6928));
 const core = __importStar(__nccwpck_require__(7484));
 const exec_1 = __nccwpck_require__(5236);
@@ -810,37 +708,34 @@ function comapareEnvironment(oldJSON, newJSON) {
     }
     return { newPaths, variables: difference };
 }
-function env() {
-    return __awaiter(this, void 0, void 0, function* () {
-        return yield ['Machine', 'User'].reduce((previous, current) => __awaiter(this, void 0, void 0, function* () {
-            const modified = yield previous;
-            const command = `[Environment]::GetEnvironmentVariables('${current}') | ConvertTo-Json`;
-            const args = ['-NoProfile', '-Command', `& {${command}}`];
-            const options = { failOnStdErr: true };
-            const { stdout } = yield (0, exec_1.getExecOutput)('powershell', args, options);
-            modified[current] = stdout;
-            return modified;
-        }), Promise.resolve({}));
-    });
+async function env() {
+    return await ['Machine', 'User'].reduce(async (previous, current) => {
+        const modified = await previous;
+        const command = `[Environment]::GetEnvironmentVariables('${current}') | ConvertTo-Json`;
+        const args = ['-NoProfile', '-Command', `& {${command}}`];
+        const options = { failOnStdErr: true };
+        const { stdout } = await (0, exec_1.getExecOutput)('powershell', args, options);
+        modified[current] = stdout;
+        return modified;
+    }, Promise.resolve({}));
 }
-exports.env = env;
-function fallback(oldEnv, newEnv) {
-    return __awaiter(this, void 0, void 0, function* () {
-        core.debug('Procceding with fallback installation approach');
-        const data = Object.entries(newEnv).reduce((previous, current) => {
-            return Object.assign(Object.assign({}, previous), comapareEnvironment(oldEnv[current[0]], current[1]));
-        }, {});
-        core.debug(`Setting up environment with "${JSON.stringify(data)}"`);
-        for (const newPath of data.newPaths) {
-            core.addPath(newPath);
-        }
-        for (const pair of Object.entries(data.variables)) {
-            core.exportVariable(pair[0], pair[1]);
-        }
-        return new base_1.CustomInstallation(data.newPaths, data.variables);
-    });
+async function fallback(oldEnv, newEnv) {
+    core.debug('Procceding with fallback installation approach');
+    const data = Object.entries(newEnv).reduce((previous, current) => {
+        return {
+            ...previous,
+            ...comapareEnvironment(oldEnv[current[0]], current[1])
+        };
+    }, {});
+    core.debug(`Setting up environment with "${JSON.stringify(data)}"`);
+    for (const newPath of data.newPaths) {
+        core.addPath(newPath);
+    }
+    for (const pair of Object.entries(data.variables)) {
+        core.exportVariable(pair[0], pair[1]);
+    }
+    return new base_1.CustomInstallation(data.newPaths, data.variables);
 }
-exports.fallback = fallback;
 
 
 /***/ }),
@@ -876,35 +771,25 @@ var __importStar = (this && this.__importStar) || function (mod) {
 var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(7484));
 const exec_1 = __nccwpck_require__(5236);
 const base_1 = __nccwpck_require__(2349);
 const approach_1 = __nccwpck_require__(5655);
 const fallback_1 = __nccwpck_require__(3494);
-base_1.Installation.get = (install) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
-    if (!((_a = install === null || install === void 0 ? void 0 : install.length) !== null && _a !== void 0 ? _a : 1)) {
+base_1.Installation.get = async (install) => {
+    if (!(install?.length ?? 1)) {
         return lastInstallation;
     }
     const approaches = [
-        () => __awaiter(void 0, void 0, void 0, function* () { return (0, approach_1.secondDirectoryLayout)(install); }),
-        () => __awaiter(void 0, void 0, void 0, function* () { return (0, approach_1.firstDirectoryLayout)(install); })
+        async () => (0, approach_1.secondDirectoryLayout)(install),
+        async () => (0, approach_1.firstDirectoryLayout)(install)
     ];
     let counter = 0;
     for (const approach of approaches) {
         counter += 1;
         try {
-            const installation = yield approach();
+            const installation = await approach();
             core.debug(`Installation location at "${installation.location}"`);
             core.debug(`Toolchain installed at "${installation.toolchain}"`);
             core.debug(`SDK installed at "${installation.sdkroot}"`);
@@ -917,23 +802,23 @@ base_1.Installation.get = (install) => __awaiter(void 0, void 0, void 0, functio
         }
     }
     return undefined;
-});
+};
 let lastInstallation;
-base_1.Installation.install = (exe) => __awaiter(void 0, void 0, void 0, function* () {
+base_1.Installation.install = async (exe) => {
     core.debug(`Installing toolchain from "${exe}"`);
-    const oldEnv = yield (0, fallback_1.env)();
-    yield (0, exec_1.exec)(`"${exe}"`, ['-q']);
-    const newEnv = yield (0, fallback_1.env)();
-    lastInstallation = yield base_1.Installation.detect(oldEnv, newEnv);
+    const oldEnv = await (0, fallback_1.env)();
+    await (0, exec_1.exec)(`"${exe}"`, ['-q']);
+    const newEnv = await (0, fallback_1.env)();
+    lastInstallation = await base_1.Installation.detect(oldEnv, newEnv);
     return lastInstallation;
-});
-base_1.Installation.detect = (oldEnv, newEnv) => __awaiter(void 0, void 0, void 0, function* () {
-    const installation = yield base_1.Installation.get();
+};
+base_1.Installation.detect = async (oldEnv, newEnv) => {
+    const installation = await base_1.Installation.get();
     if (!installation) {
         return (0, fallback_1.fallback)(oldEnv, newEnv);
     }
     return installation;
-});
+};
 __exportStar(__nccwpck_require__(2349), exports);
 
 
@@ -967,15 +852,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.XcodeToolchainInstaller = void 0;
 const path = __importStar(__nccwpck_require__(6928));
@@ -986,106 +862,88 @@ const toolCache = __importStar(__nccwpck_require__(3472));
 const plist = __importStar(__nccwpck_require__(1532));
 const base_1 = __nccwpck_require__(8690);
 class XcodeToolchainInstaller extends base_1.ToolchainInstaller {
-    swiftVersionCommand(toolchain) {
-        var _a;
-        if (toolchain === void 0) { toolchain = (_a = process.env.TOOLCHAINS) !== null && _a !== void 0 ? _a : ''; }
+    swiftVersionCommand(toolchain = process.env.TOOLCHAINS ?? '') {
         const toolchainArgs = toolchain.length ? ['--toolchain', toolchain] : [];
         return {
             bin: 'xcrun',
             args: [...toolchainArgs, 'swift', '--version']
         };
     }
-    isInstallationNeeded() {
-        return __awaiter(this, void 0, void 0, function* () {
-            const xcode = this.data.xcode;
-            if (!xcode) {
-                core.debug('No Xcode version for toolchain, downloading toolchain');
-                return true;
-            }
-            const xcodeApp = `/Applications/Xcode_${xcode}.app`;
-            try {
-                yield fs_1.promises.access(xcodeApp);
-            }
-            catch (_a) {
-                core.debug(`Xcode ${xcode} is not installed, downloading toolchain`);
-                return true;
-            }
-            core.exportVariable('DEVELOPER_DIR', xcodeApp);
-            yield (0, exec_1.exec)('sudo', ['xcode-select', '--switch', xcodeApp]);
-            const command = this.swiftVersionCommand('');
-            const version = yield this.installedSwiftVersion(command);
-            core.debug(`Found toolchain "${version}" bundled with Xcode ${xcode}`);
-            return this.data.dir !== `swift-${version}-RELEASE`;
-        });
+    async isInstallationNeeded() {
+        const xcode = this.data.xcode;
+        if (!xcode) {
+            core.debug('No Xcode version for toolchain, downloading toolchain');
+            return true;
+        }
+        const xcodeApp = `/Applications/Xcode_${xcode}.app`;
+        try {
+            await fs_1.promises.access(xcodeApp);
+        }
+        catch {
+            core.debug(`Xcode ${xcode} is not installed, downloading toolchain`);
+            return true;
+        }
+        core.exportVariable('DEVELOPER_DIR', xcodeApp);
+        await (0, exec_1.exec)('sudo', ['xcode-select', '--switch', xcodeApp]);
+        const command = this.swiftVersionCommand('');
+        const version = await this.installedSwiftVersion(command);
+        core.debug(`Found toolchain "${version}" bundled with Xcode ${xcode}`);
+        return this.data.dir !== `swift-${version}-RELEASE`;
     }
-    install(arch) {
-        const _super = Object.create(null, {
-            install: { get: () => super.install }
-        });
-        return __awaiter(this, void 0, void 0, function* () {
-            if (!(yield this.isInstallationNeeded())) {
-                return;
-            }
-            yield _super.install.call(this, arch);
-        });
+    async install(arch) {
+        if (!(await this.isInstallationNeeded())) {
+            return;
+        }
+        await super.install(arch);
     }
-    download() {
-        const _super = Object.create(null, {
-            download: { get: () => super.download }
-        });
-        return __awaiter(this, void 0, void 0, function* () {
-            const toolchain = yield _super.download.call(this);
-            core.debug(`Checking package signature for "${toolchain}"`);
-            yield (0, exec_1.exec)('pkgutil', ['--check-signature', toolchain]);
-            return toolchain;
-        });
+    async download() {
+        const toolchain = await super.download();
+        core.debug(`Checking package signature for "${toolchain}"`);
+        await (0, exec_1.exec)('pkgutil', ['--check-signature', toolchain]);
+        return toolchain;
     }
-    unpack(pkg) {
-        return __awaiter(this, void 0, void 0, function* () {
-            core.debug(`Extracting toolchain from "${pkg}"`);
-            const unpackedPath = yield toolCache.extractXar(pkg);
-            core.debug(`Toolchain unpacked to "${unpackedPath}"`);
-            const pkgFile = this.data.download;
-            const pkgName = path.basename(pkgFile, path.extname(pkgFile));
-            const payload = path.join(unpackedPath, `${pkgName}-package.pkg`, 'Payload');
-            const extractedPath = yield toolCache.extractTar(payload);
-            core.debug(`Toolchain extracted to "${extractedPath}"`);
-            return extractedPath;
-        });
+    async unpack(pkg) {
+        core.debug(`Extracting toolchain from "${pkg}"`);
+        const unpackedPath = await toolCache.extractXar(pkg);
+        core.debug(`Toolchain unpacked to "${unpackedPath}"`);
+        const pkgFile = this.data.download;
+        const pkgName = path.basename(pkgFile, path.extname(pkgFile));
+        const payload = path.join(unpackedPath, `${pkgName}-package.pkg`, 'Payload');
+        const extractedPath = await toolCache.extractTar(payload);
+        core.debug(`Toolchain extracted to "${extractedPath}"`);
+        return extractedPath;
     }
-    add(toolchain) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const xctoolchains = path.join('/Library', 'Developer', 'Toolchains');
-            try {
-                yield fs_1.promises.access(xctoolchains);
-            }
-            catch (error) {
-                core.debug(`Creating directory "${xctoolchains}" resolving "${error}"`);
-                yield (0, exec_1.exec)('sudo', ['mkdir', '-p', xctoolchains]);
-                // await fs.mkdir(xctoolchains, {recursive: true})
-            }
-            const xctoolchain = path.join(xctoolchains, `${this.data.dir}.xctoolchain`);
-            try {
-                yield fs_1.promises.access(xctoolchain);
-                core.debug(`Removing existing xctoolchain "${xctoolchain}"`);
-                yield (0, exec_1.exec)('sudo', ['rm', '-rf', xctoolchain]);
-                // await fs.unlink(xctoolchain)
-            }
-            catch (error) {
-                core.debug(`No existing xctoolchain "${xctoolchain}", got "${error}"`);
-            }
-            core.debug(`Linking "${xctoolchain}" to "${toolchain}"`);
-            yield (0, exec_1.exec)('sudo', ['ln', '-s', toolchain, xctoolchain]);
-            // await fs.symlink(toolchain, xctoolchain, 'dir')
-            core.debug(`Adding toolchain "${toolchain}" to path`);
-            const swiftPath = path.join(toolchain, 'usr', 'bin');
-            core.addPath(swiftPath);
-            core.debug(`Swift installed at "${swiftPath}"`);
-            const infoPlist = yield fs_1.promises.readFile(path.join(toolchain, 'Info.plist'), 'utf-8');
-            const info = plist.parse(infoPlist).valueOf();
-            core.debug(`Setting Swift toolchain identifier to "${info.CFBundleIdentifier}"`);
-            core.exportVariable('TOOLCHAINS', info.CFBundleIdentifier);
-        });
+    async add(toolchain) {
+        const xctoolchains = path.join('/Library', 'Developer', 'Toolchains');
+        try {
+            await fs_1.promises.access(xctoolchains);
+        }
+        catch (error) {
+            core.debug(`Creating directory "${xctoolchains}" resolving "${error}"`);
+            await (0, exec_1.exec)('sudo', ['mkdir', '-p', xctoolchains]);
+            // await fs.mkdir(xctoolchains, {recursive: true})
+        }
+        const xctoolchain = path.join(xctoolchains, `${this.data.dir}.xctoolchain`);
+        try {
+            await fs_1.promises.access(xctoolchain);
+            core.debug(`Removing existing xctoolchain "${xctoolchain}"`);
+            await (0, exec_1.exec)('sudo', ['rm', '-rf', xctoolchain]);
+            // await fs.unlink(xctoolchain)
+        }
+        catch (error) {
+            core.debug(`No existing xctoolchain "${xctoolchain}", got "${error}"`);
+        }
+        core.debug(`Linking "${xctoolchain}" to "${toolchain}"`);
+        await (0, exec_1.exec)('sudo', ['ln', '-s', toolchain, xctoolchain]);
+        // await fs.symlink(toolchain, xctoolchain, 'dir')
+        core.debug(`Adding toolchain "${toolchain}" to path`);
+        const swiftPath = path.join(toolchain, 'usr', 'bin');
+        core.addPath(swiftPath);
+        core.debug(`Swift installed at "${swiftPath}"`);
+        const infoPlist = await fs_1.promises.readFile(path.join(toolchain, 'Info.plist'), 'utf-8');
+        const info = plist.parse(infoPlist).valueOf();
+        core.debug(`Setting Swift toolchain identifier to "${info.CFBundleIdentifier}"`);
+        core.exportVariable('TOOLCHAINS', info.CFBundleIdentifier);
     }
 }
 exports.XcodeToolchainInstaller = XcodeToolchainInstaller;
@@ -1121,69 +979,56 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.run = void 0;
+exports.run = run;
 const core = __importStar(__nccwpck_require__(7484));
 const version_1 = __nccwpck_require__(191);
 const swiftorg_1 = __nccwpck_require__(5781);
 const platform_1 = __nccwpck_require__(3666);
-function run() {
-    return __awaiter(this, void 0, void 0, function* () {
-        var _a;
-        try {
-            const requestedVersion = (_a = core.getInput('swift-version')) !== null && _a !== void 0 ? _a : 'latest';
-            const development = core.getBooleanInput('development');
-            const version = version_1.ToolchainVersion.create(requestedVersion, development);
-            if (version.requiresSwiftOrg) {
-                core.startGroup('Syncing swift.org data');
-                const checkLatest = core.getInput('check-latest');
-                const submodule = new swiftorg_1.Swiftorg(checkLatest);
-                yield submodule.update();
-                core.endGroup();
-            }
-            const dryRun = core.getBooleanInput('dry-run');
-            let snapshot;
-            let installedVersion;
-            if (dryRun) {
-                const toolchain = yield platform_1.Platform.toolchain(version);
-                if (toolchain) {
-                    snapshot = toolchain;
-                }
-                else {
-                    throw new Error(`No Swift toolchain found for ${version}`);
-                }
-                const match = version_1.SWIFT_BRANCH_REGEX.exec(toolchain.branch);
-                if (match && match.length > 1) {
-                    installedVersion = match[1];
-                }
-                else {
-                    installedVersion = requestedVersion;
-                }
+async function run() {
+    try {
+        const requestedVersion = core.getInput('swift-version') ?? 'latest';
+        const development = core.getBooleanInput('development');
+        const version = version_1.ToolchainVersion.create(requestedVersion, development);
+        if (version.requiresSwiftOrg) {
+            core.startGroup('Syncing swift.org data');
+            const checkLatest = core.getInput('check-latest');
+            const submodule = new swiftorg_1.Swiftorg(checkLatest);
+            await submodule.update();
+            core.endGroup();
+        }
+        const dryRun = core.getBooleanInput('dry-run');
+        let snapshot;
+        let installedVersion;
+        if (dryRun) {
+            const toolchain = await platform_1.Platform.toolchain(version);
+            if (toolchain) {
+                snapshot = toolchain;
             }
             else {
-                const installer = yield platform_1.Platform.install(version);
-                snapshot = installer.data;
-                installedVersion = yield installer.installedSwiftVersion();
+                throw new Error(`No Swift toolchain found for ${version}`);
             }
-            core.setOutput('swift-version', installedVersion);
-            core.setOutput('toolchain', JSON.stringify(snapshot));
+            const match = version_1.SWIFT_BRANCH_REGEX.exec(toolchain.branch);
+            if (match && match.length > 1) {
+                installedVersion = match[1];
+            }
+            else {
+                installedVersion = requestedVersion;
+            }
         }
-        catch (error) {
-            if (error instanceof Error)
-                core.setFailed(error.message);
+        else {
+            const installer = await platform_1.Platform.install(version);
+            snapshot = installer.data;
+            installedVersion = await installer.installedSwiftVersion();
         }
-    });
+        core.setOutput('swift-version', installedVersion);
+        core.setOutput('toolchain', JSON.stringify(snapshot));
+    }
+    catch (error) {
+        if (error instanceof Error)
+            core.setFailed(error.message);
+    }
 }
-exports.run = run;
 if (process.env.JEST_WORKER_ID === undefined) {
     run();
 }
@@ -1219,15 +1064,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -1242,16 +1078,12 @@ const version_1 = __nccwpck_require__(191);
 const const_1 = __nccwpck_require__(6575);
 const RELEASE_FILE = path.join(const_1.MODULE_DIR, 'swiftorg', '_data', 'builds', 'swift_releases.yml');
 class Platform {
-    toolFiles(version) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return yield version.toolFiles(this.fileGlob);
-        });
+    async toolFiles(version) {
+        return await version.toolFiles(this.fileGlob);
     }
-    releases() {
-        return __awaiter(this, void 0, void 0, function* () {
-            const data = yield fs_1.promises.readFile(RELEASE_FILE, 'utf-8');
-            return yaml.load(data);
-        });
+    async releases() {
+        const data = await fs_1.promises.readFile(RELEASE_FILE, 'utf-8');
+        return yaml.load(data);
     }
     sortSnapshots(snapshots) {
         return snapshots.sort((item1, item2) => {
@@ -1275,39 +1107,42 @@ class Platform {
             return t2.date.getTime() - t1.date.getTime();
         });
     }
-    tools(version) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const verSnapshot = version.toolchainSnapshot(this.file);
-            if (verSnapshot) {
-                return [this.snapshotFor(verSnapshot)];
-            }
-            const snapshots = yield this.releasedTools(version);
-            if (snapshots.length && !version.dev) {
-                return this.sortSnapshots(snapshots);
-            }
-            const files = yield this.toolFiles(version);
-            core.debug(`Using files "${files}" to get toolchains snapshot data`);
-            const snapshotsCollection = yield Promise.all(files.map((file) => __awaiter(this, void 0, void 0, function* () {
-                const ext = path.extname(file);
-                const platform = path.basename(file, ext);
-                const branch = path.basename(path.dirname(file)).replaceAll('_', '.');
-                const data = yield fs_1.promises.readFile(file, 'utf-8');
-                return {
-                    data: yaml.load(data),
-                    platform,
-                    branch
-                };
-            })));
-            const devSnapshots = snapshotsCollection
-                .flatMap(collection => {
-                return collection.data.map(data => {
-                    return Object.assign(Object.assign({}, data), { platform: collection.platform, branch: collection.branch, preventCaching: false });
-                });
-            })
-                .filter(item => version.satisfiedBy(item.dir));
-            snapshots.push(...devSnapshots);
+    async tools(version) {
+        const verSnapshot = version.toolchainSnapshot(this.file);
+        if (verSnapshot) {
+            return [this.snapshotFor(verSnapshot)];
+        }
+        const snapshots = await this.releasedTools(version);
+        if (snapshots.length && !version.dev) {
             return this.sortSnapshots(snapshots);
-        });
+        }
+        const files = await this.toolFiles(version);
+        core.debug(`Using files "${files}" to get toolchains snapshot data`);
+        const snapshotsCollection = await Promise.all(files.map(async (file) => {
+            const ext = path.extname(file);
+            const platform = path.basename(file, ext);
+            const branch = path.basename(path.dirname(file)).replaceAll('_', '.');
+            const data = await fs_1.promises.readFile(file, 'utf-8');
+            return {
+                data: yaml.load(data),
+                platform,
+                branch
+            };
+        }));
+        const devSnapshots = snapshotsCollection
+            .flatMap(collection => {
+            return collection.data.map(data => {
+                return {
+                    ...data,
+                    platform: collection.platform,
+                    branch: collection.branch,
+                    preventCaching: false
+                };
+            });
+        })
+            .filter(item => version.satisfiedBy(item.dir));
+        snapshots.push(...devSnapshots);
+        return this.sortSnapshots(snapshots);
     }
 }
 exports.Platform = Platform;
@@ -1346,15 +1181,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
 var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -1366,7 +1192,7 @@ const base_1 = __nccwpck_require__(673);
 const xcode_1 = __nccwpck_require__(8775);
 const linux_1 = __nccwpck_require__(2136);
 const windows_1 = __nccwpck_require__(5687);
-base_1.Platform.currentPlatform = () => __awaiter(void 0, void 0, void 0, function* () {
+base_1.Platform.currentPlatform = async () => {
     let arch;
     switch (os.arch()) {
         case 'x64':
@@ -1379,7 +1205,7 @@ base_1.Platform.currentPlatform = () => __awaiter(void 0, void 0, void 0, functi
             arch = os.arch();
             break;
     }
-    const _os = yield new Promise((resolve, reject) => {
+    const _os = await new Promise((resolve, reject) => {
         (0, getos_1.default)((e, o) => {
             if (e) {
                 reject(e);
@@ -1405,33 +1231,33 @@ base_1.Platform.currentPlatform = () => __awaiter(void 0, void 0, void 0, functi
         default:
             throw new Error(`OS ${_os.os} unsupported for Swift`);
     }
-});
-base_1.Platform.toolchains = (version) => __awaiter(void 0, void 0, void 0, function* () {
+};
+base_1.Platform.toolchains = async (version) => {
     core.startGroup('Detecting current platform');
-    const platform = yield base_1.Platform.currentPlatform();
+    const platform = await base_1.Platform.currentPlatform();
     core.endGroup();
-    return yield platform.tools(version);
-});
-base_1.Platform.toolchain = (version) => __awaiter(void 0, void 0, void 0, function* () {
-    const data = yield base_1.Platform.toolchains(version);
+    return await platform.tools(version);
+};
+base_1.Platform.toolchain = async (version) => {
+    const data = await base_1.Platform.toolchains(version);
     return data.length ? data[0] : undefined;
-});
-base_1.Platform.install = (version) => __awaiter(void 0, void 0, void 0, function* () {
+};
+base_1.Platform.install = async (version) => {
     core.startGroup('Detecting current platform');
-    const platform = yield base_1.Platform.currentPlatform();
+    const platform = await base_1.Platform.currentPlatform();
     core.endGroup();
-    const toolchains = yield platform.tools(version);
+    const toolchains = await platform.tools(version);
     if (!toolchains.length) {
         throw new Error(`No Swift toolchain found for ${version}`);
     }
     const toolchain = toolchains[0];
     core.startGroup(`Installing Swift toolchain snapshot ${toolchain.dir}`);
-    const installer = yield platform.install(toolchains[0]);
+    const installer = await platform.install(toolchains[0]);
     core.endGroup();
     core.startGroup(`Getting installed Swift version ${toolchain.dir}`);
     core.endGroup();
     return installer;
-});
+};
 __exportStar(__nccwpck_require__(673), exports);
 __exportStar(__nccwpck_require__(7507), exports);
 __exportStar(__nccwpck_require__(2136), exports);
@@ -1469,15 +1295,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.LinuxPlatform = void 0;
 const path = __importStar(__nccwpck_require__(6928));
@@ -1490,68 +1307,59 @@ class LinuxPlatform extends versioned_1.VersionedPlatform {
     get downloadExtension() {
         return 'tar.gz';
     }
-    html() {
-        return __awaiter(this, void 0, void 0, function* () {
-            const doc = path.join(const_1.MODULE_DIR, 'swiftorg', 'download', 'index.md');
-            const content = yield fs_1.promises.readFile(doc, 'utf8');
-            return content;
-        });
+    async html() {
+        const doc = path.join(const_1.MODULE_DIR, 'swiftorg', 'download', 'index.md');
+        const content = await fs_1.promises.readFile(doc, 'utf8');
+        return content;
     }
     snapshotFor(snapshot) {
-        return Object.assign(Object.assign({}, snapshot), { download_signature: `${snapshot.download}.sig` });
+        return { ...snapshot, download_signature: `${snapshot.download}.sig` };
     }
-    tools(version) {
-        const _super = Object.create(null, {
-            tools: { get: () => super.tools }
-        });
-        return __awaiter(this, void 0, void 0, function* () {
-            let html;
-            const tools = yield _super.tools.call(this, version);
-            return yield Promise.all(tools.map((tool) => __awaiter(this, void 0, void 0, function* () {
-                if (tool.docker) {
+    async tools(version) {
+        let html;
+        const tools = await super.tools(version);
+        return await Promise.all(tools.map(async (tool) => {
+            if (tool.docker) {
+                return tool;
+            }
+            let headingPattern;
+            const match = version_1.SWIFT_BRANCH_REGEX.exec(tool.branch);
+            if (match && match.length > 1) {
+                const ver = match[1];
+                headingPattern = new RegExp(`Swift ${ver}`, 'g');
+                if (tools.some(newTool => newTool.branch.match(`swift-${ver}-release`))) {
                     return tool;
                 }
-                let headingPattern;
-                const match = version_1.SWIFT_BRANCH_REGEX.exec(tool.branch);
-                if (match && match.length > 1) {
-                    const ver = match[1];
-                    headingPattern = new RegExp(`Swift ${ver}`, 'g');
-                    if (tools.some(newTool => newTool.branch.match(`swift-${ver}-release`))) {
-                        return tool;
-                    }
-                    if (tools.some(newTool => newTool.branch === tool.branch && newTool.date > tool.date)) {
-                        return tool;
-                    }
-                }
-                else {
-                    headingPattern = /(Trunk Development|\(main\))/g;
-                }
-                if (!html) {
-                    html = yield this.html();
-                }
-                if (!headingPattern.exec(html)) {
+                if (tools.some(newTool => newTool.branch === tool.branch && newTool.date > tool.date)) {
                     return tool;
                 }
-                const platformPattern = new RegExp(`{(?!.*{).*platform_dir="${tool.platform}".*}`, 'g');
-                platformPattern.lastIndex = headingPattern.lastIndex;
-                const toolMetaMatch = platformPattern.exec(html);
-                if (!(toolMetaMatch === null || toolMetaMatch === void 0 ? void 0 : toolMetaMatch.length)) {
-                    return tool;
-                }
-                const dockerMatch = /docker_tag=("|')((?<!\\)\\\1|.)*?\1/.exec(toolMetaMatch[0]);
-                if (!dockerMatch || dockerMatch.length < 3) {
-                    return tool;
-                }
-                return Object.assign(Object.assign({}, tool), { docker: dockerMatch[2] });
-            })));
-        });
+            }
+            else {
+                headingPattern = /(Trunk Development|\(main\))/g;
+            }
+            if (!html) {
+                html = await this.html();
+            }
+            if (!headingPattern.exec(html)) {
+                return tool;
+            }
+            const platformPattern = new RegExp(`{(?!.*{).*platform_dir="${tool.platform}".*}`, 'g');
+            platformPattern.lastIndex = headingPattern.lastIndex;
+            const toolMetaMatch = platformPattern.exec(html);
+            if (!toolMetaMatch?.length) {
+                return tool;
+            }
+            const dockerMatch = /docker_tag=("|')((?<!\\)\\\1|.)*?\1/.exec(toolMetaMatch[0]);
+            if (!dockerMatch || dockerMatch.length < 3) {
+                return tool;
+            }
+            return { ...tool, docker: dockerMatch[2] };
+        }));
     }
-    install(data) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const installer = new installer_1.LinuxToolchainInstaller(data);
-            yield installer.install(this.arch);
-            return installer;
-        });
+    async install(data) {
+        const installer = new installer_1.LinuxToolchainInstaller(data);
+        await installer.install(this.arch);
+        return installer;
     }
 }
 exports.LinuxPlatform = LinuxPlatform;
@@ -1587,21 +1395,15 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.VersionedPlatform = void 0;
 const path = __importStar(__nccwpck_require__(6928));
 const core = __importStar(__nccwpck_require__(7484));
 const base_1 = __nccwpck_require__(673);
 class VersionedPlatform extends base_1.Platform {
+    name;
+    version;
+    arch;
     constructor(name, version, arch) {
         super();
         this.name = name;
@@ -1624,12 +1426,11 @@ class VersionedPlatform extends base_1.Platform {
         return new RegExp(`${this.name}(?<version>[0-9]*)(-.*)?`);
     }
     fallbackPlatformVersion(platforms) {
-        var _a;
         let maxVer;
         let minVer;
         for (const platform of platforms) {
             const match = this.nameRegex.exec(platform);
-            const version = (_a = match === null || match === void 0 ? void 0 : match.groups) === null || _a === void 0 ? void 0 : _a.version;
+            const version = match?.groups?.version;
             if (!version) {
                 continue;
             }
@@ -1639,7 +1440,7 @@ class VersionedPlatform extends base_1.Platform {
             if (minVer === undefined || minVer > ver)
                 minVer = ver;
         }
-        return maxVer !== null && maxVer !== void 0 ? maxVer : minVer;
+        return maxVer ?? minVer;
     }
     fallbackFiles(files) {
         if (!files.length) {
@@ -1653,11 +1454,10 @@ class VersionedPlatform extends base_1.Platform {
             return [];
         }
         return files.filter(file => {
-            var _a;
             const yml = path.extname(file);
             const filename = path.basename(file, yml);
             const match = this.nameRegex.exec(filename);
-            const versionStr = (_a = match === null || match === void 0 ? void 0 : match.groups) === null || _a === void 0 ? void 0 : _a.version;
+            const versionStr = match?.groups?.version;
             if (!versionStr) {
                 return false;
             }
@@ -1665,68 +1465,60 @@ class VersionedPlatform extends base_1.Platform {
             return ver === fallbackVer;
         });
     }
-    toolFiles(version) {
-        const _super = Object.create(null, {
-            toolFiles: { get: () => super.toolFiles }
+    async toolFiles(version) {
+        let files = await super.toolFiles(version);
+        const platformFiles = files.filter(file => {
+            const yml = path.extname(file);
+            return path.basename(file, yml) === this.file;
         });
-        return __awaiter(this, void 0, void 0, function* () {
-            let files = yield _super.toolFiles.call(this, version);
-            const platformFiles = files.filter(file => {
-                const yml = path.extname(file);
-                return path.basename(file, yml) === this.file;
-            });
-            if (platformFiles.length) {
-                files = platformFiles;
-            }
-            else {
-                core.debug(`Using fallback toolchain data for platform "${this.name}"`);
-                files = this.fallbackFiles(files);
-            }
-            return files;
-        });
+        if (platformFiles.length) {
+            files = platformFiles;
+        }
+        else {
+            core.debug(`Using fallback toolchain data for platform "${this.name}"`);
+            files = this.fallbackFiles(files);
+        }
+        return files;
     }
-    releasedTools(version) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const releases = yield this.releases();
-            const allReleasedTools = releases
-                .filter(release => version.satisfiedBy(release.tag))
-                .flatMap(release => {
-                return release.platforms.flatMap(platform => {
-                    var _a, _b;
-                    const pName = (_a = platform.dir) !== null && _a !== void 0 ? _a : platform.name.replaceAll(/\s+|\./g, '').toLowerCase();
-                    const pDownloadName = (_b = platform.dir) !== null && _b !== void 0 ? _b : platform.name.replaceAll(/\s+/g, '').toLowerCase();
-                    const download = `${release.tag}-${pDownloadName}${this.archSuffix}.${this.downloadExtension}`;
-                    return platform.archs && platform.archs.includes(this.arch)
-                        ? {
-                            name: platform.name,
-                            date: release.date,
-                            download,
-                            download_signature: `${download}.sig`,
-                            dir: release.tag,
-                            platform: pName + this.archSuffix,
-                            branch: release.tag.toLocaleLowerCase(),
-                            docker: platform.docker,
-                            windows: pName.startsWith('windows'),
-                            preventCaching: false
-                        }
-                        : [];
-                });
+    async releasedTools(version) {
+        const releases = await this.releases();
+        const allReleasedTools = releases
+            .filter(release => version.satisfiedBy(release.tag))
+            .flatMap(release => {
+            return release.platforms.flatMap(platform => {
+                const pName = platform.dir ??
+                    platform.name.replaceAll(/\s+|\./g, '').toLowerCase();
+                const pDownloadName = platform.dir ?? platform.name.replaceAll(/\s+/g, '').toLowerCase();
+                const download = `${release.tag}-${pDownloadName}${this.archSuffix}.${this.downloadExtension}`;
+                return platform.archs && platform.archs.includes(this.arch)
+                    ? {
+                        name: platform.name,
+                        date: release.date,
+                        download,
+                        download_signature: `${download}.sig`,
+                        dir: release.tag,
+                        platform: pName + this.archSuffix,
+                        branch: release.tag.toLocaleLowerCase(),
+                        docker: platform.docker,
+                        windows: pName.startsWith('windows'),
+                        preventCaching: false
+                    }
+                    : [];
             });
-            const platformReleasedTools = allReleasedTools.filter(tool => tool.platform === this.file);
-            if (platformReleasedTools.length) {
-                return platformReleasedTools;
+        });
+        const platformReleasedTools = allReleasedTools.filter(tool => tool.platform === this.file);
+        if (platformReleasedTools.length) {
+            return platformReleasedTools;
+        }
+        const fallbackVer = this.fallbackPlatformVersion(allReleasedTools.map(tool => tool.platform));
+        return allReleasedTools.filter(tool => {
+            const match = this.nameRegex.exec(tool.platform);
+            const versionStr = match?.groups?.version;
+            if (!versionStr) {
+                return false;
             }
-            const fallbackVer = this.fallbackPlatformVersion(allReleasedTools.map(tool => tool.platform));
-            return allReleasedTools.filter(tool => {
-                var _a;
-                const match = this.nameRegex.exec(tool.platform);
-                const versionStr = (_a = match === null || match === void 0 ? void 0 : match.groups) === null || _a === void 0 ? void 0 : _a.version;
-                if (!versionStr) {
-                    return false;
-                }
-                const ver = parseInt(versionStr);
-                return ver === fallbackVer;
-            });
+            const ver = parseInt(versionStr);
+            return ver === fallbackVer;
         });
     }
 }
@@ -1736,19 +1528,10 @@ exports.VersionedPlatform = VersionedPlatform;
 /***/ }),
 
 /***/ 5687:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.WindowsPlatform = void 0;
 const versioned_1 = __nccwpck_require__(7507);
@@ -1758,14 +1541,16 @@ class WindowsPlatform extends versioned_1.VersionedPlatform {
         return 'exe';
     }
     snapshotFor(snapshot) {
-        return Object.assign(Object.assign({}, snapshot), { download_signature: `${snapshot.download}.sig`, windows: true });
+        return {
+            ...snapshot,
+            download_signature: `${snapshot.download}.sig`,
+            windows: true
+        };
     }
-    install(data) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const installer = new installer_1.WindowsToolchainInstaller(data);
-            yield installer.install(this.arch);
-            return installer;
-        });
+    async install(data) {
+        const installer = new installer_1.WindowsToolchainInstaller(data);
+        await installer.install(this.arch);
+        return installer;
     }
 }
 exports.WindowsPlatform = WindowsPlatform;
@@ -1801,21 +1586,13 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.XcodePlatform = void 0;
 const path = __importStar(__nccwpck_require__(6928));
 const base_1 = __nccwpck_require__(673);
 const installer_1 = __nccwpck_require__(1135);
 class XcodePlatform extends base_1.Platform {
+    arch;
     constructor(arch) {
         super();
         this.arch = arch;
@@ -1832,35 +1609,34 @@ class XcodePlatform extends base_1.Platform {
     snapshotFor(snapshot) {
         const fileExt = path.extname(snapshot.download);
         const fileName = path.basename(snapshot.download, fileExt);
-        return Object.assign(Object.assign({}, snapshot), { debug_info: `${fileName}-symbols.${fileExt}` });
+        return {
+            ...snapshot,
+            debug_info: `${fileName}-symbols.${fileExt}`
+        };
     }
-    releasedTools(version) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const releases = yield this.releases();
-            return releases
-                .filter(release => version.satisfiedBy(release.tag))
-                .map(release => {
-                const xMatch = /Xcode\s+(.*)/.exec(release.xcode);
-                return {
-                    name: `Xcode Swift ${release.name}`,
-                    date: release.date,
-                    download: `${release.tag}-osx.pkg`,
-                    debug_info: `${release.tag}-osx-symbols.pkg`,
-                    dir: release.tag,
-                    xcode: xMatch && xMatch.length > 1 ? xMatch[1] : undefined,
-                    platform: this.name,
-                    branch: release.tag.toLocaleLowerCase(),
-                    preventCaching: false
-                };
-            });
+    async releasedTools(version) {
+        const releases = await this.releases();
+        return releases
+            .filter(release => version.satisfiedBy(release.tag))
+            .map(release => {
+            const xMatch = /Xcode\s+(.*)/.exec(release.xcode);
+            return {
+                name: `Xcode Swift ${release.name}`,
+                date: release.date,
+                download: `${release.tag}-osx.pkg`,
+                debug_info: `${release.tag}-osx-symbols.pkg`,
+                dir: release.tag,
+                xcode: xMatch && xMatch.length > 1 ? xMatch[1] : undefined,
+                platform: this.name,
+                branch: release.tag.toLocaleLowerCase(),
+                preventCaching: false
+            };
         });
     }
-    install(data) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const installer = new installer_1.XcodeToolchainInstaller(data);
-            yield installer.install(this.arch);
-            return installer;
-        });
+    async install(data) {
+        const installer = new installer_1.XcodeToolchainInstaller(data);
+        await installer.install(this.arch);
+        return installer;
     }
 }
 exports.XcodePlatform = XcodePlatform;
@@ -1896,15 +1672,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Swiftorg = exports.SWIFTORG = void 0;
 const path = __importStar(__nccwpck_require__(6928));
@@ -1914,6 +1681,7 @@ const const_1 = __nccwpck_require__(6575);
 const https = __importStar(__nccwpck_require__(5692));
 exports.SWIFTORG = 'swiftorg';
 class Swiftorg {
+    checkLatest;
     constructor(checkLatest) {
         this.checkLatest = checkLatest;
         if (typeof checkLatest === 'string') {
@@ -1935,73 +1703,68 @@ class Swiftorg {
             this.checkLatest = false;
         }
     }
-    swiftorgMetadata() {
-        return __awaiter(this, void 0, void 0, function* () {
-            if (process.env.SETUPSWIFT_SWIFTORG_METADATA) {
-                const metadata = JSON.parse(process.env.SETUPSWIFT_SWIFTORG_METADATA);
-                if (metadata.commit) {
-                    return metadata;
-                }
+    async swiftorgMetadata() {
+        if (process.env.SETUPSWIFT_SWIFTORG_METADATA) {
+            const metadata = JSON.parse(process.env.SETUPSWIFT_SWIFTORG_METADATA);
+            if (metadata.commit) {
+                return metadata;
             }
-            return new Promise((resolve, reject) => {
-                https.get(const_1.SWIFTORG_METADATA, res => {
-                    const { statusCode } = res;
-                    const contentType = res.headers['content-type'];
-                    let error;
-                    if (statusCode !== 200) {
-                        error = new Error(`Request Failed Status Code: '${statusCode}'`);
+        }
+        return new Promise((resolve, reject) => {
+            https.get(const_1.SWIFTORG_METADATA, res => {
+                const { statusCode } = res;
+                const contentType = res.headers['content-type'];
+                let error;
+                if (statusCode !== 200) {
+                    error = new Error(`Request Failed Status Code: '${statusCode}'`);
+                }
+                else if (!contentType?.startsWith('application/json')) {
+                    error = new Error(`Invalid content-type: '${contentType}'`);
+                }
+                if (error) {
+                    core.error(error.message);
+                    res.resume();
+                    reject(error);
+                    return;
+                }
+                let rawData = '';
+                res.setEncoding('utf8');
+                res.on('data', chunk => {
+                    rawData += chunk;
+                });
+                res.on('end', () => {
+                    try {
+                        const parsedData = JSON.parse(rawData);
+                        core.debug(`Recieved swift.org metadata: "${rawData}"`);
+                        resolve(parsedData);
                     }
-                    else if (!(contentType === null || contentType === void 0 ? void 0 : contentType.startsWith('application/json'))) {
-                        error = new Error(`Invalid content-type: '${contentType}'`);
+                    catch (e) {
+                        core.error(`Parsing swift.org metadata error: '${e}'`);
+                        reject(e);
                     }
-                    if (error) {
-                        core.error(error.message);
-                        res.resume();
-                        reject(error);
-                        return;
-                    }
-                    let rawData = '';
-                    res.setEncoding('utf8');
-                    res.on('data', chunk => {
-                        rawData += chunk;
-                    });
-                    res.on('end', () => {
-                        try {
-                            const parsedData = JSON.parse(rawData);
-                            core.debug(`Recieved swift.org metadata: "${rawData}"`);
-                            resolve(parsedData);
-                        }
-                        catch (e) {
-                            core.error(`Parsing swift.org metadata error: '${e}'`);
-                            reject(e);
-                        }
-                    });
                 });
             });
         });
     }
-    update() {
-        return __awaiter(this, void 0, void 0, function* () {
-            var _a;
-            let ref;
-            if (typeof this.checkLatest === 'boolean' && this.checkLatest) {
-                ref = 'HEAD';
-            }
-            else if (typeof this.checkLatest === 'string') {
-                ref = this.checkLatest;
-            }
-            else {
-                const swiftorgMetadata = yield this.swiftorgMetadata();
-                ref = (_a = swiftorgMetadata.commit) !== null && _a !== void 0 ? _a : 'HEAD';
-            }
-            const swiftorg = path.join(const_1.MODULE_DIR, exports.SWIFTORG);
-            const origin = const_1.SWIFTORG_ORIGIN;
-            core.debug(`Adding submodule at "${swiftorg}" directory`);
-            const cwd = { cwd: swiftorg };
-            yield (0, exec_1.exec)('git', ['init', swiftorg]);
-            yield (0, exec_1.exec)('git', ['fetch', origin, ref, '--depth=1', '--no-tags'], cwd);
-            yield (0, exec_1.exec)('git', ['checkout', 'FETCH_HEAD', '--detach'], cwd);
-        });
+    async update() {
+        let ref;
+        if (typeof this.checkLatest === 'boolean' && this.checkLatest) {
+            ref = 'HEAD';
+        }
+        else if (typeof this.checkLatest === 'string') {
+            ref = this.checkLatest;
+        }
+        else {
+            const swiftorgMetadata = await this.swiftorgMetadata();
+            ref = swiftorgMetadata.commit ?? 'HEAD';
+        }
+        const swiftorg = path.join(const_1.MODULE_DIR, exports.SWIFTORG);
+        const origin = const_1.SWIFTORG_ORIGIN;
+        core.debug(`Adding submodule at "${swiftorg}" directory`);
+        const cwd = { cwd: swiftorg };
+        await (0, exec_1.exec)('git', ['init', swiftorg]);
+        await (0, exec_1.exec)('git', ['fetch', origin, ref, '--depth=1', '--no-tags'], cwd);
+        await (0, exec_1.exec)('git', ['checkout', 'FETCH_HEAD', '--detach'], cwd);
     }
 }
 exports.Swiftorg = Swiftorg;
@@ -2037,88 +1800,70 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.verify = exports.setupKeys = void 0;
+exports.setupKeys = setupKeys;
+exports.verify = verify;
 const exec_1 = __nccwpck_require__(5236);
 const core = __importStar(__nccwpck_require__(7484));
 const toolCache = __importStar(__nccwpck_require__(3472));
-function setupKeys() {
-    return __awaiter(this, void 0, void 0, function* () {
-        try {
-            core.debug('Fetching verification PGP keys');
-            const allKeys = 'https://swift.org/keys/all-keys.asc';
-            const path = yield toolCache.downloadTool(allKeys);
-            core.debug('Importing verification PGP keys');
-            yield (0, exec_1.exec)('gpg', ['--import', path]);
-        }
-        catch (_a) {
-            core.debug('Using fallback PGP keys server');
-            yield (0, exec_1.exec)('gpg', [
-                '--keyserver',
-                'hkp://keyserver.ubuntu.com',
-                '--recv-keys',
-                '7463 A81A 4B2E EA1B 551F  FBCF D441 C977 412B 37AD',
-                '1BE1 E29A 084C B305 F397  D62A 9F59 7F4D 21A5 6D5F',
-                'A3BA FD35 56A5 9079 C068  94BD 63BC 1CFE 91D3 06C6',
-                '5E4D F843 FB06 5D7F 7E24  FBA2 EF54 30F0 71E1 B235',
-                '8513 444E 2DA3 6B7C 1659  AF4D 7638 F1FB 2B2B 08C4',
-                'A62A E125 BBBF BB96 A6E0  42EC 925C C1CC ED3D 1561',
-                '8A74 9566 2C3C D4AE 18D9  5637 FAF6 989E 1BC1 6FEA',
-                'E813 C892 820A 6FA1 3755  B268 F167 DF1A CF9C E069'
-            ]);
-        }
-        core.debug('Refreshing verification PGP keys');
-        yield refreshKeys();
-    });
+async function setupKeys() {
+    try {
+        core.debug('Fetching verification PGP keys');
+        const allKeys = 'https://swift.org/keys/all-keys.asc';
+        const path = await toolCache.downloadTool(allKeys);
+        core.debug('Importing verification PGP keys');
+        await (0, exec_1.exec)('gpg', ['--import', path]);
+    }
+    catch {
+        core.debug('Using fallback PGP keys server');
+        await (0, exec_1.exec)('gpg', [
+            '--keyserver',
+            'hkp://keyserver.ubuntu.com',
+            '--recv-keys',
+            '7463 A81A 4B2E EA1B 551F  FBCF D441 C977 412B 37AD',
+            '1BE1 E29A 084C B305 F397  D62A 9F59 7F4D 21A5 6D5F',
+            'A3BA FD35 56A5 9079 C068  94BD 63BC 1CFE 91D3 06C6',
+            '5E4D F843 FB06 5D7F 7E24  FBA2 EF54 30F0 71E1 B235',
+            '8513 444E 2DA3 6B7C 1659  AF4D 7638 F1FB 2B2B 08C4',
+            'A62A E125 BBBF BB96 A6E0  42EC 925C C1CC ED3D 1561',
+            '8A74 9566 2C3C D4AE 18D9  5637 FAF6 989E 1BC1 6FEA',
+            'E813 C892 820A 6FA1 3755  B268 F167 DF1A CF9C E069'
+        ]);
+    }
+    core.debug('Refreshing verification PGP keys');
+    await refreshKeys();
 }
-exports.setupKeys = setupKeys;
-function verify(signaturePath, packagePath) {
-    return __awaiter(this, void 0, void 0, function* () {
-        core.debug('Verifying PGP signature');
-        yield (0, exec_1.exec)('gpg', ['--verify', signaturePath, packagePath]);
-    });
+async function verify(signaturePath, packagePath) {
+    core.debug('Verifying PGP signature');
+    await (0, exec_1.exec)('gpg', ['--verify', signaturePath, packagePath]);
 }
-exports.verify = verify;
-function refreshKeys() {
-    return __awaiter(this, void 0, void 0, function* () {
-        const pool = ['hkp://keyserver.ubuntu.com'];
-        for (const server of pool) {
-            core.debug(`Refreshing keys from "${server}"`);
-            // 1st try...
-            if (yield refreshKeysFromServer(server)) {
-                core.debug(`Refreshed successfully from "${server}" on 1st attempt`);
-                return;
-            }
-            // 2nd try...
-            if (yield refreshKeysFromServer(server)) {
-                core.debug(`Refreshed successfully from "${server}" on 2nd attempt`);
-                return;
-            }
-            core.debug(`Refreshing keys from "${server}" failed`);
+async function refreshKeys() {
+    const pool = ['hkp://keyserver.ubuntu.com'];
+    for (const server of pool) {
+        core.debug(`Refreshing keys from "${server}"`);
+        // 1st try...
+        if (await refreshKeysFromServer(server)) {
+            core.debug(`Refreshed successfully from "${server}" on 1st attempt`);
+            return;
         }
-        throw new Error('Failed to refresh keys from any server in the pool');
-    });
+        // 2nd try...
+        if (await refreshKeysFromServer(server)) {
+            core.debug(`Refreshed successfully from "${server}" on 2nd attempt`);
+            return;
+        }
+        core.debug(`Refreshing keys from "${server}" failed`);
+    }
+    throw new Error('Failed to refresh keys from any server in the pool');
 }
-function refreshKeysFromServer(server) {
-    return __awaiter(this, void 0, void 0, function* () {
-        try {
-            const code = yield (0, exec_1.exec)('gpg', ['--keyserver', server, '--refresh-keys', 'Swift'], { ignoreReturnCode: true });
-            return code === 0;
-        }
-        catch (error) {
-            core.warning(`Facing error "${error}" when trying to refresh keys from "${server}"`);
-            return false;
-        }
-    });
+async function refreshKeysFromServer(server) {
+    try {
+        const code = await (0, exec_1.exec)('gpg', ['--keyserver', server, '--refresh-keys', 'Swift'], { ignoreReturnCode: true });
+        return code === 0;
+    }
+    catch (error) {
+        core.warning(`Facing error "${error}" when trying to refresh keys from "${server}"`);
+        return false;
+    }
 }
 
 
@@ -2178,21 +1923,16 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.VisualStudio = void 0;
 const os = __importStar(__nccwpck_require__(857));
 const path = __importStar(__nccwpck_require__(6928));
 const exec_1 = __nccwpck_require__(5236);
 class VisualStudio {
+    installationPath;
+    installationVersion;
+    catalog;
+    properties;
     constructor(installationPath, installationVersion, catalog, properties) {
         this.installationPath = installationPath;
         this.installationVersion = installationVersion;
@@ -2203,27 +1943,25 @@ class VisualStudio {
     static createFromJSON(json) {
         return new VisualStudio(json.installationPath, json.installationVersion, json.catalog, json.properties);
     }
-    env() {
-        return __awaiter(this, void 0, void 0, function* () {
-            /// https://docs.microsoft.com/en-us/cpp/build/building-on-the-command-line?view=msvc-170
-            const nativeToolsScriptx86 = path.join(this.installationPath, 'Common7', 'Tools', 'VsDevCmd.bat');
-            const { stdout } = yield (0, exec_1.getExecOutput)('cmd', [
-                '/k',
-                nativeToolsScriptx86,
-                `-arch=${os.arch()}`,
-                '&&',
-                'set',
-                '&&',
-                'exit'
-            ], { failOnStdErr: true });
-            return Object.fromEntries(stdout
-                .split(os.EOL)
-                .filter(s => s.indexOf('='))
-                .map(s => s.trim())
-                .map(s => s.split('=', 2))
-                .filter(s => s.length === 2)
-                .map(s => [s[0].trim(), s[1].trim()]));
-        });
+    async env() {
+        /// https://docs.microsoft.com/en-us/cpp/build/building-on-the-command-line?view=msvc-170
+        const nativeToolsScriptx86 = path.join(this.installationPath, 'Common7', 'Tools', 'VsDevCmd.bat');
+        const { stdout } = await (0, exec_1.getExecOutput)('cmd', [
+            '/k',
+            nativeToolsScriptx86,
+            `-arch=${os.arch()}`,
+            '&&',
+            'set',
+            '&&',
+            'exit'
+        ], { failOnStdErr: true });
+        return Object.fromEntries(stdout
+            .split(os.EOL)
+            .filter(s => s.indexOf('='))
+            .map(s => s.trim())
+            .map(s => s.split('=', 2))
+            .filter(s => s.length === 2)
+            .map(s => [s[0].trim(), s[1].trim()]));
     }
 }
 exports.VisualStudio = VisualStudio;
@@ -2286,15 +2024,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(7484));
 const exec_1 = __nccwpck_require__(5236);
@@ -2302,55 +2031,53 @@ const base_1 = __nccwpck_require__(3093);
 const vswhere_1 = __nccwpck_require__(6536);
 let shared;
 /// set up required visual studio tools for swift on windows
-base_1.VisualStudio.setup = function (requirement) {
-    return __awaiter(this, void 0, void 0, function* () {
-        if (shared) {
-            return shared;
-        }
-        /// https://github.com/microsoft/vswhere/wiki/Find-MSBuild
-        /// get visual studio properties
-        const vswhereExe = yield vswhere_1.VSWhere.get();
-        // execute the find putting the result of the command in the options vsInstallPath
-        core.debug(`Fetching Visual Studio installation for version "${requirement.version}"`);
-        const { stdout } = yield (0, exec_1.getExecOutput)(`"${vswhereExe}"`, [
-            '-products',
-            '*',
-            '-format',
-            'json',
-            '-utf8',
-            '-latest',
-            '-version',
-            requirement.version
-        ]);
-        const vs = base_1.VisualStudio.createFromJSON(JSON.parse(stdout)[0]);
-        if (!vs.installationPath) {
-            throw new Error(`Unable to find any Visual Studio installation for version: ${requirement.version}.`);
-        }
-        const vsEnv = yield vs.env();
-        const comps = requirement.components;
-        if (vsEnv.UCRTVersion &&
-            vsEnv.UniversalCRTSdkDir &&
-            vsEnv.VCToolsInstallDir &&
-            comps.length < 3) {
-            core.debug('VS components already setup, skipping installation');
-            shared = vs;
-            return vs;
-        }
-        /// https://docs.microsoft.com/en-us/visualstudio/install/use-command-line-parameters-to-install-visual-studio?view=vs-2022
-        /// install required visual studio components
-        core.debug(`Installing VS components "${comps}" at "${vs.installationPath}"`);
-        yield (0, exec_1.exec)(`"${vs.properties.setupEngineFilePath}"`, [
-            'modify',
-            '--installPath',
-            vs.installationPath,
-            ...requirement.components.flatMap(component => ['--add', component]),
-            '--installWhileDownloading',
-            '--force',
-            '--quiet'
-        ]);
+base_1.VisualStudio.setup = async function (requirement) {
+    if (shared) {
+        return shared;
+    }
+    /// https://github.com/microsoft/vswhere/wiki/Find-MSBuild
+    /// get visual studio properties
+    const vswhereExe = await vswhere_1.VSWhere.get();
+    // execute the find putting the result of the command in the options vsInstallPath
+    core.debug(`Fetching Visual Studio installation for version "${requirement.version}"`);
+    const { stdout } = await (0, exec_1.getExecOutput)(`"${vswhereExe}"`, [
+        '-products',
+        '*',
+        '-format',
+        'json',
+        '-utf8',
+        '-latest',
+        '-version',
+        requirement.version
+    ]);
+    const vs = base_1.VisualStudio.createFromJSON(JSON.parse(stdout)[0]);
+    if (!vs.installationPath) {
+        throw new Error(`Unable to find any Visual Studio installation for version: ${requirement.version}.`);
+    }
+    const vsEnv = await vs.env();
+    const comps = requirement.components;
+    if (vsEnv.UCRTVersion &&
+        vsEnv.UniversalCRTSdkDir &&
+        vsEnv.VCToolsInstallDir &&
+        comps.length < 3) {
+        core.debug('VS components already setup, skipping installation');
         shared = vs;
         return vs;
-    });
+    }
+    /// https://docs.microsoft.com/en-us/visualstudio/install/use-command-line-parameters-to-install-visual-studio?view=vs-2022
+    /// install required visual studio components
+    core.debug(`Installing VS components "${comps}" at "${vs.installationPath}"`);
+    await (0, exec_1.exec)(`"${vs.properties.setupEngineFilePath}"`, [
+        'modify',
+        '--installPath',
+        vs.installationPath,
+        ...requirement.components.flatMap(component => ['--add', component]),
+        '--installWhileDownloading',
+        '--force',
+        '--quiet'
+    ]);
+    shared = vs;
+    return vs;
 };
 
 
@@ -2384,61 +2111,50 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const path = __importStar(__nccwpck_require__(6928));
 const fs_1 = __nccwpck_require__(9896);
 const core = __importStar(__nccwpck_require__(7484));
 const base_1 = __nccwpck_require__(3093);
 /// Update swift version based additional support files setup
-base_1.VisualStudio.prototype.update = function (sdkroot) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const vsEnv = yield this.env();
-        const universalCRTSdkDir = vsEnv.UniversalCRTSdkDir;
-        const uCRTVersion = vsEnv.UCRTVersion;
-        const vCToolsInstallDir = vsEnv.VCToolsInstallDir;
-        if (!(universalCRTSdkDir && uCRTVersion && vCToolsInstallDir)) {
-            throw new Error(`Failed to find paths from "${JSON.stringify(vsEnv)}"`);
+base_1.VisualStudio.prototype.update = async function (sdkroot) {
+    const vsEnv = await this.env();
+    const universalCRTSdkDir = vsEnv.UniversalCRTSdkDir;
+    const uCRTVersion = vsEnv.UCRTVersion;
+    const vCToolsInstallDir = vsEnv.VCToolsInstallDir;
+    if (!(universalCRTSdkDir && uCRTVersion && vCToolsInstallDir)) {
+        throw new Error(`Failed to find paths from "${JSON.stringify(vsEnv)}"`);
+    }
+    const sdkshare = path.join(sdkroot, 'usr', 'share');
+    const winsdk = path.join(universalCRTSdkDir, 'Include', uCRTVersion);
+    const vcToolsInclude = path.join(vCToolsInstallDir, 'include');
+    const vcModulemap = path.join(vcToolsInclude, 'module.modulemap');
+    const uCRTmap = path.join(sdkshare, 'ucrt.modulemap');
+    const winsdkMap = path.join(sdkshare, 'winsdk.modulemap');
+    await fs_1.promises.copyFile(uCRTmap, path.join(winsdk, 'ucrt', 'module.modulemap'));
+    await fs_1.promises.copyFile(winsdkMap, path.join(winsdk, 'um', 'module.modulemap'));
+    try {
+        const modulemap = path.join(sdkshare, 'vcruntime.modulemap');
+        const runtimenotes = 'vcruntime.apinotes';
+        const apinotes = path.join(sdkshare, runtimenotes);
+        await fs_1.promises.access(modulemap);
+        await fs_1.promises.copyFile(modulemap, vcModulemap);
+        await fs_1.promises.copyFile(apinotes, path.join(vcToolsInclude, runtimenotes));
+    }
+    catch (error) {
+        core.debug(`Using visualc files for copy due to "${error}"`);
+        const modulemap = path.join(sdkshare, 'visualc.modulemap');
+        const runtimenotes = 'visualc.apinotes';
+        const apinotes = path.join(sdkshare, runtimenotes);
+        await fs_1.promises.copyFile(modulemap, vcModulemap);
+        await fs_1.promises.copyFile(apinotes, path.join(vcToolsInclude, runtimenotes));
+    }
+    for (const property in vsEnv) {
+        if (vsEnv[property] === process.env[property]) {
+            continue;
         }
-        const sdkshare = path.join(sdkroot, 'usr', 'share');
-        const winsdk = path.join(universalCRTSdkDir, 'Include', uCRTVersion);
-        const vcToolsInclude = path.join(vCToolsInstallDir, 'include');
-        const vcModulemap = path.join(vcToolsInclude, 'module.modulemap');
-        const uCRTmap = path.join(sdkshare, 'ucrt.modulemap');
-        const winsdkMap = path.join(sdkshare, 'winsdk.modulemap');
-        yield fs_1.promises.copyFile(uCRTmap, path.join(winsdk, 'ucrt', 'module.modulemap'));
-        yield fs_1.promises.copyFile(winsdkMap, path.join(winsdk, 'um', 'module.modulemap'));
-        try {
-            const modulemap = path.join(sdkshare, 'vcruntime.modulemap');
-            const runtimenotes = 'vcruntime.apinotes';
-            const apinotes = path.join(sdkshare, runtimenotes);
-            yield fs_1.promises.access(modulemap);
-            yield fs_1.promises.copyFile(modulemap, vcModulemap);
-            yield fs_1.promises.copyFile(apinotes, path.join(vcToolsInclude, runtimenotes));
-        }
-        catch (error) {
-            core.debug(`Using visualc files for copy due to "${error}"`);
-            const modulemap = path.join(sdkshare, 'visualc.modulemap');
-            const runtimenotes = 'visualc.apinotes';
-            const apinotes = path.join(sdkshare, runtimenotes);
-            yield fs_1.promises.copyFile(modulemap, vcModulemap);
-            yield fs_1.promises.copyFile(apinotes, path.join(vcToolsInclude, runtimenotes));
-        }
-        for (const property in vsEnv) {
-            if (vsEnv[property] === process.env[property]) {
-                continue;
-            }
-            core.exportVariable(property, vsEnv[property]);
-        }
-    });
+        core.exportVariable(property, vsEnv[property]);
+    }
 };
 
 
@@ -2472,15 +2188,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.VSWhere = void 0;
 const path = __importStar(__nccwpck_require__(6928));
@@ -2493,40 +2200,37 @@ var VSWhere;
     /// Get vswhere and vs_installer paths
     /// Borrowed from setup-msbuild action: https://github.com/microsoft/setup-msbuild
     /// From source file: https://github.com/microsoft/setup-msbuild/blob/master/src/main.ts
-    function get() {
-        return __awaiter(this, void 0, void 0, function* () {
-            var _a;
-            // check to see if we are using a specific path for vswhere
-            let vswhereToolExe = '';
-            // Env variable for self-hosted runner to provide custom path
-            const vsWherePath = process.env.VSWHERE_PATH;
-            if (vsWherePath) {
-                // specified a path for vswhere, use it
-                core.debug(`Using given vswhere-path: ${vsWherePath}`);
-                vswhereToolExe = path.join(vsWherePath, 'vswhere.exe');
-            }
-            else {
-                // check in PATH to see if it is there
-                try {
-                    const vsWhereInPath = yield io.which('vswhere', true);
-                    core.debug(`Found vswhere in path: ${vsWhereInPath}`);
-                    vswhereToolExe = vsWhereInPath;
-                }
-                catch (_b) {
-                    // fall back to VS-installed path
-                    const program86 = 'ProgramFiles(x86)';
-                    vswhereToolExe = path.join((_a = process.env[program86]) !== null && _a !== void 0 ? _a : path.join('C:', program86), 'Microsoft Visual Studio', 'Installer', 'vswhere.exe');
-                    core.debug(`Trying Visual Studio-installed path: ${vswhereToolExe}`);
-                }
-            }
+    async function get() {
+        // check to see if we are using a specific path for vswhere
+        let vswhereToolExe = '';
+        // Env variable for self-hosted runner to provide custom path
+        const vsWherePath = process.env.VSWHERE_PATH;
+        if (vsWherePath) {
+            // specified a path for vswhere, use it
+            core.debug(`Using given vswhere-path: ${vsWherePath}`);
+            vswhereToolExe = path.join(vsWherePath, 'vswhere.exe');
+        }
+        else {
+            // check in PATH to see if it is there
             try {
-                yield fs_1.promises.access(vswhereToolExe);
+                const vsWhereInPath = await io.which('vswhere', true);
+                core.debug(`Found vswhere in path: ${vsWhereInPath}`);
+                vswhereToolExe = vsWhereInPath;
             }
-            catch (error) {
-                throw new Error('Missing vswhere.exe, needed Visual Studio installation');
+            catch {
+                // fall back to VS-installed path
+                const program86 = 'ProgramFiles(x86)';
+                vswhereToolExe = path.join(process.env[program86] ?? path.join('C:', program86), 'Microsoft Visual Studio', 'Installer', 'vswhere.exe');
+                core.debug(`Trying Visual Studio-installed path: ${vswhereToolExe}`);
             }
-            return vswhereToolExe;
-        });
+        }
+        try {
+            await fs_1.promises.access(vswhereToolExe);
+        }
+        catch (error) {
+            throw new Error('Missing vswhere.exe, needed Visual Studio installation');
+        }
+        return vswhereToolExe;
     }
     VSWhere.get = get;
 })(VSWhere || (exports.VSWhere = VSWhere = {}));
@@ -2562,15 +2266,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ToolchainVersion = exports.SWIFT_RELEASE_REGEX = void 0;
 const path = __importStar(__nccwpck_require__(6928));
@@ -2579,6 +2274,7 @@ const glob_1 = __nccwpck_require__(1363);
 const const_1 = __nccwpck_require__(6575);
 exports.SWIFT_RELEASE_REGEX = /swift-(.*)-release/;
 class ToolchainVersion {
+    dev;
     get requiresSwiftOrg() {
         return true;
     }
@@ -2589,23 +2285,21 @@ class ToolchainVersion {
     toolchainSnapshot(platform) {
         return undefined;
     }
-    toolFiles(fileGlob) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const builds = 'swiftorg/_data/builds';
-            const pattern = path.posix.join(builds, this.dirGlob, `${fileGlob}.yml`);
-            core.debug(`Searching for glob "${pattern}"`);
-            let files = yield (0, glob_1.glob)(pattern, { absolute: true, cwd: const_1.MODULE_DIR });
-            core.debug(`Retrieved files "${files}" for glob "${pattern}"`);
-            if (!this.dev) {
-                const stableFiles = files.filter(file => {
-                    return exports.SWIFT_RELEASE_REGEX.exec(path.basename(path.dirname(file)));
-                });
-                if (stableFiles.length) {
-                    files = stableFiles;
-                }
+    async toolFiles(fileGlob) {
+        const builds = 'swiftorg/_data/builds';
+        const pattern = path.posix.join(builds, this.dirGlob, `${fileGlob}.yml`);
+        core.debug(`Searching for glob "${pattern}"`);
+        let files = await (0, glob_1.glob)(pattern, { absolute: true, cwd: const_1.MODULE_DIR });
+        core.debug(`Retrieved files "${files}" for glob "${pattern}"`);
+        if (!this.dev) {
+            const stableFiles = files.filter(file => {
+                return exports.SWIFT_RELEASE_REGEX.exec(path.basename(path.dirname(file)));
+            });
+            if (stableFiles.length) {
+                files = stableFiles;
             }
-            return files;
-        });
+        }
+        return files;
     }
     satisfiedBy(dir) {
         return this.dirRegex.exec(dir);
@@ -2661,7 +2355,7 @@ base_1.ToolchainVersion.create = (requested, dev = false) => {
         const toolchainUrl = new url_1.URL(requested);
         return new location_1.ToolchainSnapshotLocation(toolchainUrl, dev);
     }
-    catch (_a) {
+    catch {
         core.debug(`Input "${requested}" not an URL`);
     }
     if (requested === 'latest' || requested === 'current') {
@@ -2732,6 +2426,7 @@ const url_1 = __nccwpck_require__(7016);
 const path_1 = __nccwpck_require__(6928);
 const base_1 = __nccwpck_require__(1634);
 class ToolchainSnapshotLocation extends base_1.ToolchainVersion {
+    url;
     constructor(url, dev) {
         super(dev);
         this.url = url;
@@ -2784,6 +2479,7 @@ const base_1 = __nccwpck_require__(1634);
 exports.DEVELOPMENT_SNAPSHOT = 'DEVELOPMENT-SNAPSHOT';
 exports.SWIFT_BRANCH_REGEX = /swift-([^-]*)-.*/;
 class ToolchainSnapshotName extends base_1.ToolchainVersion {
+    name;
     constructor(name) {
         super(name.includes(exports.DEVELOPMENT_SNAPSHOT));
         this.name = name;
@@ -2828,6 +2524,8 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SemanticToolchainVersion = void 0;
 const base_1 = __nccwpck_require__(1634);
 class SemanticToolchainVersion extends base_1.ToolchainVersion {
+    requested;
+    semver;
     constructor(requested, semver, dev) {
         super(dev);
         this.requested = requested;
