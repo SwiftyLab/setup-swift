@@ -117,7 +117,8 @@ class ToolchainInstaller {
             const actionCacheKey = arch ? `${toolCacheKey}-${arch}` : toolCacheKey;
             const version = (_a = this.version) === null || _a === void 0 ? void 0 : _a.raw;
             let tool;
-            let cacheHit = false;
+            let toolCacheHit = false;
+            let actionCacheHit = false;
             if (version) {
                 core.debug(`Finding tool with key: "${toolCacheKey}", version: "${version}" and arch: "${arch}" in tool cache`);
                 tool = toolCache.find(toolCacheKey, version, arch).trim();
@@ -128,7 +129,7 @@ class ToolchainInstaller {
                 if (yield cache.restoreCache([restore], actionCacheKey)) {
                     core.debug(`Restored snapshot at "${restore}" from key "${actionCacheKey}"`);
                     tool = restore;
-                    cacheHit = true;
+                    actionCacheHit = true;
                 }
                 else {
                     const resource = yield this.download();
@@ -139,18 +140,22 @@ class ToolchainInstaller {
             }
             else {
                 core.debug(`Found tool at "${tool}" in tool cache`);
-                cacheHit = true;
+                actionCacheHit = true;
+                toolCacheHit = true;
             }
             if (tool && version) {
-                tool = yield toolCache.cacheDir(tool, toolCacheKey, version, arch);
+                if (!toolCacheHit) {
+                    tool = yield toolCache.cacheDir(tool, toolCacheKey, version, arch);
+                    core.debug(`Added to tool cache at "${tool}"`);
+                }
                 if (core.isDebug()) {
                     core.exportVariable('SWIFT_SETUP_TOOL_KEY', toolCacheKey);
                 }
-                core.debug(`Added to tool cache at "${tool}"`);
             }
             if (tool &&
                 core.getBooleanInput('cache-snapshot') &&
-                !cacheHit &&
+                !actionCacheHit &&
+                !toolCacheHit &&
                 !this.data.preventCaching) {
                 yield fs_1.promises.cp(tool, restore, { recursive: true });
                 yield cache.saveCache([restore], actionCacheKey);
