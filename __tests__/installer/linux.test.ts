@@ -114,20 +114,46 @@ describe('linux toolchain installation verification', () => {
     }
   )
 
-  it('tests installation with cache', async () => {
+  it('tests installation with action cache', async () => {
     const installer = new LinuxToolchainInstaller(toolchain)
     const cached = path.resolve('tool', 'cached', 'path')
     const swiftPath = path.join(cached, 'usr', 'bin')
-    jest.spyOn(toolCache, 'find').mockReturnValue(cached)
-    jest.spyOn(toolCache, 'cacheDir').mockResolvedValue(cached)
-    jest.spyOn(cache, 'saveCache').mockResolvedValue(1)
+    jest.spyOn(toolCache, 'find').mockReturnValue('')
+    jest.spyOn(cache, 'restoreCache').mockResolvedValue(cached)
     jest.spyOn(core, 'getBooleanInput').mockReturnValue(true)
     jest.spyOn(exec, 'exec').mockResolvedValue(0)
     const downloadSpy = jest.spyOn(toolCache, 'downloadTool')
     const extractSpy = jest.spyOn(toolCache, 'extractTar')
+    const toolCacheSpy = jest.spyOn(toolCache, 'cacheDir')
+    const actionCacheSpy = jest.spyOn(cache, 'saveCache')
+    toolCacheSpy.mockResolvedValue(cached)
+    await installer.install('aarch64')
+    const toolCacheKey = `${toolchain.dir}-${toolchain.platform}`
+    const tmpDir = process.env.RUNNER_TEMP || os.tmpdir()
+    const restore = path.join(tmpDir, 'setup-swift', toolCacheKey)
+    expect(process.env.PATH?.includes(swiftPath)).toBeTruthy()
+    expect(toolCacheSpy.mock.calls[0]?.[0]).toBe(restore)
+    expect(toolCacheSpy.mock.calls[0]?.[1]).toBe(toolCacheKey)
+    expect(toolCacheSpy.mock.calls[0]?.[2]).toBe('5.8.0')
+    for (const spy of [downloadSpy, extractSpy, actionCacheSpy]) {
+      expect(spy).not.toHaveBeenCalled()
+    }
+  })
+
+  it('tests installation with tool cache', async () => {
+    const installer = new LinuxToolchainInstaller(toolchain)
+    const cached = path.resolve('tool', 'cached', 'path')
+    const swiftPath = path.join(cached, 'usr', 'bin')
+    jest.spyOn(toolCache, 'find').mockReturnValue(cached)
+    jest.spyOn(core, 'getBooleanInput').mockReturnValue(true)
+    jest.spyOn(exec, 'exec').mockResolvedValue(0)
+    const downloadSpy = jest.spyOn(toolCache, 'downloadTool')
+    const extractSpy = jest.spyOn(toolCache, 'extractTar')
+    const toolCacheSpy = jest.spyOn(toolCache, 'cacheDir')
+    const actionCacheSpy = jest.spyOn(cache, 'saveCache')
     await installer.install('aarch64')
     expect(process.env.PATH?.includes(swiftPath)).toBeTruthy()
-    for (const spy of [downloadSpy, extractSpy]) {
+    for (const spy of [downloadSpy, extractSpy, toolCacheSpy, actionCacheSpy]) {
       expect(spy).not.toHaveBeenCalled()
     }
   })

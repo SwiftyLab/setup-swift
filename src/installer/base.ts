@@ -44,7 +44,8 @@ export abstract class ToolchainInstaller<Snapshot extends ToolchainSnapshot> {
     const actionCacheKey = arch ? `${toolCacheKey}-${arch}` : toolCacheKey
     const version = this.version?.raw
     let tool: string | undefined
-    let cacheHit = false
+    let toolCacheHit = false
+    let actionCacheHit = false
     if (version) {
       core.debug(
         `Finding tool with key: "${toolCacheKey}", version: "${version}" and arch: "${arch}" in tool cache`
@@ -60,7 +61,7 @@ export abstract class ToolchainInstaller<Snapshot extends ToolchainSnapshot> {
           `Restored snapshot at "${restore}" from key "${actionCacheKey}"`
         )
         tool = restore
-        cacheHit = true
+        actionCacheHit = true
       } else {
         const resource = await this.download()
         const installation = await this.unpack(resource)
@@ -69,20 +70,25 @@ export abstract class ToolchainInstaller<Snapshot extends ToolchainSnapshot> {
       }
     } else {
       core.debug(`Found tool at "${tool}" in tool cache`)
-      cacheHit = true
+      actionCacheHit = true
+      toolCacheHit = true
     }
 
     if (tool && version) {
-      tool = await toolCache.cacheDir(tool, toolCacheKey, version, arch)
+      if (!toolCacheHit) {
+        tool = await toolCache.cacheDir(tool, toolCacheKey, version, arch)
+        core.debug(`Added to tool cache at "${tool}"`)
+      }
+
       if (core.isDebug()) {
         core.exportVariable('SWIFT_SETUP_TOOL_KEY', toolCacheKey)
       }
-      core.debug(`Added to tool cache at "${tool}"`)
     }
     if (
       tool &&
       core.getBooleanInput('cache-snapshot') &&
-      !cacheHit &&
+      !actionCacheHit &&
+      !toolCacheHit &&
       !this.data.preventCaching
     ) {
       await fs.cp(tool, restore, {recursive: true})
