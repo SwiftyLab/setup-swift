@@ -28,7 +28,7 @@ export class XcodeToolchainInstaller extends ToolchainInstaller<XcodeToolchainSn
     const xcodeApp = `/Applications/Xcode_${xcode}.app`
     try {
       await fs.access(xcodeApp)
-    } catch (error) {
+    } catch {
       core.debug(`Xcode ${xcode} is not installed, downloading toolchain`)
       return true
     }
