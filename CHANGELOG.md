@@ -1,3 +1,15 @@
+## [1.9.0](https://github.com/SwiftyLab/setup-swift/compare/v1.8.0...v1.9.0) (2024-11-08)
+
+
+### 🚀 Features
+
+* support Windows 11 SDK ([#334](https://github.com/SwiftyLab/setup-swift/issues/334)) ([6efadfd](https://github.com/SwiftyLab/setup-swift/commit/6efadfd7c6311dad57e3c73a497df30622e003e4))
+
+
+### 🐛 Fixes
+
+* removed tool caching if tool cache is already present ([#332](https://github.com/SwiftyLab/setup-swift/issues/332)) ([51f8149](https://github.com/SwiftyLab/setup-swift/commit/51f8149db313536e87bfa8618df91ffe95395876))
+
 ## [1.8.0](https://github.com/SwiftyLab/setup-swift/compare/v1.7.0...v1.8.0) (2024-09-20)
 
 
