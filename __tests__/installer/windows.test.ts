@@ -19,7 +19,8 @@ describe('windows toolchain installation verification', () => {
     dir: 'swift-5.8-RELEASE',
     platform: 'windows10',
     branch: 'swift-5.8-release',
-    windows: true
+    windows: true,
+    preventCaching: false
   }
   const visualStudio = VisualStudio.createFromJSON({
     installationPath: path.join('C:', 'Visual Studio'),
@@ -63,7 +64,7 @@ describe('windows toolchain installation verification', () => {
     const installer = new WindowsToolchainInstaller(toolchain)
     expect(installer['vsRequirement'].components).toStrictEqual([
       'Microsoft.VisualStudio.Component.VC.Tools.x86.x64',
-      'Microsoft.VisualStudio.Component.Windows10SDK.19041'
+      'Microsoft.VisualStudio.Component.Windows10SDK.17763'
     ])
   })
 
@@ -79,7 +80,7 @@ describe('windows toolchain installation verification', () => {
   it('tests download without caching', async () => {
     const installer = new WindowsToolchainInstaller(toolchain)
     expect(installer['version']).toStrictEqual(parseSemVer('5.8'))
-    expect(installer['baseUrl']).toBe(
+    expect(installer['baseUrl'].href).toBe(
       'https://download.swift.org/swift-5.8-release/windows10/swift-5.8-RELEASE'
     )
 
@@ -109,6 +110,11 @@ describe('windows toolchain installation verification', () => {
     process.env.SystemDrive = 'C:'
     jest.spyOn(toolCache, 'extractTar').mockResolvedValue(extracted)
     jest.spyOn(exec, 'exec').mockResolvedValue(0)
+    jest.spyOn(exec, 'getExecOutput').mockResolvedValue({
+      exitCode: 0,
+      stdout: '',
+      stderr: ''
+    })
     jest.spyOn(fs, 'access').mockRejectedValueOnce(new Error())
     jest.spyOn(fs, 'access').mockResolvedValue()
     jest.spyOn(fs, 'cp').mockResolvedValue()
@@ -123,6 +129,11 @@ describe('windows toolchain installation verification', () => {
     process.env.SystemDrive = 'C:'
     jest.spyOn(toolCache, 'extractTar').mockResolvedValue(extracted)
     jest.spyOn(exec, 'exec').mockResolvedValue(0)
+    jest.spyOn(exec, 'getExecOutput').mockResolvedValue({
+      exitCode: 0,
+      stdout: '',
+      stderr: ''
+    })
     jest.spyOn(fs, 'access').mockResolvedValue()
     jest.spyOn(fs, 'cp').mockResolvedValue()
     const toolPath = path.join(
@@ -131,6 +142,46 @@ describe('windows toolchain installation verification', () => {
       'Swift'
     )
     await expect(installer['unpack'](exe)).resolves.toBe(toolPath)
+  })
+
+  it('tests unpack for failed path matching', async () => {
+    const installer = new WindowsToolchainInstaller(toolchain)
+    const exe = path.resolve('tool', 'downloaded', 'toolchain.exe')
+    process.env.SystemDrive = 'C:'
+    jest.spyOn(exec, 'exec').mockResolvedValue(0)
+    jest
+      .spyOn(exec, 'getExecOutput')
+      .mockResolvedValueOnce({exitCode: 0, stdout: '{}', stderr: ''})
+      .mockResolvedValueOnce({exitCode: 0, stdout: '{"PATH":"a"}', stderr: ''})
+      .mockResolvedValueOnce({exitCode: 0, stdout: '{}', stderr: ''})
+      .mockResolvedValue({
+        exitCode: 0,
+        stdout: `{"SDKROOT":"root","PATH":"a${path.delimiter}b${path.delimiter}c"}`,
+        stderr: ''
+      })
+    jest
+      .spyOn(fs, 'access')
+      .mockRejectedValueOnce(new Error())
+      .mockRejectedValueOnce(new Error())
+      .mockResolvedValue()
+    jest.spyOn(fs, 'cp').mockRejectedValue(new Error())
+    const addPathSpy = jest.spyOn(core, 'addPath')
+    const exportVariableSpy = jest.spyOn(core, 'exportVariable')
+    await expect(installer['unpack'](exe)).resolves.toBe('')
+    expect(addPathSpy).toHaveBeenCalledTimes(2)
+    expect(exportVariableSpy).toHaveBeenCalledTimes(1)
+    expect(addPathSpy.mock.calls).toStrictEqual([['b'], ['c']])
+    expect(exportVariableSpy.mock.calls).toStrictEqual([['SDKROOT', 'root']])
+
+    const setupSpy = jest
+      .spyOn(VisualStudio, 'setup')
+      .mockResolvedValue(visualStudio)
+    const updateSpy = jest
+      .spyOn(VisualStudio.prototype, 'update')
+      .mockResolvedValue()
+    await installer['add']('')
+    expect(setupSpy).toHaveBeenCalled()
+    expect(updateSpy).toHaveBeenCalledWith('root')
   })
 
   it('tests add to PATH', async () => {
@@ -161,6 +212,7 @@ describe('windows toolchain installation verification', () => {
       'SDKs',
       'Windows.sdk'
     )
+    const swiftLibs = path.join(sdkroot, 'usr', 'lib', 'swift')
     const swiftPath = path.join(toolPath, 'usr', 'bin')
     const swiftDev = path.join(installation, 'Swift-development', 'bin')
     const icu67 = path.join(installation, 'icu-67', 'usr', 'bin')
@@ -169,6 +221,11 @@ describe('windows toolchain installation verification', () => {
     expect(process.env.PATH?.includes(swiftDev)).toBeTruthy()
     expect(process.env.PATH?.includes(icu67)).toBeTruthy()
     expect(process.env.SDKROOT).toBe(sdkroot)
+    expect(process.env.SWIFTFLAGS).toContain(`-sdk ${sdkroot}`)
+    expect(process.env.SWIFTFLAGS).toContain(`-I ${swiftLibs}`)
+    expect(process.env.SWIFTFLAGS).toContain(
+      `-L ${path.join(swiftLibs, 'windows')}`
+    )
   })
 
   it('tests installation with cache', async () => {
@@ -195,7 +252,7 @@ describe('windows toolchain installation verification', () => {
     const setupSpy = jest
       .spyOn(VisualStudio, 'setup')
       .mockResolvedValue(visualStudio)
-    jest.spyOn(fs, 'access').mockImplementation(p => {
+    jest.spyOn(fs, 'access').mockImplementation(async p => {
       if (
         typeof p === 'string' &&
         (p.startsWith(path.join(cached, 'Developer')) ||
@@ -216,7 +273,7 @@ describe('windows toolchain installation verification', () => {
       stdout: vsEnvs.join(os.EOL),
       stderr: ''
     })
-    await installer.install()
+    await installer.install('x86_64')
     expect(setupSpy).toHaveBeenCalled()
     expect(process.env.PATH?.includes(swiftPath)).toBeTruthy()
     expect(process.env.PATH?.includes(swiftDev)).toBeTruthy()

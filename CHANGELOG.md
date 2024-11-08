@@ -1,3 +1,106 @@
+## [1.8.0](https://github.com/SwiftyLab/setup-swift/compare/v1.7.0...v1.8.0) (2024-09-20)
+
+
+### 🚀 Features
+
+* expand `SWIFTFLAGS` with full paths ensure CMD and PowerShell compatibility ([#74](https://github.com/SwiftyLab/setup-swift/issues/74)) ([8573d06](https://github.com/SwiftyLab/setup-swift/commit/8573d0697a49e239a7e50df61f1555597a12e64e))
+
+
+### 🐛 Fixes
+
+* fixed macOS action cache architecture mismatch ([#317](https://github.com/SwiftyLab/setup-swift/issues/317)) ([8822077](https://github.com/SwiftyLab/setup-swift/commit/8822077d38869be2e4c57dce79d18515621e5498))
+* fixed older Swift toolchain installations on Windows ([#307](https://github.com/SwiftyLab/setup-swift/issues/307)) ([420581b](https://github.com/SwiftyLab/setup-swift/commit/420581bc75610ae2a394df7f2a6f457200a2c715))
+* fixed Visual Studio setup with fallback windows installation ([#314](https://github.com/SwiftyLab/setup-swift/issues/314)) ([f2a737f](https://github.com/SwiftyLab/setup-swift/commit/f2a737f69b00c97c2704514174842e5577914597))
+
+## [1.7.0](https://github.com/SwiftyLab/setup-swift/compare/v1.6.0...v1.7.0) (2024-04-19)
+
+
+### 🚀 Features
+
+* added custom toolchains support ([#273](https://github.com/SwiftyLab/setup-swift/issues/273)) ([dc93ecd](https://github.com/SwiftyLab/setup-swift/commit/dc93ecd7be099ce0f3b0487188cb995b025948b1))
+* added fallback windows installation without caching support ([#276](https://github.com/SwiftyLab/setup-swift/issues/276)) ([7030849](https://github.com/SwiftyLab/setup-swift/commit/7030849a1ca58b88175468ecd8b4c0b82bd1917f))
+
+
+### 📚 Documentation
+
+* added conduct and contributing guidelines ([#268](https://github.com/SwiftyLab/setup-swift/issues/268)) ([9409a11](https://github.com/SwiftyLab/setup-swift/commit/9409a1123f019286138345d02af08e7698a2b171))
+* added issue templates ([#267](https://github.com/SwiftyLab/setup-swift/issues/267)) ([b9e53af](https://github.com/SwiftyLab/setup-swift/commit/b9e53af632679d244c184dc63dd89e99aa03d781))
+
+## [1.6.0](https://github.com/SwiftyLab/setup-swift/compare/v1.5.2...v1.6.0) (2024-03-29)
+
+
+### 🚀 Features
+
+* added git ref support to `check-latest` option ([840a162](https://github.com/SwiftyLab/setup-swift/commit/840a162aceb6bbd06e4d75fc2a01368606fbcd79))
+* added supporting new swift toolchains without action release ([#259](https://github.com/SwiftyLab/setup-swift/issues/259)) ([b8b0c2a](https://github.com/SwiftyLab/setup-swift/commit/b8b0c2a092dae00291896efaed137186604e8a4f))
+
+
+### 🐛 Fixes
+
+* fixed toolchain caching ([a36cd73](https://github.com/SwiftyLab/setup-swift/commit/a36cd7340bd78afaec08414baf006875c510cfc8))
+
+
+### 🐎 Performance Improvements
+
+* added skipping gpg verification if signature missing ([17c7929](https://github.com/SwiftyLab/setup-swift/commit/17c79292c8f4fa745c8473d6e3d1b1ee36ee6d6e))
+* cache will only be saved if not saved once ([a7ba193](https://github.com/SwiftyLab/setup-swift/commit/a7ba1938c28b6866f405452b04d443f3f9bab9b1))
+
+
+### 🛠 Dependency
+
+* bump glob from 10.3.10 to 10.3.12 ([#261](https://github.com/SwiftyLab/setup-swift/issues/261)) ([3495928](https://github.com/SwiftyLab/setup-swift/commit/349592802c9eab68a74c07a825d431adb37d185e))
+
+## [1.5.2](https://github.com/SwiftyLab/setup-swift/compare/v1.5.1...v1.5.2) (2024-03-23)
+
+
+### 🛠 Build System
+
+* pause windows support for Swift 5.10 and above temporarily ([#250](https://github.com/SwiftyLab/setup-swift/issues/250)) ([186489b](https://github.com/SwiftyLab/setup-swift/commit/186489b82cce737a52b9d7a94856cf7085b235ca))
+* **swift-org-website:** bump swiftorg from `cd5a1a3` to `74caef9` ([#253](https://github.com/SwiftyLab/setup-swift/issues/253)) ([0913e1d](https://github.com/SwiftyLab/setup-swift/commit/0913e1d949c815a2c486b09218328e836e98e958))
+
+
+### 🛠 Dependency
+
+* bump @actions/cache from 3.2.2 to 3.2.4 ([#225](https://github.com/SwiftyLab/setup-swift/issues/225)) ([a75eb22](https://github.com/SwiftyLab/setup-swift/commit/a75eb22109114133bd2a724be26d24367a33dce3))
+
+## [1.5.1](https://github.com/SwiftyLab/setup-swift/compare/v1.5.0...v1.5.1) (2023-12-15)
+
+
+### 🛠 Build System
+
+* **swift-org-website:** bump swiftorg from `8485bd3` to `9ce4db8` ([#124](https://github.com/SwiftyLab/setup-swift/issues/124)) ([e0fff81](https://github.com/SwiftyLab/setup-swift/commit/e0fff8108a7160e0a285638edb820431b466a78c))
+* **swift-org-website:** bump swiftorg from `9ce4db8` to `cd5a1a3` ([#164](https://github.com/SwiftyLab/setup-swift/issues/164)) ([8484fad](https://github.com/SwiftyLab/setup-swift/commit/8484fadc36ea71c1f3584fdcc32bba048c400b59))
+
+
+### 🛠 Dependency
+
+* bump glob from 10.3.4 to 10.3.10 ([#154](https://github.com/SwiftyLab/setup-swift/issues/154)) ([44ecbc4](https://github.com/SwiftyLab/setup-swift/commit/44ecbc4e48c1ace6cb1c3b0139842bab722a522b))
+
+## [1.5.0](https://github.com/SwiftyLab/setup-swift/compare/v1.4.1...v1.5.0) (2023-10-25)
+
+
+### 🚀 Features
+
+* added major version tag option for latest release ([#109](https://github.com/SwiftyLab/setup-swift/issues/109)) ([8967619](https://github.com/SwiftyLab/setup-swift/commit/896761999d9c224950cda4a2ce09dafcd85c6398))
+
+
+### 🐛 Fixes
+
+* only add existing directories to PATH on windows (by [@stevapple](https://github.com/stevapple)) ([#71](https://github.com/SwiftyLab/setup-swift/issues/71)) ([5dfc518](https://github.com/SwiftyLab/setup-swift/commit/5dfc5184796ead5ef4e3ce6bae9ba37ea8049151))
+* removed deprecated recursive `fs.rmdir` (by [@stevapple](https://github.com/stevapple)) ([#70](https://github.com/SwiftyLab/setup-swift/issues/70)) ([214f7e8](https://github.com/SwiftyLab/setup-swift/commit/214f7e8b9f3ca70f27d94c87df8bd5f391f4e7df))
+* specified initial branch name to suppress Git hint (by [@stevapple](https://github.com/stevapple)) ([#69](https://github.com/SwiftyLab/setup-swift/issues/69)) ([b6ac81d](https://github.com/SwiftyLab/setup-swift/commit/b6ac81d2f164dfd6284810ea9d96153396c88102))
+
+
+### 🛠 Build System
+
+* **swift-org-website:** bump swiftorg from `332574c` to `8485bd3` ([#121](https://github.com/SwiftyLab/setup-swift/issues/121)) ([3dc4e02](https://github.com/SwiftyLab/setup-swift/commit/3dc4e02d472756dc0274f4382e5d623a0e550129))
+
+
+### 🛠 Dependency
+
+* bump @actions/core from 1.10.0 to 1.10.1 ([#83](https://github.com/SwiftyLab/setup-swift/issues/83)) ([4928498](https://github.com/SwiftyLab/setup-swift/commit/4928498ae8966f566b41948a132fe7e32dd99478))
+* bump @babel/traverse and depcheck ([#105](https://github.com/SwiftyLab/setup-swift/issues/105)) ([6bf5161](https://github.com/SwiftyLab/setup-swift/commit/6bf5161f02794ca34b978c043d540d1be4780cd0))
+
 ## [1.4.1](https://github.com/SwiftyLab/setup-swift/compare/v1.4.0...v1.4.1) (2023-09-25)
 
 

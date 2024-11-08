@@ -16,14 +16,16 @@ This action supports the following functionalities:
 - Verifies toolchain snapshots before installation (`gpg` for Linux and Windows, `pkgutil` for macOS) .
 - Allows development snapshots by enabling `development` flag and optional version.
 - Prefers existing Xcode installations.
-- Caches installed setup in tool cache.
+- Caches installed setup in tool cache and actions cache(Swift 5.10 and after does not support caching on Windows).
 - Allows fetching snapshot metadata without installation (can be used to setup docker images).
+
+## Latest supported toolchains
 
 | Release Type | Latest Available |
 |--------------|------------------|
-| Stable | [![Latest Release](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FSwiftyLab%2Fsetup-swift%2Fmain%2Fpackage.json&query=%24.swiftorg.release.name&logo=swift&logoColor=white&label=Swift&color=orange)](https://www.swift.org/download/#releases)<br/>[![Latest Release Tag](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FSwiftyLab%2Fsetup-swift%2Fmain%2Fpackage.json&query=%24.swiftorg.release.tag&logo=swift&logoColor=white&label=tag&color=orange)](https://www.swift.org/download/#releases) |
-| Development | [![Latest Development Snapshot](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FSwiftyLab%2Fsetup-swift%2Fmain%2Fpackage.json&query=%24.swiftorg.dev.name&logo=swift&logoColor=white&label=Swift&color=orange)](https://www.swift.org/download/#snapshots)<br/>[![Latest Development Snapshot Tag](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FSwiftyLab%2Fsetup-swift%2Fmain%2Fpackage.json&query=%24.swiftorg.dev.tag&logo=swift&logoColor=white&label=tag&color=orange)](https://www.swift.org/download/#snapshots)<br/>[![Latest Development Snapshot Date](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FSwiftyLab%2Fsetup-swift%2Fmain%2Fpackage.json&query=%24.swiftorg.dev.date&logo=swift&logoColor=white&label=date)](https://www.swift.org/download/#snapshots) |
-| Trunk Development | [![Latest Trunk Development Snapshot Tag](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FSwiftyLab%2Fsetup-swift%2Fmain%2Fpackage.json&query=%24.swiftorg.snapshot.tag&logo=swift&logoColor=white&label=tag&color=orange)](https://www.swift.org/download/#snapshots)<br/>[![Latest Trunk Development Snapshot Date](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FSwiftyLab%2Fsetup-swift%2Fmain%2Fpackage.json&query=%24.swiftorg.snapshot.date&logo=swift&logoColor=white&label=date)](https://www.swift.org/download/#snapshots) |
+| Stable | [![Latest Release](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fswiftylab.github.io%2Fsetup-swift%2Fmetadata.json&query=%24.release.name&logo=swift&logoColor=white&label=Swift&color=orange)](https://www.swift.org/download/#releases)<br/>[![Latest Release Tag](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fswiftylab.github.io%2Fsetup-swift%2Fmetadata.json&query=%24.release.tag&logo=swift&logoColor=white&label=tag&color=orange)](https://www.swift.org/download/#releases) |
+| Development | [![Latest Development Snapshot](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fswiftylab.github.io%2Fsetup-swift%2Fmetadata.json&query=%24.dev.name&logo=swift&logoColor=white&label=Swift&color=orange)](https://www.swift.org/download/#snapshots)<br/>[![Latest Development Snapshot Tag](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fswiftylab.github.io%2Fsetup-swift%2Fmetadata.json&query=%24.dev.tag&logo=swift&logoColor=white&label=tag&color=orange)](https://www.swift.org/download/#snapshots)<br/>[![Latest Development Snapshot Date](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fswiftylab.github.io%2Fsetup-swift%2Fmetadata.json&query=%24.dev.date&logo=swift&logoColor=white&label=date)](https://www.swift.org/download/#snapshots) |
+| Trunk Development | [![Latest Trunk Development Snapshot Tag](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fswiftylab.github.io%2Fsetup-swift%2Fmetadata.json&query=%24.snapshot.tag&logo=swift&logoColor=white&label=tag&color=orange)](https://www.swift.org/download/#snapshots)<br/>[![Latest Trunk Development Snapshot Date](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fswiftylab.github.io%2Fsetup-swift%2Fmetadata.json&query=%24.snapshot.date&logo=swift&logoColor=white&label=date)](https://www.swift.org/download/#snapshots) |
 
 ## Usage
 
@@ -82,7 +84,7 @@ steps:
   run: swift --version
 ```
 
-**See [action.yml](action.yml) for complete list of inputs and outputs.**
+**See [action.yml](action.yml) for complete list of inputs and outputs, see [wiki](https://github.com/SwiftyLab/setup-swift/wiki) for inner workings of this action.**
 
 ## Specifying version
 
@@ -96,6 +98,16 @@ In other words specifying...
 - `"5.1.0"` will resolve to version `5.1`
 - `"4"` will resolve to latest minor and patch version (aka `4.2.4`)
 - `"4.0.0"` will resolve to version `4.0`
+
+<details>
+  <summary>Additionally, to use custom toolchains, download URL can be provided. The download URL must point to a `tar` archive for `Linux`, `pkg` file for `macOS` and `exe` file for `Windows`.</summary>
+
+  i.e. for `macOS`: https://github.com/swiftwasm/swift/releases/download/swift-wasm-5.10-SNAPSHOT-2024-03-30-a/swift-wasm-5.10-SNAPSHOT-2024-03-30-a-macos_x86_64.pkg
+  for `Linux`: https://github.com/swiftwasm/swift/releases/download/swift-wasm-5.10-SNAPSHOT-2024-03-30-a/swift-wasm-5.10-SNAPSHOT-2024-03-30-a-ubuntu22.04_x86_64.tar.gz
+
+  > [!IMPORTANT]
+  > When using custom toolchains, please ensure that the toolchain can be installed and used on the GitHub runner, this action won't be able to validate this for custom toolchains.
+</details>
 
 ### Caveats
 
@@ -118,8 +130,6 @@ Not:
 ## Keeping the action up-to-date
 
 You have two options for keeping this action up-to-date: either use the `latest` tag to always have the latest changes or define a specific version (like `v1.0.0`).
-
-**Note: This action uses [dependabot](https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/about-dependabot-version-updates) to keep [swift.org](https://github.com/apple/swift-org-website) submodule data up-to-date. Due to the frequency of snapshots published, the changes aren't merged immediately rather kept as a separate PR. If you need action to be updated, comment `@swiftylab-ci anything..` on the PR to merge and update this action.**
 
 ### Latest version tag (Recommended)
 

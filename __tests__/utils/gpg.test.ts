@@ -14,7 +14,7 @@ describe('gpg setup validation', () => {
     const execSpy = jest.spyOn(exec, 'exec')
     execSpy.mockRejectedValueOnce(new Error())
     execSpy.mockResolvedValue(0)
-    await expect(gpg.setupKeys()).resolves
+    await gpg.setupKeys()
   })
 
   it('tests keys refresh retry', async () => {
@@ -22,7 +22,7 @@ describe('gpg setup validation', () => {
     execSpy.mockResolvedValueOnce(0)
     execSpy.mockRejectedValueOnce(new Error())
     execSpy.mockResolvedValue(0)
-    await expect(gpg.setupKeys()).resolves
+    await gpg.setupKeys()
   })
 
   it('tests keys refresh error', async () => {

@@ -20,7 +20,8 @@ describe('setup-swift run validation', () => {
     dir: 'swift-5.8-RELEASE',
     docker: '5.8-jammy',
     platform: 'ubuntu2204',
-    branch: 'swift-5.8-release'
+    branch: 'swift-5.8-release',
+    preventCaching: false
   }
 
   it('tests dry run', async () => {

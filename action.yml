@@ -9,6 +9,9 @@ inputs:
       i.e. configures 5.1.1 for 5.1, configures 4.2.4 for 4.
       Provide exact semantic version to configure the same version,
       i.e. configures 5.1 for 5.1.0, configures 5.0 for 5.0.0.
+      Provide toolchain download URL to configure custom toolchains,
+      i.e. https://github.com/swiftwasm/swift/releases/download/swift-wasm-5.10-SNAPSHOT-2024-03-30-a/swift-wasm-5.10-SNAPSHOT-2024-03-30-a-ubuntu22.04_x86_64.tar.gz,
+      https://github.com/swiftwasm/swift/releases/download/swift-wasm-5.10-SNAPSHOT-2024-03-30-a/swift-wasm-5.10-SNAPSHOT-2024-03-30-a-macos_x86_64.pkg
     required: false
     default: 'latest'
   development:
@@ -19,9 +22,12 @@ inputs:
     default: 'false'
   check-latest:
     description: >-
-      Whether to check with latest swift.org versions,
-      enabling this option may break this action,
+      Whether to use latest Swift toolchains available in swift.org,
+      instead of using the snapshot this action was tested with.
+      Enabling this option may break this action,
       use cautiously and disable if any issue.
+      Specific git ref for apple/swift-org-website repo can be provided,
+      to use toolchains published in that ref.
     required: false
     default: 'false'
   dry-run:

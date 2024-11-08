@@ -109,7 +109,7 @@ export abstract class VersionedPlatform<
           const pDownloadName =
             platform.dir ?? platform.name.replaceAll(/\s+/g, '').toLowerCase()
           const download = `${release.tag}-${pDownloadName}${this.archSuffix}.${this.downloadExtension}`
-          return platform.archs.includes(this.arch)
+          return platform.archs && platform.archs.includes(this.arch)
             ? ({
                 name: platform.name,
                 date: release.date,
@@ -119,7 +119,8 @@ export abstract class VersionedPlatform<
                 platform: pName + this.archSuffix,
                 branch: release.tag.toLocaleLowerCase(),
                 docker: platform.docker,
-                windows: pName.startsWith('windows')
+                windows: pName.startsWith('windows'),
+                preventCaching: false
               } as ToolchainSnapshot)
             : []
         })

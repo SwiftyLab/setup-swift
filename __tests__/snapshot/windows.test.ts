@@ -1,4 +1,5 @@
 import os from 'os'
+import {posix} from 'path'
 // @ts-ignore
 import {__setos as setos} from 'getos'
 import {ToolchainVersion} from '../../src/version'
@@ -27,6 +28,7 @@ describe('fetch windows tool data based on options', () => {
     expect(wTool.platform).toBe('windows10')
     expect(wTool.branch).toBeTruthy()
     expect(wTool.download_signature).toBeTruthy()
+    expect(wTool.preventCaching).toBe(false)
   })
 
   it('fetches windows 10 latest swift 5.0 tool', async () => {
@@ -47,6 +49,7 @@ describe('fetch windows tool data based on options', () => {
     expect(wTool.platform).toBe('windows10')
     expect(wTool.branch).toBe('swift-5.5-release')
     expect(wTool.download_signature).toBe('swift-5.5-RELEASE-windows10.exe.sig')
+    expect(wTool.preventCaching).toBe(false)
   })
 
   it('fetches windows 10 latest swift 5.5 tool', async () => {
@@ -62,6 +65,7 @@ describe('fetch windows tool data based on options', () => {
     expect(wTool.download_signature).toBe(
       'swift-5.5.3-RELEASE-windows10.exe.sig'
     )
+    expect(wTool.preventCaching).toBe(false)
   })
 
   it('fetches windows 10 latest swift 5.5 tool including dev snapshot', async () => {
@@ -77,6 +81,7 @@ describe('fetch windows tool data based on options', () => {
     expect(wTool.download_signature).toBe(
       'swift-5.5.3-RELEASE-windows10.exe.sig'
     )
+    expect(wTool.preventCaching).toBe(false)
   })
 
   it('fetches windows 10 latest swift tool', async () => {
@@ -91,6 +96,7 @@ describe('fetch windows tool data based on options', () => {
     expect(wTool.platform).toBeTruthy()
     expect(wTool.branch).toBeTruthy()
     expect(wTool.download_signature).toBeTruthy()
+    expect(wTool.preventCaching).toBe(false)
   })
 
   it('fetches windows 10 latest swift tool including dev snapshot', async () => {
@@ -103,7 +109,7 @@ describe('fetch windows tool data based on options', () => {
     expect(wTool.dir).toBeTruthy()
     expect(wTool.platform).toBeTruthy()
     expect(wTool.branch).toBeTruthy()
-    expect(wTool.download_signature).toBeTruthy()
+    expect(wTool.preventCaching).toBe(false)
   })
 
   it('fetches windows 10 named swift tool', async () => {
@@ -113,16 +119,17 @@ describe('fetch windows tool data based on options', () => {
     const version = ToolchainVersion.create(name, false)
     const tool = await Platform.toolchain(version)
     expect(tool).toBeTruthy()
-    const lTool = tool as WindowsToolchainSnapshot
-    expect(lTool.download).toBe(
+    const wTool = tool as WindowsToolchainSnapshot
+    expect(wTool.download).toBe(
       'swift-DEVELOPMENT-SNAPSHOT-2023-08-10-a-windows10.exe'
     )
-    expect(lTool.dir).toBe('swift-DEVELOPMENT-SNAPSHOT-2023-08-10-a')
-    expect(lTool.platform).toBe('windows10')
-    expect(lTool.branch).toBe('development')
-    expect(lTool.download_signature).toBe(
+    expect(wTool.dir).toBe('swift-DEVELOPMENT-SNAPSHOT-2023-08-10-a')
+    expect(wTool.platform).toBe('windows10')
+    expect(wTool.branch).toBe('development')
+    expect(wTool.download_signature).toBe(
       'swift-DEVELOPMENT-SNAPSHOT-2023-08-10-a-windows10.exe.sig'
     )
+    expect(wTool.preventCaching).toBe(false)
   })
 
   it('fetches windows 10 named versioned swift tool', async () => {
@@ -132,16 +139,17 @@ describe('fetch windows tool data based on options', () => {
     const version = ToolchainVersion.create(name, false)
     const tool = await Platform.toolchain(version)
     expect(tool).toBeTruthy()
-    const lTool = tool as WindowsToolchainSnapshot
-    expect(lTool.download).toBe(
+    const wTool = tool as WindowsToolchainSnapshot
+    expect(wTool.download).toBe(
       'swift-5.9-DEVELOPMENT-SNAPSHOT-2023-05-11-a-windows10.exe'
     )
-    expect(lTool.dir).toBe('swift-5.9-DEVELOPMENT-SNAPSHOT-2023-05-11-a')
-    expect(lTool.platform).toBe('windows10')
-    expect(lTool.branch).toBe('swift-5.9-branch')
-    expect(lTool.download_signature).toBe(
+    expect(wTool.dir).toBe('swift-5.9-DEVELOPMENT-SNAPSHOT-2023-05-11-a')
+    expect(wTool.platform).toBe('windows10')
+    expect(wTool.branch).toBe('swift-5.9-branch')
+    expect(wTool.download_signature).toBe(
       'swift-5.9-DEVELOPMENT-SNAPSHOT-2023-05-11-a-windows10.exe.sig'
     )
+    expect(wTool.preventCaching).toBe(false)
   })
 
   it('fetches windows 10 latest swift 5.5 tools', async () => {
@@ -156,5 +164,25 @@ describe('fetch windows tool data based on options', () => {
     jest.spyOn(os, 'arch').mockReturnValue('x64')
     const tools = await Platform.toolchains(dev5_5)
     expect(tools.length).toBe(34)
+  })
+
+  it('fetches windows 10 custom swift tools', async () => {
+    setos({os: 'win32', dist: 'Windows', release: '10.0.17063'})
+    jest.spyOn(os, 'arch').mockReturnValue('x64')
+    const swiftwasm = 'https://github.com/swiftwasm/swift/releases/download'
+    const name = 'swift-wasm-5.10-SNAPSHOT-2024-03-30-a'
+    const resource = `${name}-windows10.exe`
+    const toolchainUrl = `${swiftwasm}/${name}/${resource}`
+    const cVer = ToolchainVersion.create(toolchainUrl, false)
+    const tools = await Platform.toolchains(cVer)
+    expect(tools.length).toBe(1)
+    const tool = tools[0]
+    expect(tool.baseUrl?.href).toBe(posix.dirname(toolchainUrl))
+    expect(tool.preventCaching).toBe(true)
+    expect(tool.name).toBe('Swift Custom Snapshot')
+    expect(tool.platform).toBe('windows10')
+    expect(tool.download).toBe(resource)
+    expect(tool.dir).toBe(name)
+    expect(tool.branch).toBe('swiftwasm')
   })
 })

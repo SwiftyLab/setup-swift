@@ -28,7 +28,7 @@ export class XcodeToolchainInstaller extends ToolchainInstaller<XcodeToolchainSn
     const xcodeApp = `/Applications/Xcode_${xcode}.app`
     try {
       await fs.access(xcodeApp)
-    } catch (error) {
+    } catch {
       core.debug(`Xcode ${xcode} is not installed, downloading toolchain`)
       return true
     }
@@ -41,7 +41,7 @@ export class XcodeToolchainInstaller extends ToolchainInstaller<XcodeToolchainSn
     return this.data.dir !== `swift-${version}-RELEASE`
   }
 
-  async install(arch?: string | undefined) {
+  async install(arch: string) {
     if (!(await this.isInstallationNeeded())) {
       return
     }

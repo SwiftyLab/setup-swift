@@ -3,6 +3,7 @@ import {promises as fs} from 'fs'
 import * as io from '@actions/io'
 import * as core from '@actions/core'
 
+// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace VSWhere {
   /// Get vswhere and vs_installer paths
   /// Borrowed from setup-msbuild action: https://github.com/microsoft/setup-msbuild

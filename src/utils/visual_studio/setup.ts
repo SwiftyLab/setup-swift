@@ -4,7 +4,7 @@ import {VisualStudio, VisualStudioRequirement} from './base'
 import {VSWhere} from './vswhere'
 
 declare module './base' {
-  // eslint-disable-next-line no-shadow
+  // eslint-disable-next-line no-shadow, @typescript-eslint/no-namespace
   export namespace VisualStudio {
     function setup(requirement: VisualStudioRequirement): Promise<VisualStudio>
   }

@@ -7,17 +7,17 @@ updates:
     commit-message:
       prefix: 'ci(Deps): '
 
-  - package-ecosystem: gitsubmodule
-    directory: /
-    schedule:
-      interval: daily
-    commit-message:
-      prefix: 'build(swift-org-website): '
-
   - package-ecosystem: npm
     directory: /
     schedule:
       interval: monthly
     commit-message:
-      prefix: 'deps: '
-      prefix-development: 'chore: '
+      prefix: 'chore(Dependency): '
+      prefix-development: 'chore(DevDependency): '
+
+  - package-ecosystem: devcontainers
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: 'chore(DevContainer): '
