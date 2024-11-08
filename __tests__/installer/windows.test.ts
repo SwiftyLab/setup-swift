@@ -1,10 +1,10 @@
-import * as os from 'os'
 import * as path from 'path'
 import {promises as fs} from 'fs'
 import * as core from '@actions/core'
 import * as exec from '@actions/exec'
 import * as cache from '@actions/cache'
 import * as toolCache from '@actions/tool-cache'
+import os from 'os'
 import {coerce as parseSemVer} from 'semver'
 import {WindowsToolchainInstaller} from '../../src/installer/windows'
 import {VisualStudio} from '../../src/utils/visual_studio'
@@ -24,15 +24,15 @@ describe('windows toolchain installation verification', () => {
   }
   const visualStudio = VisualStudio.createFromJSON({
     installationPath: path.join('C:', 'Visual Studio'),
-    installationVersion: '16',
-    catalog: {productDisplayVersion: '16'},
+    installationVersion: '17',
+    catalog: {productDisplayVersion: '17'},
     properties: {
       setupEngineFilePath: path.join('C:', 'Visual Studio', 'setup.exe')
     }
   })
   const vsEnvs = [
     `UniversalCRTSdkDir=${path.join('C:', 'Windows Kits')}`,
-    `UCRTVersion=10.0.17063`,
+    `UCRTVersion=10.0.22000`,
     `VCToolsInstallDir=${path.join('C:', 'Visual Studio', 'Tools')}`
   ]
 
@@ -56,6 +56,24 @@ describe('windows toolchain installation verification', () => {
       'Microsoft.VisualStudio.Component.VC.ATL',
       'Microsoft.VisualStudio.Component.VC.CMake.Project',
       'Microsoft.VisualStudio.Component.Windows10SDK'
+    ])
+  })
+
+  it('tests setting up on Windows 10', async () => {
+    jest.spyOn(os, 'release').mockReturnValue('10.0.17063')
+    const installer = new WindowsToolchainInstaller(toolchain)
+    expect(installer['vsRequirement'].components).toStrictEqual([
+      'Microsoft.VisualStudio.Component.VC.Tools.x86.x64',
+      'Microsoft.VisualStudio.Component.Windows10SDK.17763'
+    ])
+  })
+
+  it('tests setting up on Windows 11', async () => {
+    jest.spyOn(os, 'release').mockReturnValue('10.0.22621')
+    const installer = new WindowsToolchainInstaller(toolchain)
+    expect(installer['vsRequirement'].components).toStrictEqual([
+      'Microsoft.VisualStudio.Component.VC.Tools.x86.x64',
+      'Microsoft.VisualStudio.Component.Windows11SDK.22621'
     ])
   })
 

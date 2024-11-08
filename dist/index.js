@@ -450,18 +450,23 @@ const verify_1 = __nccwpck_require__(6298);
 const utils_1 = __nccwpck_require__(1750);
 const installation_1 = __nccwpck_require__(4694);
 class WindowsToolchainInstaller extends verify_1.VerifyingToolchainInstaller {
-    get vsRequirement() {
-        const reccommended = '10.0.17763';
+    get winsdk() {
+        const recommended = '10.0.17763';
+        const win11Semver = '10.0.22000';
         const current = os.release();
-        const version = semver.gte(current, reccommended) ? current : reccommended;
-        const winsdk = semver.patch(version);
+        const version = semver.gte(current, recommended) ? current : recommended;
+        const major = semver.lt(version, win11Semver) ? semver.major(version) : 11;
+        const minor = semver.patch(version);
+        return `Microsoft.VisualStudio.Component.Windows${major}SDK.${minor}`;
+    }
+    get vsRequirement() {
         const componentsStr = core.getInput('visual-studio-components');
         const providedComponents = componentsStr ? componentsStr.split(';') : [];
         return {
             version: '16',
             components: [
                 'Microsoft.VisualStudio.Component.VC.Tools.x86.x64',
-                `Microsoft.VisualStudio.Component.Windows10SDK.${winsdk}`,
+                this.winsdk,
                 ...providedComponents
             ]
         };
@@ -518,6 +523,7 @@ class WindowsToolchainInstaller extends verify_1.VerifyingToolchainInstaller {
             return;
         }
         const visualStudio = await utils_1.VisualStudio.setup(this.vsRequirement);
+        // FIXME(stevapple): This is no longer required for Swift 5.9+
         await visualStudio.update(sdkroot);
         const swiftFlags = [
             '-sdk',
