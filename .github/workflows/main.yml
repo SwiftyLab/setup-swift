@@ -514,7 +514,7 @@ jobs:
 
     - name: Generate changelog
       id: changelog
-      uses: TriPSs/conventional-changelog-action@v5
+      uses: TriPSs/conventional-changelog-action@v6
       with:
         github-token: ${{ secrets.COMMIT_TOKEN }}
         git-message: 'chore(CHANGELOG): update for {version}'
