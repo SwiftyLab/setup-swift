@@ -8,7 +8,7 @@ import {ToolchainSnapshotName, DEVELOPMENT_SNAPSHOT} from './name'
 import {ToolchainSnapshotLocation} from './location'
 
 declare module './base' {
-  // eslint-disable-next-line no-shadow, @typescript-eslint/no-namespace
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   export namespace ToolchainVersion {
     function create(requested: string, dev: boolean): ToolchainVersion
   }
