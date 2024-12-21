@@ -10,7 +10,7 @@ import {ToolchainSnapshot} from '../snapshot'
 import {ToolchainInstaller} from '../installer'
 
 declare module './base' {
-  // eslint-disable-next-line no-shadow, @typescript-eslint/no-namespace
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   export namespace Platform {
     export function currentPlatform(): Promise<
       Platform<ToolchainInstaller<ToolchainSnapshot>>
