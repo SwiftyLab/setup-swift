@@ -1,7 +1,9 @@
 import * as path from 'path'
 import {promises as fs} from 'fs'
+import * as core from '@actions/core'
+import {glob} from 'glob'
 import {VersionedPlatform} from './versioned'
-import {ToolchainVersion, SWIFT_BRANCH_REGEX} from '../version'
+import {ToolchainVersion} from '../version'
 import {LinuxToolchainSnapshot, ToolchainSnapshot} from '../snapshot'
 import {LinuxToolchainInstaller} from '../installer'
 import {MODULE_DIR} from '../const'
@@ -22,61 +24,34 @@ export class LinuxPlatform extends VersionedPlatform<LinuxToolchainInstaller> {
   }
 
   async tools(version: ToolchainVersion) {
-    let html: string
     const tools = await super.tools(version)
-    return await Promise.all(
-      tools.map(async tool => {
-        if (tool.docker) {
-          return tool
-        }
-        let headingPattern: RegExp
-        const match = SWIFT_BRANCH_REGEX.exec(tool.branch)
-        if (match && match.length > 1) {
-          const ver = match[1]
-          headingPattern = new RegExp(`Swift ${ver}`, 'g')
-          if (
-            tools.some(newTool => newTool.branch.match(`swift-${ver}-release`))
-          ) {
-            return tool
-          }
-          if (
-            tools.some(
-              newTool =>
-                newTool.branch === tool.branch && newTool.date > tool.date
-            )
-          ) {
-            return tool
-          }
-        } else {
-          headingPattern = /(Trunk Development|\(main\))/g
-        }
+    try {
+      const vGlob = `${this.version}`.split('').join('*')
+      const index = ['linux', this.name, vGlob, 'index.md']
+      const doc = path.join('swiftorg', 'install', ...index)
+      const file = (await glob(doc, {absolute: true, cwd: MODULE_DIR}))[0]
+      if (!file) {
+        return tools
+      }
 
-        if (!html) {
-          html = await this.html()
+      const content = await fs.readFile(file, 'utf8')
+      const branchPattern = /branch_dir(.*)="(.+)"/g
+      const branchResults = content.matchAll(branchPattern)
+      const startPattern = /<\/details>/g // only search string after this tag
+      startPattern.exec(content)
+      for (const result of branchResults) {
+        const tIndex = tools.findIndex(tool => tool.branch === result[2])
+        const dTagPattern = new RegExp(`docker_tag${result[1]}="(.+)"`, 'g')
+        dTagPattern.lastIndex = startPattern.lastIndex
+        const dMatch = dTagPattern.exec(content)
+        if (tIndex >= 0 && dMatch?.length) {
+          tools[tIndex] = {...tools[tIndex], docker: dMatch[1]}
         }
-        if (!headingPattern.exec(html)) {
-          return tool
-        }
-        const platformPattern = new RegExp(
-          `{(?!.*{).*platform_dir="${tool.platform}".*}`,
-          'g'
-        )
-        platformPattern.lastIndex = headingPattern.lastIndex
-        const toolMetaMatch = platformPattern.exec(html)
-        if (!toolMetaMatch?.length) {
-          return tool
-        }
-
-        const dockerMatch = /docker_tag=("|')((?<!\\)\\\1|.)*?\1/.exec(
-          toolMetaMatch[0]
-        )
-        if (!dockerMatch || dockerMatch.length < 3) {
-          return tool
-        }
-
-        return {...tool, docker: dockerMatch[2]}
-      })
-    )
+      }
+    } catch (error) {
+      core.warning(`Skippping development tools docker metadata for "${error}"`)
+    }
+    return tools
   }
 
   async install(data: LinuxToolchainSnapshot) {

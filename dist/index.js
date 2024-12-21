@@ -1305,8 +1305,9 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.LinuxPlatform = void 0;
 const path = __importStar(__nccwpck_require__(6928));
 const fs_1 = __nccwpck_require__(9896);
+const core = __importStar(__nccwpck_require__(7484));
+const glob_1 = __nccwpck_require__(1363);
 const versioned_1 = __nccwpck_require__(7507);
-const version_1 = __nccwpck_require__(191);
 const installer_1 = __nccwpck_require__(1135);
 const const_1 = __nccwpck_require__(6575);
 class LinuxPlatform extends versioned_1.VersionedPlatform {
@@ -1322,45 +1323,34 @@ class LinuxPlatform extends versioned_1.VersionedPlatform {
         return { ...snapshot, download_signature: `${snapshot.download}.sig` };
     }
     async tools(version) {
-        let html;
         const tools = await super.tools(version);
-        return await Promise.all(tools.map(async (tool) => {
-            if (tool.docker) {
-                return tool;
+        try {
+            const vGlob = `${this.version}`.split('').join('*');
+            const index = ['linux', this.name, vGlob, 'index.md'];
+            const doc = path.join('swiftorg', 'install', ...index);
+            const file = (await (0, glob_1.glob)(doc, { absolute: true, cwd: const_1.MODULE_DIR }))[0];
+            if (!file) {
+                return tools;
             }
-            let headingPattern;
-            const match = version_1.SWIFT_BRANCH_REGEX.exec(tool.branch);
-            if (match && match.length > 1) {
-                const ver = match[1];
-                headingPattern = new RegExp(`Swift ${ver}`, 'g');
-                if (tools.some(newTool => newTool.branch.match(`swift-${ver}-release`))) {
-                    return tool;
+            const content = await fs_1.promises.readFile(file, 'utf8');
+            const branchPattern = /branch_dir(.*)="(.+)"/g;
+            const branchResults = content.matchAll(branchPattern);
+            const startPattern = /<\/details>/g; // only search string after this tag
+            startPattern.exec(content);
+            for (const result of branchResults) {
+                const tIndex = tools.findIndex(tool => tool.branch === result[2]);
+                const dTagPattern = new RegExp(`docker_tag${result[1]}="(.+)"`, 'g');
+                dTagPattern.lastIndex = startPattern.lastIndex;
+                const dMatch = dTagPattern.exec(content);
+                if (tIndex >= 0 && dMatch?.length) {
+                    tools[tIndex] = { ...tools[tIndex], docker: dMatch[1] };
                 }
-                if (tools.some(newTool => newTool.branch === tool.branch && newTool.date > tool.date)) {
-                    return tool;
-                }
             }
-            else {
-                headingPattern = /(Trunk Development|\(main\))/g;
-            }
-            if (!html) {
-                html = await this.html();
-            }
-            if (!headingPattern.exec(html)) {
-                return tool;
-            }
-            const platformPattern = new RegExp(`{(?!.*{).*platform_dir="${tool.platform}".*}`, 'g');
-            platformPattern.lastIndex = headingPattern.lastIndex;
-            const toolMetaMatch = platformPattern.exec(html);
-            if (!toolMetaMatch?.length) {
-                return tool;
-            }
-            const dockerMatch = /docker_tag=("|')((?<!\\)\\\1|.)*?\1/.exec(toolMetaMatch[0]);
-            if (!dockerMatch || dockerMatch.length < 3) {
-                return tool;
-            }
-            return { ...tool, docker: dockerMatch[2] };
-        }));
+        }
+        catch (error) {
+            core.warning(`Skippping development tools docker metadata for "${error}"`);
+        }
+        return tools;
     }
     async install(data) {
         const installer = new installer_1.LinuxToolchainInstaller(data);
