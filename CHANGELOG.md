@@ -1,3 +1,10 @@
+## [1.9.1](https://github.com/SwiftyLab/setup-swift/compare/v1.9.0...v1.9.1) (2024-12-27)
+
+
+### 🛠 Build System
+
+* added support for latest swiftorg metadata ([#343](https://github.com/SwiftyLab/setup-swift/issues/343)) ([b876af6](https://github.com/SwiftyLab/setup-swift/commit/b876af6e7ce58194afcab2f3b49a1268154a3797))
+
 ## [1.9.0](https://github.com/SwiftyLab/setup-swift/compare/v1.8.0...v1.9.0) (2024-11-08)
 
 
