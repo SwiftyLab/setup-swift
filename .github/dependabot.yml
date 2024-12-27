@@ -14,6 +14,8 @@ updates:
     commit-message:
       prefix: 'chore(Dependency): '
       prefix-development: 'chore(DevDependency): '
+    ignore:
+      - dependency-name: conventional-changelog-conventionalcommits
 
   - package-ecosystem: devcontainers
     directory: /
