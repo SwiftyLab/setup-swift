@@ -48,7 +48,7 @@
     "semver": "^7.6.2"
   },
   "devDependencies": {
-    "@stylistic/eslint-plugin": "^2.12.1",
+    "@stylistic/eslint-plugin": "^3.0.1",
     "@types/getos": "^3.0.4",
     "@types/jest": "^29.5.14",
     "@types/js-yaml": "^4.0.9",
