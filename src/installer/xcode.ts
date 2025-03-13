@@ -38,6 +38,10 @@ export class XcodeToolchainInstaller extends ToolchainInstaller<XcodeToolchainSn
     const command = this.swiftVersionCommand('')
     const version = await this.installedSwiftVersion(command)
     core.debug(`Found toolchain "${version}" bundled with Xcode ${xcode}`)
+    if (core.getBooleanInput('prefer-oss-toolchain')) {
+      core.debug(`Giving preference to open source toolchain`)
+      return true
+    }
     return this.data.dir !== `swift-${version}-RELEASE`
   }
 

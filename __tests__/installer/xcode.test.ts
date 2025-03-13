@@ -38,6 +38,7 @@ describe('macOS toolchain installation verification', () => {
     const installer = new XcodeToolchainInstaller(toolchain)
     jest.spyOn(fs, 'access').mockResolvedValue()
     jest.spyOn(exec, 'exec').mockResolvedValue(0)
+    jest.spyOn(core, 'getBooleanInput').mockReturnValue(false)
     jest.spyOn(exec, 'getExecOutput').mockResolvedValue({
       exitCode: 0,
       stdout: `swift-driver version: 1.75.2 Apple Swift version 5.8.1 (swiftlang-5.8.0.124.5 clang-1403.0.22.11.100)\nTarget: arm64-apple-macosx13.0`,
@@ -50,6 +51,48 @@ describe('macOS toolchain installation verification', () => {
     await installer.install('aarch64')
     for (const spy of [downloadSpy, extractSpy]) {
       expect(spy).not.toHaveBeenCalled()
+    }
+    expect(installationNeededSpy).toHaveBeenCalled()
+    expect(process.env.DEVELOPER_DIR).toBe(toolchain.xcodePath)
+  })
+
+  it('tests toolchain preinstalled not preferred', async () => {
+    const installer = new XcodeToolchainInstaller(toolchain)
+    const identifier = 'org.swift.581202305171a'
+    jest.spyOn(fs, 'access').mockResolvedValue()
+    jest.spyOn(exec, 'exec').mockResolvedValue(0)
+    jest.spyOn(core, 'getBooleanInput').mockReturnValue(true)
+    jest.spyOn(cache, 'restoreCache').mockResolvedValue(undefined)
+    jest.spyOn(toolCache, 'find').mockReturnValue('')
+    jest.spyOn(cache, 'saveCache').mockResolvedValue(1)
+    jest.spyOn(fs, 'access').mockResolvedValue()
+    jest.spyOn(fs, 'readFile').mockResolvedValue('')
+    jest.spyOn(fs, 'cp').mockResolvedValue()
+    jest.spyOn(plist, 'parse').mockReturnValue({CFBundleIdentifier: identifier})
+    jest.spyOn(exec, 'getExecOutput').mockResolvedValue({
+      exitCode: 0,
+      stdout: `swift-driver version: 1.75.2 Apple Swift version 5.8.1 (swiftlang-5.8.0.124.5 clang-1403.0.22.11.100)\nTarget: arm64-apple-macosx13.0`,
+      stderr: ''
+    })
+    const download = path.resolve('tool', 'download', 'path')
+    const extracted = path.resolve('tool', 'extracted', 'path')
+    const deployed = path.resolve('tool', 'deployed', 'path')
+    const cached = path.resolve('tool', 'cached', 'path')
+    const installationNeededSpy = jest.spyOn(installer, 'isInstallationNeeded')
+    const downloadSpy = jest
+      .spyOn(toolCache, 'downloadTool')
+      .mockResolvedValue(download)
+    const extractXarSpy = jest
+      .spyOn(toolCache, 'extractXar')
+      .mockResolvedValue(extracted)
+    const extractTarSpy = jest
+      .spyOn(toolCache, 'extractTar')
+      .mockResolvedValue(deployed)
+    const cacheSpy = jest.spyOn(toolCache, 'cacheDir').mockResolvedValue(cached)
+    await installer.install('x86_64')
+    await installer.install('aarch64')
+    for (const spy of [downloadSpy, extractXarSpy, extractTarSpy, cacheSpy]) {
+      expect(spy).toHaveBeenCalled()
     }
     expect(installationNeededSpy).toHaveBeenCalled()
     expect(process.env.DEVELOPER_DIR).toBe(toolchain.xcodePath)
@@ -185,6 +228,7 @@ describe('macOS toolchain installation verification', () => {
     jest.spyOn(toolCache, 'find').mockReturnValue('')
     jest.spyOn(fs, 'access').mockResolvedValue()
     jest.spyOn(exec, 'exec').mockResolvedValue(0)
+    jest.spyOn(core, 'getBooleanInput').mockReturnValue(false)
     jest.spyOn(exec, 'getExecOutput').mockResolvedValue({
       exitCode: 0,
       stdout: `swift-driver version: 1.75.2 Apple Swift version 5.8.1 (swiftlang-5.8.0.124.5 clang-1403.0.22.11.100)\nTarget: arm64-apple-macosx13.0`,
