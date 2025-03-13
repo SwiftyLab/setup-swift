@@ -181,7 +181,57 @@ describe('windows toolchain installation verification', () => {
       .mockResolvedValue()
     await installer['add']('')
     expect(setupSpy).toHaveBeenCalled()
-    expect(updateSpy).toHaveBeenCalledWith('root')
+    expect(updateSpy).toHaveBeenCalledWith('root', true)
+  })
+
+  it('tests unpack for failed path matching without additional module setup', async () => {
+    const installer = new WindowsToolchainInstaller({
+      name: 'Windows 10',
+      date: new Date('2023-03-30 10:29:16.000000000 -05:00'),
+      download: 'swift-6.0.2-RELEASE-windows10.exe',
+      download_signature: 'swift-6.0.2-RELEASE-windows10.exe.sig',
+      dir: 'swift-6.0.2-RELEASE',
+      platform: 'windows10',
+      branch: 'swift-6.0.2-release',
+      windows: true,
+      preventCaching: false
+    })
+    const exe = path.resolve('tool', 'downloaded', 'toolchain.exe')
+    process.env.SystemDrive = 'C:'
+    jest.spyOn(exec, 'exec').mockResolvedValue(0)
+    jest
+      .spyOn(exec, 'getExecOutput')
+      .mockResolvedValueOnce({exitCode: 0, stdout: '{}', stderr: ''})
+      .mockResolvedValueOnce({exitCode: 0, stdout: '{"PATH":"a"}', stderr: ''})
+      .mockResolvedValueOnce({exitCode: 0, stdout: '{}', stderr: ''})
+      .mockResolvedValue({
+        exitCode: 0,
+        stdout: `{"SDKROOT":"root","PATH":"a${path.delimiter}b${path.delimiter}c"}`,
+        stderr: ''
+      })
+    jest
+      .spyOn(fs, 'access')
+      .mockRejectedValueOnce(new Error())
+      .mockRejectedValueOnce(new Error())
+      .mockResolvedValue()
+    jest.spyOn(fs, 'cp').mockRejectedValue(new Error())
+    const addPathSpy = jest.spyOn(core, 'addPath')
+    const exportVariableSpy = jest.spyOn(core, 'exportVariable')
+    await expect(installer['unpack'](exe)).resolves.toBe('')
+    expect(addPathSpy).toHaveBeenCalledTimes(2)
+    expect(exportVariableSpy).toHaveBeenCalledTimes(1)
+    expect(addPathSpy.mock.calls).toStrictEqual([['b'], ['c']])
+    expect(exportVariableSpy.mock.calls).toStrictEqual([['SDKROOT', 'root']])
+
+    const setupSpy = jest
+      .spyOn(VisualStudio, 'setup')
+      .mockResolvedValue(visualStudio)
+    const updateSpy = jest
+      .spyOn(VisualStudio.prototype, 'update')
+      .mockResolvedValue()
+    await installer['add']('')
+    expect(setupSpy).toHaveBeenCalled()
+    expect(updateSpy).toHaveBeenCalledWith('root', false)
   })
 
   it('tests add to PATH', async () => {

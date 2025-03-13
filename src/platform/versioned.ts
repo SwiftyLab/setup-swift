@@ -1,5 +1,6 @@
 import * as path from 'path'
 import * as core from '@actions/core'
+import {escapeRegExp} from 'lodash'
 import {Platform} from './base'
 import {ToolchainVersion} from '../version'
 import {ToolchainSnapshot} from '../snapshot'
@@ -35,7 +36,7 @@ export abstract class VersionedPlatform<
   }
 
   private get nameRegex() {
-    return new RegExp(`${this.name}(?<version>[0-9]*)(-.*)?`)
+    return new RegExp(`${escapeRegExp(this.name)}(?<version>[0-9]*)(-.*)?`)
   }
 
   private fallbackPlatformVersion(platforms: string[]) {

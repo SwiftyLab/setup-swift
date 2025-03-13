@@ -24,6 +24,7 @@ export class WindowsToolchainInstaller extends VerifyingToolchainInstaller<Windo
     const providedComponents = componentsStr ? componentsStr.split(';') : []
     return {
       version: '16',
+      swift: this.version,
       components: [
         'Microsoft.VisualStudio.Component.VC.Tools.x86.x64',
         this.winsdk,
@@ -88,8 +89,10 @@ export class WindowsToolchainInstaller extends VerifyingToolchainInstaller<Windo
     }
 
     const visualStudio = await VisualStudio.setup(this.vsRequirement)
-    // FIXME(stevapple): This is no longer required for Swift 5.9+
-    await visualStudio.update(sdkroot)
+    await visualStudio.update(
+      sdkroot,
+      !this.version || semver.lt(this.version, '6.0.0')
+    )
     const swiftFlags = [
       '-sdk',
       sdkroot,

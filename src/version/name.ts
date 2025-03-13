@@ -1,4 +1,5 @@
 import {coerce as parseSemVer} from 'semver'
+import {escapeRegExp} from 'lodash'
 import {ToolchainVersion} from './base'
 
 export const DEVELOPMENT_SNAPSHOT = 'DEVELOPMENT-SNAPSHOT'
@@ -32,7 +33,7 @@ export class ToolchainSnapshotName extends ToolchainVersion {
   }
 
   protected get dirRegex() {
-    return new RegExp(this.dir)
+    return new RegExp(escapeRegExp(this.dir))
   }
 
   toString() {

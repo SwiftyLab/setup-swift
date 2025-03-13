@@ -2,6 +2,7 @@ import * as path from 'path'
 import {promises as fs} from 'fs'
 import * as core from '@actions/core'
 import {glob} from 'glob'
+import {escapeRegExp} from 'lodash'
 import {VersionedPlatform} from './versioned'
 import {ToolchainVersion} from '../version'
 import {LinuxToolchainSnapshot, ToolchainSnapshot} from '../snapshot'
@@ -41,7 +42,10 @@ export class LinuxPlatform extends VersionedPlatform<LinuxToolchainInstaller> {
       startPattern.exec(content)
       for (const result of branchResults) {
         const tIndex = tools.findIndex(tool => tool.branch === result[2])
-        const dTagPattern = new RegExp(`docker_tag${result[1]}="(.+)"`, 'g')
+        const dTagPattern = new RegExp(
+          `docker_tag${escapeRegExp(result[1])}="(.+)"`,
+          'g'
+        )
         dTagPattern.lastIndex = startPattern.lastIndex
         const dMatch = dTagPattern.exec(content)
         if (tIndex >= 0 && dMatch?.length) {
