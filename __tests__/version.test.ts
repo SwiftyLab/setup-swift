@@ -1,3 +1,4 @@
+import {escapeRegExp} from 'lodash'
 import {
   ToolchainVersion,
   SemanticToolchainVersion,
@@ -53,7 +54,7 @@ describe('parse version from provided string', () => {
     expect(version.requiresSwiftOrg).toBe(true)
     const sVersion = version as SemanticToolchainVersion
     expect(sVersion['dirGlob']).toBe('swift-5_0*')
-    expect(sVersion['dirRegex']).toStrictEqual(/swift-5.0/)
+    expect(sVersion['dirRegex']).toStrictEqual(/swift-5\.0/)
   })
 
   it('parses X.0.0 semver', async () => {
@@ -63,7 +64,7 @@ describe('parse version from provided string', () => {
     expect(version.requiresSwiftOrg).toBe(true)
     const sVersion = version as SemanticToolchainVersion
     expect(sVersion['dirGlob']).toBe('swift-5_0-*')
-    expect(sVersion['dirRegex']).toStrictEqual(/swift-5.0-/)
+    expect(sVersion['dirRegex']).toStrictEqual(/swift-5\.0-/)
   })
 
   it('parses X.X semver', async () => {
@@ -73,7 +74,7 @@ describe('parse version from provided string', () => {
     expect(version.requiresSwiftOrg).toBe(true)
     const sVersion = version as SemanticToolchainVersion
     expect(sVersion['dirGlob']).toBe('swift-5_5*')
-    expect(sVersion['dirRegex']).toStrictEqual(/swift-5.5/)
+    expect(sVersion['dirRegex']).toStrictEqual(/swift-5\.5/)
   })
 
   it('parses X.X.0 semver', async () => {
@@ -83,7 +84,7 @@ describe('parse version from provided string', () => {
     expect(version.requiresSwiftOrg).toBe(true)
     const sVersion = version as SemanticToolchainVersion
     expect(sVersion['dirGlob']).toBe('swift-5_5-*')
-    expect(sVersion['dirRegex']).toStrictEqual(/swift-5.5-/)
+    expect(sVersion['dirRegex']).toStrictEqual(/swift-5\.5-/)
   })
 
   it('parses X.X.X semver', async () => {
@@ -93,7 +94,7 @@ describe('parse version from provided string', () => {
     expect(version.requiresSwiftOrg).toBe(true)
     const sVersion = version as SemanticToolchainVersion
     expect(sVersion['dirGlob']).toBe('swift-5_5_1*')
-    expect(sVersion['dirRegex']).toStrictEqual(/swift-5.5.1/)
+    expect(sVersion['dirRegex']).toStrictEqual(/swift-5\.5\.1/)
   })
 
   it('parses toolchain name', async () => {
@@ -116,7 +117,7 @@ describe('parse version from provided string', () => {
     expect(version.requiresSwiftOrg).toBe(true)
     const lVersion = version as ToolchainSnapshotName
     expect(lVersion['dirGlob']).toBe('swift-5_9-*')
-    expect(lVersion['dirRegex']).toStrictEqual(new RegExp(name))
+    expect(lVersion['dirRegex']).toStrictEqual(new RegExp(escapeRegExp(name)))
   })
 
   it('parses toolchain URL', async () => {

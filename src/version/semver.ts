@@ -1,4 +1,5 @@
 import {SemVer} from 'semver'
+import {escapeRegExp} from 'lodash'
 import {ToolchainVersion} from './base'
 
 export class SemanticToolchainVersion extends ToolchainVersion {
@@ -33,7 +34,7 @@ export class SemanticToolchainVersion extends ToolchainVersion {
   }
 
   protected get dirRegex() {
-    return new RegExp(`swift-${this.versionComponent}`)
+    return new RegExp(`swift-${escapeRegExp(this.versionComponent)}`)
   }
 
   toString() {
