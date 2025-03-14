@@ -55,7 +55,7 @@ jobs:
         cache: npm
 
     - name: Cache dependencies
-      uses: actions/cache@v4.2.0
+      uses: actions/cache@v4.2.2
       with:
         key: node-${{ github.ref }}
         path: node_modules
@@ -123,7 +123,7 @@ jobs:
         cache: npm
 
     - name: Cache dependencies
-      uses: actions/cache@v4.2.0
+      uses: actions/cache@v4.2.2
       with:
         key: node-${{ github.ref }}
         path: node_modules
@@ -191,7 +191,7 @@ jobs:
         cache: npm
 
     - name: Cache dependencies
-      uses: actions/cache@v4.2.0
+      uses: actions/cache@v4.2.2
       with:
         key: node-${{ github.ref }}
         path: node_modules
@@ -293,7 +293,7 @@ jobs:
         cache: npm
 
     - name: Cache dependencies
-      uses: actions/cache@v4.2.0
+      uses: actions/cache@v4.2.2
       with:
         key: node-${{ github.ref }}
         path: node_modules
@@ -436,7 +436,7 @@ jobs:
           cache: npm
 
       - name: Cache dependencies
-        uses: actions/cache@v4.2.0
+        uses: actions/cache@v4.2.2
         with:
           key: node-${{ github.ref }}
           path: node_modules
@@ -504,7 +504,7 @@ jobs:
         cache: npm
 
     - name: Cache dependencies
-      uses: actions/cache@v4.2.0
+      uses: actions/cache@v4.2.2
       with:
         key: node-${{ github.ref }}
         path: node_modules
