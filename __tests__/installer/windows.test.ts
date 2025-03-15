@@ -77,6 +77,15 @@ describe('windows toolchain installation verification', () => {
     ])
   })
 
+  it('tests setting up on Windows 11 10.0.26100', async () => {
+    jest.spyOn(os, 'release').mockReturnValue('10.0.26100')
+    const installer = new WindowsToolchainInstaller(toolchain)
+    expect(installer['vsRequirement'].components).toStrictEqual([
+      'Microsoft.VisualStudio.Component.VC.Tools.x86.x64',
+      'Microsoft.VisualStudio.Component.Windows11SDK.22621'
+    ])
+  })
+
   it('tests download without caching', async () => {
     const installer = new WindowsToolchainInstaller(toolchain)
     expect(installer['version']).toStrictEqual(parseSemVer('5.8'))
