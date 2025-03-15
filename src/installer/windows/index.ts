@@ -5,7 +5,7 @@ import * as core from '@actions/core'
 import * as semver from 'semver'
 import {VerifyingToolchainInstaller} from '../verify'
 import {WindowsToolchainSnapshot} from '../../snapshot'
-import {VisualStudio} from '../../utils'
+import {VisualStudio, VISUAL_STUDIO_WINSDK_COMPONENT_REGEX} from '../../utils'
 import {Installation, CustomInstallation} from './installation'
 
 export class WindowsToolchainInstaller extends VerifyingToolchainInstaller<WindowsToolchainSnapshot> {
@@ -22,14 +22,23 @@ export class WindowsToolchainInstaller extends VerifyingToolchainInstaller<Windo
   private get vsRequirement() {
     const componentsStr = core.getInput('visual-studio-components')
     const providedComponents = componentsStr ? componentsStr.split(';') : []
+    const winsdkComponent = providedComponents.find(component => {
+      return (
+        (VISUAL_STUDIO_WINSDK_COMPONENT_REGEX.exec(component)?.length ?? 0) > 1
+      )
+    })
+
+    const vsComponents = [
+      'Microsoft.VisualStudio.Component.VC.Tools.x86.x64',
+      ...providedComponents
+    ]
+    if (!winsdkComponent) {
+      vsComponents.push(this.winsdk)
+    }
     return {
       version: '16',
       swift: this.version,
-      components: [
-        'Microsoft.VisualStudio.Component.VC.Tools.x86.x64',
-        this.winsdk,
-        ...providedComponents
-      ]
+      components: vsComponents
     }
   }
 
@@ -89,10 +98,7 @@ export class WindowsToolchainInstaller extends VerifyingToolchainInstaller<Windo
     }
 
     const visualStudio = await VisualStudio.setup(this.vsRequirement)
-    await visualStudio.update(
-      sdkroot,
-      !this.version || semver.lt(this.version, '6.0.0')
-    )
+    await visualStudio.update(sdkroot)
     const swiftFlags = [
       '-sdk',
       sdkroot,

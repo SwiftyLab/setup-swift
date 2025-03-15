@@ -2,12 +2,16 @@ import * as os from 'os'
 import * as path from 'path'
 import {getExecOutput} from '@actions/exec'
 
+export const VISUAL_STUDIO_WINSDK_COMPONENT_REGEX =
+  /Microsoft\.VisualStudio\.Component\.Windows[0-9]+SDK\.([0-9]+)/
+
 export class VisualStudio {
   private constructor(
     readonly installationPath: string,
     readonly installationVersion: string,
     readonly catalog: VisualStudioCatalog,
-    readonly properties: VisualStudioProperties
+    readonly properties: VisualStudioProperties,
+    readonly components: string[]
   ) {}
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -16,7 +20,8 @@ export class VisualStudio {
       json.installationPath,
       json.installationVersion,
       json.catalog,
-      json.properties
+      json.properties,
+      json.components
     )
   }
 
@@ -28,12 +33,27 @@ export class VisualStudio {
       'Tools',
       'VsDevCmd.bat'
     )
+
+    const args = []
+    const sdkComponentMatch = this.components
+      .map(component => {
+        return VISUAL_STUDIO_WINSDK_COMPONENT_REGEX.exec(component)
+      })
+      .filter(match => {
+        return match && match.length > 1
+      })
+      .at(0)
+    if (sdkComponentMatch) {
+      args.push(`-winsdk=10.0.${sdkComponentMatch[1]}.0`)
+    }
+
     const {stdout} = await getExecOutput(
       'cmd',
       [
         '/k',
         nativeToolsScriptx86,
         `-arch=${os.arch()}`,
+        ...args,
         '&&',
         'set',
         '&&',

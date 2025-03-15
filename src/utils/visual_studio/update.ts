@@ -6,25 +6,18 @@ import {VisualStudio} from './base'
 declare module './base' {
   // eslint-disable-next-line no-shadow
   export interface VisualStudio {
-    update(sdkroot: string, copyModules: boolean): Promise<void>
+    update(sdkroot: string): Promise<void>
   }
 }
 
 /// Update swift version based additional support files setup
-VisualStudio.prototype.update = async function (
-  sdkroot: string,
-  copyModules: boolean
-) {
+VisualStudio.prototype.update = async function (sdkroot: string) {
   const vsEnv = await this.env()
   for (const property in vsEnv) {
     if (vsEnv[property] === process.env[property]) {
       continue
     }
     core.exportVariable(property, vsEnv[property])
-  }
-
-  if (!copyModules) {
-    return
   }
   const universalCRTSdkDir = vsEnv.UniversalCRTSdkDir
   const uCRTVersion = vsEnv.UCRTVersion

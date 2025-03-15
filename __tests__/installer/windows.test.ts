@@ -28,7 +28,11 @@ describe('windows toolchain installation verification', () => {
     catalog: {productDisplayVersion: '17'},
     properties: {
       setupEngineFilePath: path.join('C:', 'Visual Studio', 'setup.exe')
-    }
+    },
+    components: [
+      'Microsoft.VisualStudio.Component.VC.Tools.x86.x64',
+      'Microsoft.VisualStudio.Component.Windows11SDK.22621'
+    ]
   })
   const vsEnvs = [
     `UniversalCRTSdkDir=${path.join('C:', 'Windows Kits')}`,
@@ -46,16 +50,19 @@ describe('windows toolchain installation verification', () => {
   })
 
   it('tests adding additional components', async () => {
+    jest.spyOn(os, 'release').mockReturnValue('10.0.17063')
     jest
       .spyOn(core, 'getInput')
       .mockReturnValue(
         'Microsoft.VisualStudio.Component.VC.ATL;Microsoft.VisualStudio.Component.VC.CMake.Project;Microsoft.VisualStudio.Component.Windows10SDK'
       )
     const installer = new WindowsToolchainInstaller(toolchain)
-    expect(installer['vsRequirement'].components.slice(2)).toStrictEqual([
+    expect(installer['vsRequirement'].components).toStrictEqual([
+      'Microsoft.VisualStudio.Component.VC.Tools.x86.x64',
       'Microsoft.VisualStudio.Component.VC.ATL',
       'Microsoft.VisualStudio.Component.VC.CMake.Project',
-      'Microsoft.VisualStudio.Component.Windows10SDK'
+      'Microsoft.VisualStudio.Component.Windows10SDK',
+      'Microsoft.VisualStudio.Component.Windows10SDK.17763'
     ])
   })
 
@@ -70,6 +77,18 @@ describe('windows toolchain installation verification', () => {
 
   it('tests setting up on Windows 11', async () => {
     jest.spyOn(os, 'release').mockReturnValue('10.0.22621')
+    const installer = new WindowsToolchainInstaller(toolchain)
+    expect(installer['vsRequirement'].components).toStrictEqual([
+      'Microsoft.VisualStudio.Component.VC.Tools.x86.x64',
+      'Microsoft.VisualStudio.Component.Windows11SDK.22621'
+    ])
+  })
+
+  it('tests setting up on Windows 11 with custom SDK', async () => {
+    jest.spyOn(os, 'release').mockReturnValue('10.0.26100')
+    jest
+      .spyOn(core, 'getInput')
+      .mockReturnValue('Microsoft.VisualStudio.Component.Windows11SDK.22621')
     const installer = new WindowsToolchainInstaller(toolchain)
     expect(installer['vsRequirement'].components).toStrictEqual([
       'Microsoft.VisualStudio.Component.VC.Tools.x86.x64',
@@ -181,7 +200,7 @@ describe('windows toolchain installation verification', () => {
       .mockResolvedValue()
     await installer['add']('')
     expect(setupSpy).toHaveBeenCalled()
-    expect(updateSpy).toHaveBeenCalledWith('root', true)
+    expect(updateSpy).toHaveBeenCalledWith('root')
   })
 
   it('tests unpack for failed path matching without additional module setup', async () => {
@@ -231,7 +250,7 @@ describe('windows toolchain installation verification', () => {
       .mockResolvedValue()
     await installer['add']('')
     expect(setupSpy).toHaveBeenCalled()
-    expect(updateSpy).toHaveBeenCalledWith('root', false)
+    expect(updateSpy).toHaveBeenCalledWith('root')
   })
 
   it('tests add to PATH', async () => {
