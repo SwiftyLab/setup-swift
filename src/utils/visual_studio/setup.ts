@@ -35,7 +35,10 @@ VisualStudio.setup = async function (requirement: VisualStudioRequirement) {
     '-version',
     requirement.version
   ])
-  const vs = VisualStudio.createFromJSON(JSON.parse(stdout)[0])
+  const vs = VisualStudio.createFromJSON({
+    ...JSON.parse(stdout)[0],
+    components: requirement.components
+  })
   if (!vs.installationPath) {
     throw new Error(
       `Unable to find any Visual Studio installation for version: ${requirement.version}.`
