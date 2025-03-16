@@ -1,3 +1,16 @@
+## [1.10.0](https://github.com/SwiftyLab/setup-swift/compare/v1.9.1...v1.10.0) (2025-03-16)
+
+
+### 🚀 Features
+
+* added open source toolchain preference option for xcode ([#371](https://github.com/SwiftyLab/setup-swift/issues/371)) ([82838c4](https://github.com/SwiftyLab/setup-swift/commit/82838c4ebecbd5b8f82d98e961b12f47a40b5d82))
+* allow Windows SDK version to be picked up from custom visual studio components ([#372](https://github.com/SwiftyLab/setup-swift/issues/372)) ([d259fc2](https://github.com/SwiftyLab/setup-swift/commit/d259fc2d831e052a607fe0cde0904794b00d985f))
+
+
+### 🐛 Fixes
+
+* remove unnecessary steps for windows ([#370](https://github.com/SwiftyLab/setup-swift/issues/370)) ([382df93](https://github.com/SwiftyLab/setup-swift/commit/382df93eb034bf078e442ec1b88c9cae16faa16b))
+
 ## [1.9.1](https://github.com/SwiftyLab/setup-swift/compare/v1.9.0...v1.9.1) (2024-12-27)
 
 
