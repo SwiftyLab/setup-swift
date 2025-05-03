@@ -52,15 +52,15 @@ export class XcodeToolchainInstaller extends ToolchainInstaller<XcodeToolchainSn
     await super.install(arch)
   }
 
-  protected async download() {
-    const toolchain = await super.download()
+  protected async download(arch: string) {
+    const toolchain = await super.download(arch)
     core.debug(`Checking package signature for "${toolchain}"`)
     await exec('pkgutil', ['--check-signature', toolchain])
     return toolchain
   }
 
-  protected async unpack(pkg: string) {
-    core.debug(`Extracting toolchain from "${pkg}"`)
+  protected async unpack(pkg: string, arch: string) {
+    core.debug(`Extracting toolchain from "${pkg}" for architecture ${arch}`)
     const unpackedPath = await toolCache.extractXar(pkg)
     core.debug(`Toolchain unpacked to "${unpackedPath}"`)
     const pkgFile = this.data.download
@@ -71,7 +71,7 @@ export class XcodeToolchainInstaller extends ToolchainInstaller<XcodeToolchainSn
     return extractedPath
   }
 
-  protected async add(toolchain: string) {
+  protected async add(toolchain: string, arch: string) {
     const xctoolchains = path.join('/Library', 'Developer', 'Toolchains')
     try {
       await fs.access(xctoolchains)
@@ -95,7 +95,7 @@ export class XcodeToolchainInstaller extends ToolchainInstaller<XcodeToolchainSn
     core.debug(`Adding toolchain "${toolchain}" to path`)
     const swiftPath = path.join(toolchain, 'usr', 'bin')
     core.addPath(swiftPath)
-    core.debug(`Swift installed at "${swiftPath}"`)
+    core.debug(`Swift installed for architecture ${arch} at "${swiftPath}"`)
     const infoPlist = await fs.readFile(
       path.join(toolchain, 'Info.plist'),
       'utf-8'

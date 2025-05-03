@@ -43,10 +43,10 @@ export class LinuxToolchainInstaller extends VerifyingToolchainInstaller<LinuxTo
     }
   }
 
-  protected async download() {
+  protected async download(arch: string) {
     const [, archive] = await Promise.all([
       this.installDependencies(),
-      super.download()
+      super.download(arch)
     ])
     return archive
   }

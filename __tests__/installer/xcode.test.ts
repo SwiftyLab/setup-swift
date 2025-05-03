@@ -112,7 +112,7 @@ describe('macOS toolchain installation verification', () => {
     jest.spyOn(cache, 'saveCache').mockResolvedValue(1)
     jest.spyOn(toolCache, 'downloadTool').mockResolvedValue(download)
     jest.spyOn(exec, 'exec').mockResolvedValue(0)
-    await expect(installer['download']()).resolves.toBe(download)
+    await expect(installer['download']('x86_64')).resolves.toBe(download)
   })
 
   it('tests unpack', async () => {
@@ -123,7 +123,9 @@ describe('macOS toolchain installation verification', () => {
     jest.spyOn(toolCache, 'extractXar').mockResolvedValue(extracted)
     jest.spyOn(toolCache, 'extractTar').mockResolvedValue(deployed)
     jest.spyOn(exec, 'exec').mockResolvedValue(0)
-    await expect(installer['unpack'](download)).resolves.toBe(deployed)
+    await expect(installer['unpack'](download, 'x86_64')).resolves.toBe(
+      deployed
+    )
   })
 
   it('tests add to PATH', async () => {
@@ -135,7 +137,7 @@ describe('macOS toolchain installation verification', () => {
     jest.spyOn(fs, 'readFile').mockResolvedValue('')
     jest.spyOn(plist, 'parse').mockReturnValue({CFBundleIdentifier: identifier})
     const swiftPath = path.join(deployed, 'usr', 'bin')
-    await installer['add'](deployed)
+    await installer['add'](deployed, 'x86_64')
     expect(process.env.PATH?.includes(swiftPath)).toBeTruthy()
     expect(process.env.TOOLCHAINS).toBe(identifier)
   })
