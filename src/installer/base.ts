@@ -63,8 +63,8 @@ export abstract class ToolchainInstaller<Snapshot extends ToolchainSnapshot> {
         tool = restore
         actionCacheHit = true
       } else {
-        const resource = await this.download()
-        const installation = await this.unpack(resource)
+        const resource = await this.download(arch)
+        const installation = await this.unpack(resource, arch)
         core.debug(`Downloaded and installed snapshot at "${installation}"`)
         tool = installation
       }
@@ -95,17 +95,17 @@ export abstract class ToolchainInstaller<Snapshot extends ToolchainSnapshot> {
       await cache.saveCache([restore], actionCacheKey)
       core.debug(`Saved to cache with key "${actionCacheKey}"`)
     }
-    await this.add(tool)
+    await this.add(tool, arch)
   }
 
-  protected async download() {
+  protected async download(arch: string) {
     const url = path.posix.join(this.baseUrl?.href, this.data.download)
-    core.debug(`Downloading snapshot from "${url}"`)
+    core.debug(`Downloading snapshot from "${url}" for architecture ${arch}`)
     return await toolCache.downloadTool(url)
   }
 
-  protected abstract unpack(resource: string): Promise<string>
-  protected abstract add(installation: string): Promise<void>
+  protected abstract unpack(resource: string, arch: string): Promise<string>
+  protected abstract add(installation: string, arch: string): Promise<void>
 
   async installedSwiftVersion(command?: {bin: string; args: string[]}) {
     const {bin, args} = command ?? this.swiftVersionCommand()

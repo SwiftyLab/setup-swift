@@ -30,7 +30,7 @@ export abstract class VerifyingToolchainInstaller<
     }
   }
 
-  protected async download() {
+  protected async download(arch: string) {
     const sigUrl = this.signatureUrl
     async function setupKeys() {
       if (sigUrl) {
@@ -41,7 +41,7 @@ export abstract class VerifyingToolchainInstaller<
     core.debug(`Downloading snapshot signature from "${sigUrl}"`)
     const [, toolchain, signature] = await Promise.all([
       setupKeys(),
-      super.download(),
+      super.download(arch),
       this.downloadSignature()
     ])
     if (signature) {

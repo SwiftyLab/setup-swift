@@ -57,7 +57,7 @@ describe('windows toolchain installation verification', () => {
         'Microsoft.VisualStudio.Component.VC.ATL;Microsoft.VisualStudio.Component.VC.CMake.Project;Microsoft.VisualStudio.Component.Windows10SDK'
       )
     const installer = new WindowsToolchainInstaller(toolchain)
-    expect(installer['vsRequirement'].components).toStrictEqual([
+    expect(installer['vsRequirement']('x86_64').components).toStrictEqual([
       'Microsoft.VisualStudio.Component.VC.Tools.x86.x64',
       'Microsoft.VisualStudio.Component.VC.ATL',
       'Microsoft.VisualStudio.Component.VC.CMake.Project',
@@ -69,8 +69,17 @@ describe('windows toolchain installation verification', () => {
   it('tests setting up on Windows 10', async () => {
     jest.spyOn(os, 'release').mockReturnValue('10.0.17063')
     const installer = new WindowsToolchainInstaller(toolchain)
-    expect(installer['vsRequirement'].components).toStrictEqual([
+    expect(installer['vsRequirement']('x86_64').components).toStrictEqual([
       'Microsoft.VisualStudio.Component.VC.Tools.x86.x64',
+      'Microsoft.VisualStudio.Component.Windows10SDK.17763'
+    ])
+  })
+
+  it('tests setting up on ARM64 Windows 10', async () => {
+    jest.spyOn(os, 'release').mockReturnValue('10.0.17063')
+    const installer = new WindowsToolchainInstaller(toolchain)
+    expect(installer['vsRequirement']('aarch64').components).toStrictEqual([
+      'Microsoft.VisualStudio.Component.VC.Tools.ARM64',
       'Microsoft.VisualStudio.Component.Windows10SDK.17763'
     ])
   })
@@ -78,7 +87,7 @@ describe('windows toolchain installation verification', () => {
   it('tests setting up on Windows 11', async () => {
     jest.spyOn(os, 'release').mockReturnValue('10.0.22621')
     const installer = new WindowsToolchainInstaller(toolchain)
-    expect(installer['vsRequirement'].components).toStrictEqual([
+    expect(installer['vsRequirement']('x86_64').components).toStrictEqual([
       'Microsoft.VisualStudio.Component.VC.Tools.x86.x64',
       'Microsoft.VisualStudio.Component.Windows11SDK.22621'
     ])
@@ -90,9 +99,28 @@ describe('windows toolchain installation verification', () => {
       .spyOn(core, 'getInput')
       .mockReturnValue('Microsoft.VisualStudio.Component.Windows11SDK.22621')
     const installer = new WindowsToolchainInstaller(toolchain)
-    expect(installer['vsRequirement'].components).toStrictEqual([
+    expect(installer['vsRequirement']('x86_64').components).toStrictEqual([
       'Microsoft.VisualStudio.Component.VC.Tools.x86.x64',
       'Microsoft.VisualStudio.Component.Windows11SDK.22621'
+    ])
+  })
+
+  it('tests setting up on Windows 10 with Windows 11 SDK', async () => {
+    jest.spyOn(os, 'release').mockReturnValue('10.0.17063')
+    const toolchain = {
+      name: 'Windows 10 Swift Development Snapshot',
+      date: new Date('2025-04-03 10:10:00-06:00'),
+      download: 'swift-DEVELOPMENT-SNAPSHOT-2025-04-03-a-windows10.exe',
+      dir: 'swift-DEVELOPMENT-SNAPSHOT-2025-04-03-a',
+      platform: 'windows10',
+      branch: 'development',
+      windows: true,
+      preventCaching: false
+    }
+    const installer = new WindowsToolchainInstaller(toolchain)
+    expect(installer['vsRequirement']('aarch64').components).toStrictEqual([
+      'Microsoft.VisualStudio.Component.VC.Tools.ARM64',
+      'Microsoft.VisualStudio.Component.Windows11SDK.22000'
     ])
   })
 
@@ -118,7 +146,9 @@ describe('windows toolchain installation verification', () => {
     const cacheSpy = jest.spyOn(cache, 'saveCache').mockResolvedValue(1)
     jest.spyOn(toolCache, 'downloadTool').mockResolvedValue(download)
     jest.spyOn(exec, 'exec').mockResolvedValue(0)
-    await expect(installer['download']()).resolves.toBe(`${download}.exe`)
+    await expect(installer['download']('x86_64')).resolves.toBe(
+      `${download}.exe`
+    )
     expect(cacheSpy).not.toHaveBeenCalled()
   })
 
@@ -138,7 +168,7 @@ describe('windows toolchain installation verification', () => {
     jest.spyOn(fs, 'access').mockResolvedValue()
     jest.spyOn(fs, 'cp').mockResolvedValue()
     const toolPath = path.join(process.env.SystemDrive, 'Library')
-    await expect(installer['unpack'](exe)).resolves.toBe(toolPath)
+    await expect(installer['unpack'](exe, 'x86_64')).resolves.toBe(toolPath)
   })
 
   it('tests unpack for development snapshots', async () => {
@@ -160,7 +190,7 @@ describe('windows toolchain installation verification', () => {
       'Program Files',
       'Swift'
     )
-    await expect(installer['unpack'](exe)).resolves.toBe(toolPath)
+    await expect(installer['unpack'](exe, 'x86_64')).resolves.toBe(toolPath)
   })
 
   it('tests unpack for failed path matching', async () => {
@@ -186,7 +216,7 @@ describe('windows toolchain installation verification', () => {
     jest.spyOn(fs, 'cp').mockRejectedValue(new Error())
     const addPathSpy = jest.spyOn(core, 'addPath')
     const exportVariableSpy = jest.spyOn(core, 'exportVariable')
-    await expect(installer['unpack'](exe)).resolves.toBe('')
+    await expect(installer['unpack'](exe, 'x86_64')).resolves.toBe('')
     expect(addPathSpy).toHaveBeenCalledTimes(2)
     expect(exportVariableSpy).toHaveBeenCalledTimes(1)
     expect(addPathSpy.mock.calls).toStrictEqual([['b'], ['c']])
@@ -198,7 +228,7 @@ describe('windows toolchain installation verification', () => {
     const updateSpy = jest
       .spyOn(VisualStudio.prototype, 'update')
       .mockResolvedValue()
-    await installer['add']('')
+    await installer['add']('', 'x86_64')
     expect(setupSpy).toHaveBeenCalled()
     expect(updateSpy).toHaveBeenCalledWith('root')
   })
@@ -236,7 +266,7 @@ describe('windows toolchain installation verification', () => {
     jest.spyOn(fs, 'cp').mockRejectedValue(new Error())
     const addPathSpy = jest.spyOn(core, 'addPath')
     const exportVariableSpy = jest.spyOn(core, 'exportVariable')
-    await expect(installer['unpack'](exe)).resolves.toBe('')
+    await expect(installer['unpack'](exe, 'x86_64')).resolves.toBe('')
     expect(addPathSpy).toHaveBeenCalledTimes(2)
     expect(exportVariableSpy).toHaveBeenCalledTimes(1)
     expect(addPathSpy.mock.calls).toStrictEqual([['b'], ['c']])
@@ -248,7 +278,7 @@ describe('windows toolchain installation verification', () => {
     const updateSpy = jest
       .spyOn(VisualStudio.prototype, 'update')
       .mockResolvedValue()
-    await installer['add']('')
+    await installer['add']('', 'x86_64')
     expect(setupSpy).toHaveBeenCalled()
     expect(updateSpy).toHaveBeenCalledWith('root')
   })
@@ -285,7 +315,7 @@ describe('windows toolchain installation verification', () => {
     const swiftPath = path.join(toolPath, 'usr', 'bin')
     const swiftDev = path.join(installation, 'Swift-development', 'bin')
     const icu67 = path.join(installation, 'icu-67', 'usr', 'bin')
-    await installer['add'](installation)
+    await installer['add'](installation, 'x86_64')
     expect(process.env.PATH?.includes(swiftPath)).toBeTruthy()
     expect(process.env.PATH?.includes(swiftDev)).toBeTruthy()
     expect(process.env.PATH?.includes(icu67)).toBeTruthy()

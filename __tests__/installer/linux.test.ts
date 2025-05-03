@@ -48,7 +48,7 @@ describe('linux toolchain installation verification', () => {
     jest.spyOn(cache, 'saveCache').mockResolvedValue(1)
     jest.spyOn(toolCache, 'downloadTool').mockResolvedValue(download)
     jest.spyOn(exec, 'exec').mockResolvedValue(0)
-    await expect(installer['download']()).resolves.toBe(download)
+    await expect(installer['download']('x86_64')).resolves.toBe(download)
   })
 
   it('tests unpack', async () => {

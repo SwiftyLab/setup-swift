@@ -10,8 +10,10 @@ import {Installation, CustomInstallation} from './installation'
 
 export class WindowsToolchainInstaller extends VerifyingToolchainInstaller<WindowsToolchainSnapshot> {
   private get winsdk() {
-    const recommended = '10.0.17763'
     const win11Semver = '10.0.22000'
+    const recommended = semver.gte(this.version ?? '6.2.0', '6.2.0')
+      ? win11Semver
+      : '10.0.17763'
     const current = os.release()
     const version = semver.gte(current, recommended) ? current : recommended
     const major = semver.lt(version, win11Semver) ? semver.major(version) : 11
@@ -19,7 +21,7 @@ export class WindowsToolchainInstaller extends VerifyingToolchainInstaller<Windo
     return `Microsoft.VisualStudio.Component.Windows${major}SDK.${minor}`
   }
 
-  private get vsRequirement() {
+  private vsRequirement(arch: string) {
     const componentsStr = core.getInput('visual-studio-components')
     const providedComponents = componentsStr ? componentsStr.split(';') : []
     const winsdkComponent = providedComponents.find(component => {
@@ -29,7 +31,7 @@ export class WindowsToolchainInstaller extends VerifyingToolchainInstaller<Windo
     })
 
     const vsComponents = [
-      'Microsoft.VisualStudio.Component.VC.Tools.x86.x64',
+      `Microsoft.VisualStudio.Component.VC.Tools.${arch == 'aarch64' ? 'ARM64' : 'x86.x64'}`,
       ...providedComponents
     ]
     if (!winsdkComponent) {
@@ -42,11 +44,13 @@ export class WindowsToolchainInstaller extends VerifyingToolchainInstaller<Windo
     }
   }
 
-  protected async download() {
-    core.debug(`Using VS requirement ${JSON.stringify(this.vsRequirement)}`)
+  protected async download(arch: string) {
+    core.debug(
+      `Using VS requirement ${JSON.stringify(this.vsRequirement(arch))}`
+    )
     const [, toolchain] = await Promise.all([
-      VisualStudio.setup(this.vsRequirement),
-      super.download()
+      VisualStudio.setup(this.vsRequirement(arch)),
+      super.download(arch)
     ])
     const exeFile = `${toolchain}.exe`
     await fs.rename(toolchain, exeFile)
@@ -54,12 +58,13 @@ export class WindowsToolchainInstaller extends VerifyingToolchainInstaller<Windo
     return exeFile
   }
 
-  protected async unpack(exe: string) {
+  protected async unpack(exe: string, arch: string) {
+    core.debug(`Unpacking for architecture "${arch}"`)
     const installation = await Installation.install(exe)
     return installation instanceof Installation ? installation.location : ''
   }
 
-  protected async add(installLocation: string) {
+  protected async add(installLocation: string, arch: string) {
     const installation = await Installation.get(installLocation)
     const sdkrootKey = 'SDKROOT'
     let sdkroot: string | undefined
@@ -97,7 +102,7 @@ export class WindowsToolchainInstaller extends VerifyingToolchainInstaller<Windo
       return
     }
 
-    const visualStudio = await VisualStudio.setup(this.vsRequirement)
+    const visualStudio = await VisualStudio.setup(this.vsRequirement(arch))
     await visualStudio.update(sdkroot)
     const swiftFlags = [
       '-sdk',
