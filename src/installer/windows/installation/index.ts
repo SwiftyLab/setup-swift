@@ -7,6 +7,7 @@ import {env, fallback} from './fallback'
 declare module './base' {
   // eslint-disable-next-line no-shadow, @typescript-eslint/no-namespace
   export namespace Installation {
+    let lastInstallation: Installation | CustomInstallation
     export function get(
       install?: string
     ): Promise<Installation | CustomInstallation | undefined>
@@ -20,9 +21,9 @@ declare module './base' {
   }
 }
 
-Installation.get = async (install?: string) => {
+Installation.get = async function (install?: string) {
   if (!(install?.length ?? 1)) {
-    return lastInstallation
+    return this.lastInstallation
   }
 
   const approaches = [
@@ -47,14 +48,13 @@ Installation.get = async (install?: string) => {
   return undefined
 }
 
-let lastInstallation: Installation | CustomInstallation
-Installation.install = async (exe: string) => {
+Installation.install = async function (exe: string) {
   core.debug(`Installing toolchain from "${exe}"`)
   const oldEnv = await env()
   await exec(`"${exe}"`, ['-q'])
   const newEnv = await env()
-  lastInstallation = await Installation.detect(oldEnv, newEnv)
-  return lastInstallation
+  this.lastInstallation = await Installation.detect(oldEnv, newEnv)
+  return this.lastInstallation
 }
 
 Installation.detect = async (

@@ -9,6 +9,8 @@ export class VisualStudio {
   private constructor(
     readonly installationPath: string,
     readonly installationVersion: string,
+    readonly productId: string,
+    readonly channelId: string,
     readonly catalog: VisualStudioCatalog,
     readonly properties: VisualStudioProperties,
     readonly components: string[]
@@ -19,10 +21,25 @@ export class VisualStudio {
     return new VisualStudio(
       json.installationPath,
       json.installationVersion,
+      json.productId,
+      json.channelId,
       json.catalog,
       json.properties,
       json.components
     )
+  }
+
+  get defaultOptions() {
+    return [
+      '--productId',
+      this.productId,
+      '--channelId',
+      this.channelId,
+      '--installPath',
+      this.installationPath,
+      '--noUpdateInstaller',
+      '--quiet'
+    ]
   }
 
   async env() {
@@ -91,4 +108,50 @@ export interface VisualStudioEnv {
   readonly UCRTVersion?: string
   readonly VCToolsInstallDir?: string
   readonly [name: string]: string | undefined
+}
+
+/**
+ * Represents the structure of a Visual Studio .vsconfig file
+ */
+export interface VisualStudioConfig {
+  /**
+   * The version of the .vsconfig file format
+   */
+  version: string
+
+  /**
+   * List of workloads and components to be installed
+   */
+  components: string[]
+
+  /**
+   * Optional installation channel URI
+   * Example: https://aka.ms/vs/17/release/channel
+   */
+  installChannelUri?: string
+
+  /**
+   * Runtime components to be installed (e.g., .NET Core, ASP.NET Core runtimes)
+   */
+  runtimeComponents?: string[]
+
+  /**
+   * Installation-related properties
+   */
+  properties?: {
+    /**
+     * A custom name for the configuration
+     */
+    nickname?: string
+
+    /**
+     * Channel ID to use for installation, e.g., VisualStudio.17.Release
+     */
+    channelId?: string
+
+    /**
+     * Installation path for Visual Studio
+     */
+    installPath?: string
+  }
 }
