@@ -15,9 +15,11 @@ export abstract class VerifyingToolchainInstaller<
 
   private async downloadSignature() {
     try {
-      return this.signatureUrl
-        ? await toolCache.downloadTool(this.signatureUrl)
-        : undefined
+      if (this.signatureUrl) {
+        core.debug(`Downloading snapshot signature from "${this.signatureUrl}"`)
+        return await toolCache.downloadTool(this.signatureUrl)
+      }
+      return undefined
     } catch (error) {
       if (
         error instanceof toolCache.HTTPError &&
@@ -32,18 +34,14 @@ export abstract class VerifyingToolchainInstaller<
 
   protected async download(arch: string) {
     const sigUrl = this.signatureUrl
+    const signature = await this.downloadSignature()
     async function setupKeys() {
-      if (sigUrl) {
+      if (sigUrl && signature) {
         await gpg.setupKeys()
       }
     }
 
-    core.debug(`Downloading snapshot signature from "${sigUrl}"`)
-    const [, toolchain, signature] = await Promise.all([
-      setupKeys(),
-      super.download(arch),
-      this.downloadSignature()
-    ])
+    const [, toolchain] = await Promise.all([setupKeys(), super.download(arch)])
     if (signature) {
       await gpg.verify(signature, toolchain)
     }
