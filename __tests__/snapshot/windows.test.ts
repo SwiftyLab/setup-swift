@@ -185,4 +185,22 @@ describe('fetch windows tool data based on options', () => {
     expect(tool.dir).toBe(name)
     expect(tool.branch).toBe('swiftwasm')
   })
+
+  it('fetches windows 11 arm64 latest swift 6.0.0 tool', async () => {
+    setos({os: 'win32', dist: 'Windows', release: '10.0.26100'})
+    jest.spyOn(os, 'arch').mockReturnValue('arm64')
+    const ver6_0_0 = ToolchainVersion.create('6.0.0', false)
+    const tool = await Platform.toolchain(ver6_0_0)
+    expect(tool).toBeTruthy()
+    const wTool = tool as WindowsToolchainSnapshot
+    expect(wTool.download).toBe('swift-6.0-RELEASE-windows10-arm64.exe')
+    expect(wTool.dir).toBe('swift-6.0-RELEASE')
+    expect(wTool.platform).toBe('windows10-arm64')
+    expect(wTool.branch).toBe('swift-6.0-release')
+    expect(wTool.download_signature).toBe(
+      'swift-6.0-RELEASE-windows10-arm64.exe.sig'
+    )
+    expect(wTool.docker).toBe('6.0-windowsservercore-ltsc2022')
+    expect(wTool.preventCaching).toBe(false)
+  })
 })

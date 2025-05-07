@@ -28,19 +28,7 @@ declare module './base' {
 }
 
 Platform.currentPlatform = async () => {
-  let arch: string
-  switch (os.arch()) {
-    case 'x64':
-      arch = 'x86_64'
-      break
-    case 'arm64':
-      arch = 'aarch64'
-      break
-    default:
-      arch = os.arch()
-      break
-  }
-
+  const arch = os.arch()
   const _os: getos.Os = await new Promise((resolve, reject) => {
     getos((e, o) => {
       if (e) {

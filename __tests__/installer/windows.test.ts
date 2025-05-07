@@ -78,7 +78,7 @@ describe('windows toolchain installation verification', () => {
   it('tests setting up on ARM64 Windows 10', async () => {
     jest.spyOn(os, 'release').mockReturnValue('10.0.17063')
     const installer = new WindowsToolchainInstaller(toolchain)
-    expect(installer['vsRequirement']('aarch64').components).toStrictEqual([
+    expect(installer['vsRequirement']('arm64').components).toStrictEqual([
       'Microsoft.VisualStudio.Component.VC.Tools.ARM64',
       'Microsoft.VisualStudio.Component.Windows10SDK.17763'
     ])
@@ -118,7 +118,7 @@ describe('windows toolchain installation verification', () => {
       preventCaching: false
     }
     const installer = new WindowsToolchainInstaller(toolchain)
-    expect(installer['vsRequirement']('aarch64').components).toStrictEqual([
+    expect(installer['vsRequirement']('arm64').components).toStrictEqual([
       'Microsoft.VisualStudio.Component.VC.Tools.ARM64',
       'Microsoft.VisualStudio.Component.Windows11SDK.22000'
     ])

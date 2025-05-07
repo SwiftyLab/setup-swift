@@ -346,7 +346,7 @@ jobs:
       COMPOSITE: ./.ref-download-test
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest, ubuntu-24.04-arm]
+        os: [ubuntu-latest, macos-latest, windows-latest, ubuntu-24.04-arm, windows-11-arm]
     steps:
     - name: Setup wrapper composite action at ${{ env.COMPOSITE }}
       uses: actions/github-script@v7
