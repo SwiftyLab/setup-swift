@@ -10,6 +10,24 @@ import {LinuxToolchainInstaller} from '../installer'
 import {MODULE_DIR} from '../const'
 
 export class LinuxPlatform extends VersionedPlatform<LinuxToolchainInstaller> {
+  constructor(
+    readonly name: string,
+    readonly version: number,
+    readonly arch: string
+  ) {
+    switch (arch) {
+      case 'x64':
+        arch = 'x86_64'
+        break
+      case 'arm64':
+        arch = 'aarch64'
+        break
+      default:
+        break
+    }
+    super(name, version, arch)
+  }
+
   protected get downloadExtension() {
     return 'tar.gz'
   }

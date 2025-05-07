@@ -6,6 +6,16 @@ import {XcodeToolchainInstaller} from '../installer'
 
 export class XcodePlatform extends Platform<XcodeToolchainInstaller> {
   constructor(readonly arch: string) {
+    switch (arch) {
+      case 'x64':
+        arch = 'x86_64'
+        break
+      case 'arm64':
+        arch = 'aarch64'
+        break
+      default:
+        break
+    }
     super()
   }
 

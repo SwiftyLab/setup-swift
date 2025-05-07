@@ -31,7 +31,7 @@ export class WindowsToolchainInstaller extends VerifyingToolchainInstaller<Windo
     })
 
     const vsComponents = [
-      `Microsoft.VisualStudio.Component.VC.Tools.${arch == 'aarch64' ? 'ARM64' : 'x86.x64'}`,
+      `Microsoft.VisualStudio.Component.VC.Tools.${arch == 'arm64' ? 'ARM64' : 'x86.x64'}`,
       ...providedComponents
     ]
     if (!winsdkComponent) {
