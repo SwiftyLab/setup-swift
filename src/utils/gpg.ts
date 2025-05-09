@@ -15,6 +15,7 @@ export async function setupKeys() {
       '--keyserver',
       'hkp://keyserver.ubuntu.com',
       '--recv-keys',
+      '52BB 7E3D E28A 71BE 22EC  05FF EF80 A866 B47A 981F',
       '7463 A81A 4B2E EA1B 551F  FBCF D441 C977 412B 37AD',
       '1BE1 E29A 084C B305 F397  D62A 9F59 7F4D 21A5 6D5F',
       'A3BA FD35 56A5 9079 C068  94BD 63BC 1CFE 91D3 06C6',

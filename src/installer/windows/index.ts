@@ -30,8 +30,20 @@ export class WindowsToolchainInstaller extends VerifyingToolchainInstaller<Windo
       )
     })
 
+    let compArch: string
+    switch (arch) {
+      case 'arm64':
+      case 'arm':
+      case 'arm64ec':
+        compArch = arch.toUpperCase()
+        break
+      default:
+        compArch = 'x86.x64'
+        break
+    }
+
     const vsComponents = [
-      `Microsoft.VisualStudio.Component.VC.Tools.${arch == 'arm64' ? 'ARM64' : 'x86.x64'}`,
+      `Microsoft.VisualStudio.Component.VC.Tools.${compArch}`,
       ...providedComponents
     ]
     if (!winsdkComponent) {

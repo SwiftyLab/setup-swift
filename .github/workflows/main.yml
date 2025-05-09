@@ -8,6 +8,10 @@ on:
     - cron: '0 0 * * *'
   workflow_dispatch:
     inputs:
+      swiftorg:
+        description: Swiftorg commit
+        required: false
+        type: string
       release:
         description: Create release?
         required: false
@@ -63,7 +67,7 @@ jobs:
     - name: Setup npm pacakges
       run: npm install --legacy-peer-deps
       env:
-        SETUPSWIFT_SWIFTORG_METADATA: ${{ github.event_name == 'schedule' && '{"commit":"HEAD"}' }}
+        SETUPSWIFT_SWIFTORG_METADATA: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.swiftorg != '' && format('{"commit":"{0}}"}',  github.event.inputs.swiftorg) || github.event_name == 'workflow_dispatch' && github.event.inputs.swiftorg == 'true' || github.event_name == 'schedule' && '{"commit":"HEAD"}' }}
 
     - name: Check latest swift.org
       id: swift-org
