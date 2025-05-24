@@ -1,3 +1,20 @@
+## [1.11.0](https://github.com/SwiftyLab/setup-swift/compare/v1.10.0...v1.11.0) (2025-05-24)
+
+
+### 🚀 Features
+
+* added Windows ARM64 runner support ([#385](https://github.com/SwiftyLab/setup-swift/issues/385)) ([a3015e0](https://github.com/SwiftyLab/setup-swift/commit/a3015e0f55b941df2ecaa28d645ca65c2c1c6816))
+
+
+### 🐎 Performance Improvements
+
+* improved gpg verification for new windows toolchains ([edebf76](https://github.com/SwiftyLab/setup-swift/commit/edebf7684af159825eb39b203d519468a74e7332))
+
+
+### 🔥 Refactorings
+
+* updated Visual Studio setup process for required components installation ([9f87bba](https://github.com/SwiftyLab/setup-swift/commit/9f87bba99fb20035b2229259fd76586128844afb))
+
 ## [1.10.0](https://github.com/SwiftyLab/setup-swift/compare/v1.9.1...v1.10.0) (2025-03-16)
 
 
