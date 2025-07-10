@@ -172,9 +172,6 @@ jobs:
         - os: windows-latest
           swift: '5.9' # 2nd installation approach
           development: false
-        - os: windows-2019
-          swift: '5.3'
-          development: false
         - os: ubuntu-latest
           swift: '5.3.0' # oldest
           development: false
