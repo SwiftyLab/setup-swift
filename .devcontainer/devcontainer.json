@@ -1,12 +1,9 @@
 {
     "image": "mcr.microsoft.com/devcontainers/universal:2",
-    "features": {
-        "ghcr.io/devcontainers-contrib/features/jest:2": {}
-    },
     "customizations": {
         "vscode": {
             "settings": {
-                "jest.autoRun": "off"
+                "jest.runMode": "on-demand"
             },
             "extensions": [
                 "eamodio.gitlens",
