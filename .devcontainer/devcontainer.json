@@ -2,9 +2,6 @@
     "image": "mcr.microsoft.com/devcontainers/universal:2",
     "customizations": {
         "vscode": {
-            "settings": {
-                "jest.runMode": "on-demand"
-            },
             "extensions": [
                 "eamodio.gitlens",
                 "ms-vscode.vscode-typescript-next",

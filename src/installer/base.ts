@@ -28,8 +28,12 @@ export abstract class ToolchainInstaller<Snapshot extends ToolchainSnapshot> {
     if (data.baseUrl) {
       return data.baseUrl
     }
+
     const base = 'https://download.swift.org'
-    return new URL(path.posix.join(base, data.branch, data.platform, data.dir))
+    return new URL(
+      path.posix.join('/', data.branch, data.platform, data.dir),
+      base
+    )
   }
 
   protected swiftVersionCommand() {
@@ -99,9 +103,12 @@ export abstract class ToolchainInstaller<Snapshot extends ToolchainSnapshot> {
   }
 
   protected async download(arch: string) {
-    const url = path.posix.join(this.baseUrl?.href, this.data.download)
+    const url = new URL(
+      path.posix.join(this.baseUrl.pathname, this.data.download),
+      this.baseUrl
+    )
     core.debug(`Downloading snapshot from "${url}" for architecture ${arch}`)
-    return await toolCache.downloadTool(url)
+    return await toolCache.downloadTool(url.href)
   }
 
   protected abstract unpack(resource: string, arch: string): Promise<string>
