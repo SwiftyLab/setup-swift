@@ -1,14 +1,16 @@
 import * as core from '@actions/core'
 import {ToolchainVersion, SWIFT_BRANCH_REGEX} from './version'
 import {Swiftorg} from './swiftorg'
-import {ToolchainSnapshot} from './snapshot'
+import {SdkSnapshot, ToolchainSnapshot} from './snapshot'
 import {Platform} from './platform'
 
 export async function run() {
   try {
     const requestedVersion = core.getInput('swift-version') ?? 'latest'
     const development = core.getBooleanInput('development')
-    const version = ToolchainVersion.create(requestedVersion, development)
+    const sdksStr = core.getInput('sdks')
+    const sdks = sdksStr ? sdksStr.split(';') : []
+    const version = ToolchainVersion.create(requestedVersion, development, sdks)
 
     if (version.requiresSwiftOrg) {
       core.startGroup('Syncing swift.org data')
@@ -20,6 +22,7 @@ export async function run() {
 
     const dryRun = core.getBooleanInput('dry-run')
     let snapshot: ToolchainSnapshot
+    let sdkSnapshots: SdkSnapshot[]
     let installedVersion: string
     if (dryRun) {
       const toolchain = await Platform.toolchain(version)
@@ -34,13 +37,16 @@ export async function run() {
       } else {
         installedVersion = requestedVersion
       }
+      sdkSnapshots = await version.sdkSnapshots(toolchain)
     } else {
-      const installer = await Platform.install(version)
+      const {installer, sdkInstallers} = await Platform.install(version)
       snapshot = installer.data
+      sdkSnapshots = sdkInstallers.map(installer => installer.data)
       installedVersion = await installer.installedSwiftVersion()
     }
     core.setOutput('swift-version', installedVersion)
     core.setOutput('toolchain', JSON.stringify(snapshot))
+    core.setOutput('sdks', JSON.stringify(sdkSnapshots))
   } catch (error) {
     if (error instanceof Error) core.setFailed(error.message)
   }

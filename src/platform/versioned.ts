@@ -101,7 +101,7 @@ export abstract class VersionedPlatform<
   protected async releasedTools(version: ToolchainVersion) {
     const releases = await this.releases()
     const allReleasedTools = releases
-      .filter(release => version.satisfiedBy(release.tag))
+      .filter(release => version.satisfiedBy(release))
       .flatMap(release => {
         return release.platforms.flatMap(platform => {
           const pName =

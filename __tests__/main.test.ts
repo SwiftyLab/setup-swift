@@ -2,7 +2,8 @@ import * as core from '@actions/core'
 import * as main from '../src/main'
 import {Swiftorg} from '../src/swiftorg'
 import {Platform} from '../src/platform'
-import {LinuxToolchainInstaller} from '../src/installer'
+import {SdkSupportedVersion} from '../src/version'
+import {LinuxToolchainInstaller, SdkToolchainInstaller} from '../src/installer'
 
 describe('setup-swift run validation', () => {
   const swiftorgSpy = jest
@@ -23,11 +24,27 @@ describe('setup-swift run validation', () => {
     branch: 'swift-5.8-release',
     preventCaching: false
   }
+  const sdkToolchains = [
+    {
+      name: 'Static SDK',
+      date: new Date('2023-03-30 10:28:49.000000000 -05:00'),
+      download: 'swift-5.8-RELEASE_static-linux-0.0.1.artifactbundle.tar.gz',
+      checksum:
+        'df0b40b9b582598e7e3d70c82ab503fd6fbfdff71fd17e7f1ab37115a0665b3b',
+      dir: 'swift-5.8-RELEASE',
+      platform: 'static-sdk',
+      branch: 'swift-5.8-release',
+      preventCaching: true
+    }
+  ]
 
   it('tests dry run', async () => {
     toolchainSpy.mockResolvedValue(toolchain)
     jest.spyOn(core, 'getBooleanInput').mockReturnValue(true)
     jest.spyOn(core, 'getInput').mockReturnValue('latest')
+    jest
+      .spyOn(SdkSupportedVersion.prototype, 'sdkSnapshots')
+      .mockResolvedValue(sdkToolchains)
     await main.run()
     expect(failedSpy).not.toHaveBeenCalled()
     expect(installSpy).not.toHaveBeenCalled()
@@ -45,13 +62,26 @@ describe('setup-swift run validation', () => {
           expect(obj).toStrictEqual(toolchain)
           break
         }
+        case 'sdks': {
+          const objs = JSON.parse(call[1])
+          for (let i = 0; i < objs.length; i++) {
+            const obj = objs[i]
+            const sdkToolchain = sdkToolchains[i]
+            obj.date = new Date(obj.date)
+            expect(obj).toStrictEqual(sdkToolchain)
+          }
+          break
+        }
       }
     }
   })
 
   it('tests install', async () => {
     const installer = new LinuxToolchainInstaller(toolchain)
-    installSpy.mockResolvedValue(installer)
+    const sdkInstallers = sdkToolchains.map(
+      toolchain => new SdkToolchainInstaller(toolchain)
+    )
+    installSpy.mockResolvedValue({installer, sdkInstallers})
     jest.spyOn(core, 'getBooleanInput').mockReturnValue(false)
     jest.spyOn(core, 'getInput').mockReturnValue('latest')
     jest.spyOn(installer, 'installedSwiftVersion').mockResolvedValue('5.8')
@@ -70,6 +100,16 @@ describe('setup-swift run validation', () => {
           const obj = JSON.parse(call[1])
           obj.date = new Date(obj.date)
           expect(obj).toStrictEqual(toolchain)
+          break
+        }
+        case 'sdks': {
+          const objs = JSON.parse(call[1])
+          for (let i = 0; i < objs.length; i++) {
+            const obj = objs[i]
+            const sdkToolchain = sdkToolchains[i]
+            obj.date = new Date(obj.date)
+            expect(obj).toStrictEqual(sdkToolchain)
+          }
           break
         }
       }

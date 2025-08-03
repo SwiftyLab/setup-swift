@@ -3,18 +3,13 @@ import {promises as fs} from 'fs'
 import * as core from '@actions/core'
 import * as yaml from 'js-yaml'
 import semver from 'semver'
-import {ToolchainVersion, SWIFT_BRANCH_REGEX} from '../version'
+import {
+  ToolchainVersion,
+  SWIFT_RELEASE_FILE,
+  SWIFT_BRANCH_REGEX
+} from '../version'
 import {ToolchainSnapshot, SwiftRelease} from '../snapshot'
 import {ToolchainInstaller, SnapshotForInstaller} from '../installer'
-import {MODULE_DIR} from '../const'
-
-const RELEASE_FILE = path.join(
-  MODULE_DIR,
-  'swiftorg',
-  '_data',
-  'builds',
-  'swift_releases.yml'
-)
 
 export abstract class Platform<
   Installer extends ToolchainInstaller<SnapshotForInstaller<Installer>>
@@ -29,7 +24,7 @@ export abstract class Platform<
   }
 
   protected async releases() {
-    const data = await fs.readFile(RELEASE_FILE, 'utf-8')
+    const data = await fs.readFile(SWIFT_RELEASE_FILE, 'utf-8')
     return yaml.load(data) as SwiftRelease[]
   }
 
@@ -106,7 +101,10 @@ export abstract class Platform<
           } as SnapshotForInstaller<Installer>
         })
       })
-      .filter(item => version.satisfiedBy((item as ToolchainSnapshot).dir))
+      .filter(item => {
+        const snapshot = item as ToolchainSnapshot
+        return version.satisfiedBy(snapshot.dir)
+      })
     snapshots.push(...devSnapshots)
     return this.sortSnapshots(snapshots)
   }

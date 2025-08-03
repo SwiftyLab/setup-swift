@@ -54,11 +54,20 @@ inputs:
       i.e. Enable this option for installing static SDK: https://www.swift.org/documentation/articles/static-linux-getting-started.html
     required: false
     default: 'false'
+  sdks:
+    description: >-
+      Semi-colon separated list of Swift SDKs to install along with the main toolchain.
+      Available SDKs are based on platforms available for the specified version.
+      Examples: "static-sdk", "static-sdk;wasm-sdk", "static-sdk:0.0.1;wasm-sdk".
+    required: false
+    default: ''
 outputs:
   swift-version:
     description: The actual Swift version that was configured.
   toolchain:
     description: JSON formatted toolchain snapshot metadata that was configured.
+  sdks:
+    description: JSON formatted SDK snapshots metadata that were configured.
 runs:
   using: node20
   main: dist/index.js
