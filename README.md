@@ -12,6 +12,7 @@ This action supports the following functionalities:
 
 - Works on Linux, macOS and Windows across all architectures.
 - Supports [installing latest major/minor/patch](#specifying-version).
+- Supports installing official Swift SDKs from cross platform developments.
 - Provides snapshots as soon as published in `swift.org`.
 - Verifies toolchain snapshots before installation (`gpg` for Linux and Windows, `pkgutil` for macOS) .
 - Allows development snapshots by enabling `development` flag and optional version.
@@ -41,6 +42,14 @@ Or use the latest development snapshots by enabling the `development` flag:
 - uses: SwiftyLab/setup-swift@latest
   with:
     development: true
+```
+
+Install additional SDKs as part of toolchain setup, i.e. install static Linux SDK:
+
+```yml
+- uses: SwiftyLab/setup-swift@latest
+  with:
+    sdks: static-sdk
 ```
 
 After the environment is configured you can run swift and xcode commands using the standard [`run`](https://help.github.com/en/actions/automating-your-workflow-with-github-actions/workflow-syntax-for-github-actions#jobsjob_idstepsrun) step:

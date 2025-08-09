@@ -198,7 +198,7 @@ describe('linux toolchain installation verification', () => {
     jest.spyOn(toolCache, 'cacheDir').mockResolvedValue(cached)
     jest.spyOn(exec, 'exec').mockResolvedValue(0)
     const cacheSpy = jest.spyOn(cache, 'saveCache')
-    const installer = await Platform.install(cVer)
+    const {installer} = await Platform.install(cVer)
     expect(cacheSpy).not.toHaveBeenCalled()
     expect(installer.data.baseUrl?.href).toBe(path.posix.dirname(toolchainUrl))
     expect(installer.data.preventCaching).toBe(true)
