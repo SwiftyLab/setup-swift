@@ -27,7 +27,7 @@
     "ci"
   ],
   "scripts": {
-    "prepare": "npm run build && node -e \"require('./.github/utils/update_metadata').fetch()\"",
+    "prepare": "node -e \"require('./.github/utils/update_metadata').fetch()\" && npm run build",
     "build": "tsc",
     "format": "prettier --write \"**/*.ts\"",
     "lint": "depcheck --ignores ts-node,ts-jest,globals,@eslint/js,@eslint/eslintrc && eslint src/**/*.ts && prettier --check \"**/*.ts\"",

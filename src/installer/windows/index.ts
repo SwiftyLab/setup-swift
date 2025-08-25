@@ -6,22 +6,46 @@ import * as semver from 'semver'
 import {VerifyingToolchainInstaller} from '../verify'
 import {WindowsToolchainSnapshot} from '../../snapshot'
 import {VisualStudio, VISUAL_STUDIO_WINSDK_COMPONENT_REGEX} from '../../utils'
+import {program86} from '../../utils/windows'
 import {Installation, CustomInstallation} from './installation'
 
 export class WindowsToolchainInstaller extends VerifyingToolchainInstaller<WindowsToolchainSnapshot> {
-  private get winsdk() {
+  private async winsdk() {
     const win11Semver = '10.0.22000'
     const recommended = semver.gte(this.version ?? '6.2.0', '6.2.0')
       ? win11Semver
       : '10.0.17763'
     const current = os.release()
-    const version = semver.gte(current, recommended) ? current : recommended
+    let version = semver.gte(current, recommended) ? current : recommended
+    const insatlled = await this.insatlledSdks()
+    if (insatlled.length && !insatlled.includes(version)) {
+      version = insatlled[0]
+    }
+
     const major = semver.lt(version, win11Semver) ? semver.major(version) : 11
     const minor = semver.patch(version)
     return `Microsoft.VisualStudio.Component.Windows${major}SDK.${minor}`
   }
 
-  private vsRequirement(arch: string) {
+  private async insatlledSdks() {
+    const sdksPath = path.join(program86(), 'Windows Kits', '10', 'Include')
+    try {
+      const dirs = await fs.readdir(sdksPath, {withFileTypes: true})
+      return dirs
+        .filter(dirent => dirent.isDirectory())
+        .map(dirent => {
+          const parts = dirent.name.split('.')
+          return parts.length >= 3 ? parts.slice(0, 3).join('.') : dirent.name
+        })
+        .filter(version => semver.valid(version))
+        .sort(semver.rcompare)
+    } catch (error) {
+      core.warning(`Unable to get installed SDKs due to: "${error}"`)
+      return []
+    }
+  }
+
+  private async vsRequirement(arch: string) {
     const componentsStr = core.getInput('visual-studio-components')
     const providedComponents = componentsStr ? componentsStr.split(';') : []
     const winsdkComponent = providedComponents.find(component => {
@@ -47,7 +71,7 @@ export class WindowsToolchainInstaller extends VerifyingToolchainInstaller<Windo
       ...providedComponents
     ]
     if (!winsdkComponent) {
-      vsComponents.push(this.winsdk)
+      vsComponents.push(await this.winsdk())
     }
     return {
       version: '16',
@@ -61,7 +85,7 @@ export class WindowsToolchainInstaller extends VerifyingToolchainInstaller<Windo
       `Using VS requirement ${JSON.stringify(this.vsRequirement(arch))}`
     )
     const [, toolchain] = await Promise.all([
-      VisualStudio.setup(this.vsRequirement(arch)),
+      VisualStudio.setup(await this.vsRequirement(arch)),
       super.download(arch)
     ])
     const exeFile = `${toolchain}.exe`
@@ -114,7 +138,9 @@ export class WindowsToolchainInstaller extends VerifyingToolchainInstaller<Windo
       return
     }
 
-    const visualStudio = await VisualStudio.setup(this.vsRequirement(arch))
+    const visualStudio = await VisualStudio.setup(
+      await this.vsRequirement(arch)
+    )
     await visualStudio.update(sdkroot)
     const swiftFlags = [
       '-sdk',

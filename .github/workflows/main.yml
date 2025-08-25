@@ -381,7 +381,7 @@ jobs:
                   with: {
                     'swift-version': 'latest',
                     'check-latest': '${{ needs.ci.outputs.check_latest }}',
-                    'visual-studio-components': 'Microsoft.VisualStudio.Component.Windows11SDK.22000'
+                    'visual-studio-components': '${{ matrix.os }}'.includes('arm') ? 'Microsoft.VisualStudio.Component.Windows11SDK.22000' : ''
                   }
                 }
               ]
