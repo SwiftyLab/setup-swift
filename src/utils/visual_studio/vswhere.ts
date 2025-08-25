@@ -2,6 +2,7 @@ import * as path from 'path'
 import {promises as fs} from 'fs'
 import * as io from '@actions/io'
 import * as core from '@actions/core'
+import {program86} from '../windows'
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace VSWhere {
@@ -26,9 +27,8 @@ export namespace VSWhere {
         vswhereToolExe = vsWhereInPath
       } catch {
         // fall back to VS-installed path
-        const program86 = 'ProgramFiles(x86)'
         vswhereToolExe = path.join(
-          process.env[program86] ?? path.join('C:', program86),
+          program86(),
           'Microsoft Visual Studio',
           'Installer',
           'vswhere.exe'

@@ -1,5 +1,5 @@
 import * as path from 'path'
-import {promises as fs} from 'fs'
+import {Dirent, promises as fs} from 'fs'
 import * as core from '@actions/core'
 import * as exec from '@actions/exec'
 import * as cache from '@actions/cache'
@@ -57,7 +57,9 @@ describe('windows toolchain installation verification', () => {
         'Microsoft.VisualStudio.Component.VC.ATL;Microsoft.VisualStudio.Component.VC.CMake.Project;Microsoft.VisualStudio.Component.Windows10SDK'
       )
     const installer = new WindowsToolchainInstaller(toolchain)
-    expect(installer['vsRequirement']('x86_64').components).toStrictEqual([
+    expect(
+      (await installer['vsRequirement']('x86_64')).components
+    ).toStrictEqual([
       'Microsoft.VisualStudio.Component.VC.Tools.x86.x64',
       'Microsoft.VisualStudio.Component.VC.ATL',
       'Microsoft.VisualStudio.Component.VC.CMake.Project',
@@ -69,7 +71,9 @@ describe('windows toolchain installation verification', () => {
   it('tests setting up on Windows 10', async () => {
     jest.spyOn(os, 'release').mockReturnValue('10.0.17063')
     const installer = new WindowsToolchainInstaller(toolchain)
-    expect(installer['vsRequirement']('x86_64').components).toStrictEqual([
+    expect(
+      (await installer['vsRequirement']('x86_64')).components
+    ).toStrictEqual([
       'Microsoft.VisualStudio.Component.VC.Tools.x86.x64',
       'Microsoft.VisualStudio.Component.Windows10SDK.17763'
     ])
@@ -78,7 +82,9 @@ describe('windows toolchain installation verification', () => {
   it('tests setting up on ARM64 Windows 10', async () => {
     jest.spyOn(os, 'release').mockReturnValue('10.0.17063')
     const installer = new WindowsToolchainInstaller(toolchain)
-    expect(installer['vsRequirement']('arm64').components).toStrictEqual([
+    expect(
+      (await installer['vsRequirement']('arm64')).components
+    ).toStrictEqual([
       'Microsoft.VisualStudio.Component.VC.Tools.ARM64',
       'Microsoft.VisualStudio.Component.Windows10SDK.17763'
     ])
@@ -87,7 +93,9 @@ describe('windows toolchain installation verification', () => {
   it('tests setting up on Windows 11', async () => {
     jest.spyOn(os, 'release').mockReturnValue('10.0.22621')
     const installer = new WindowsToolchainInstaller(toolchain)
-    expect(installer['vsRequirement']('x86_64').components).toStrictEqual([
+    expect(
+      (await installer['vsRequirement']('x86_64')).components
+    ).toStrictEqual([
       'Microsoft.VisualStudio.Component.VC.Tools.x86.x64',
       'Microsoft.VisualStudio.Component.Windows11SDK.22621'
     ])
@@ -99,7 +107,9 @@ describe('windows toolchain installation verification', () => {
       .spyOn(core, 'getInput')
       .mockReturnValue('Microsoft.VisualStudio.Component.Windows11SDK.22621')
     const installer = new WindowsToolchainInstaller(toolchain)
-    expect(installer['vsRequirement']('x86_64').components).toStrictEqual([
+    expect(
+      (await installer['vsRequirement']('x86_64')).components
+    ).toStrictEqual([
       'Microsoft.VisualStudio.Component.VC.Tools.x86.x64',
       'Microsoft.VisualStudio.Component.Windows11SDK.22621'
     ])
@@ -118,9 +128,42 @@ describe('windows toolchain installation verification', () => {
       preventCaching: false
     }
     const installer = new WindowsToolchainInstaller(toolchain)
-    expect(installer['vsRequirement']('arm64').components).toStrictEqual([
+    expect(
+      (await installer['vsRequirement']('arm64')).components
+    ).toStrictEqual([
       'Microsoft.VisualStudio.Component.VC.Tools.ARM64',
       'Microsoft.VisualStudio.Component.Windows11SDK.22000'
+    ])
+  })
+
+  it('tests setting up on Windows 10 with Windows 11 SDK with unavailable recommended SDK', async () => {
+    jest.spyOn(os, 'release').mockReturnValue('10.0.17063')
+    jest.spyOn(fs, 'readdir').mockResolvedValue([
+      {
+        name: 'wdf',
+        isDirectory: () => true
+      } as unknown as Dirent,
+      {
+        name: '10.0.22621.0',
+        isDirectory: () => true
+      } as unknown as Dirent
+    ])
+    const toolchain = {
+      name: 'Windows 10 Swift Development Snapshot',
+      date: new Date('2025-04-03 10:10:00-06:00'),
+      download: 'swift-DEVELOPMENT-SNAPSHOT-2025-04-03-a-windows10.exe',
+      dir: 'swift-DEVELOPMENT-SNAPSHOT-2025-04-03-a',
+      platform: 'windows10',
+      branch: 'development',
+      windows: true,
+      preventCaching: false
+    }
+    const installer = new WindowsToolchainInstaller(toolchain)
+    expect(
+      (await installer['vsRequirement']('arm64')).components
+    ).toStrictEqual([
+      'Microsoft.VisualStudio.Component.VC.Tools.ARM64',
+      'Microsoft.VisualStudio.Component.Windows11SDK.22621'
     ])
   })
 
