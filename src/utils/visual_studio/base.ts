@@ -58,8 +58,7 @@ export class VisualStudio {
       })
       .filter(match => {
         return match && match.length > 1
-      })
-      .at(0)
+      })[0]
     if (sdkComponentMatch) {
       args.push(`-winsdk=10.0.${sdkComponentMatch[1]}.0`)
     }

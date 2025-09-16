@@ -330,8 +330,115 @@ describe('windows toolchain installation verification', () => {
     const installer = new WindowsToolchainInstaller(toolchain)
     const installation = path.resolve('tool', 'installed', 'path')
     jest.spyOn(VisualStudio, 'setup').mockResolvedValue(visualStudio)
-    jest.spyOn(fs, 'access').mockRejectedValueOnce(new Error())
-    jest.spyOn(fs, 'access').mockResolvedValue()
+    jest
+      .spyOn(fs, 'access')
+      .mockRejectedValueOnce(new Error())
+      .mockResolvedValue()
+    jest.spyOn(fs, 'copyFile').mockResolvedValue()
+    jest.spyOn(exec, 'exec').mockResolvedValue(0)
+    jest.spyOn(exec, 'getExecOutput').mockResolvedValue({
+      exitCode: 0,
+      stdout: vsEnvs.join(os.EOL),
+      stderr: ''
+    })
+    const toolPath = path.join(
+      installation,
+      'Developer',
+      'Toolchains',
+      'unknown-Asserts-development.xctoolchain'
+    )
+    const sdkroot = path.join(
+      installation,
+      'Developer',
+      'Platforms',
+      'Windows.platform',
+      'Developer',
+      'SDKs',
+      'Windows.sdk'
+    )
+    const swiftLibs = path.join(sdkroot, 'usr', 'lib', 'swift')
+    const swiftPath = path.join(toolPath, 'usr', 'bin')
+    const swiftDev = path.join(installation, 'Swift-development', 'bin')
+    const icu67 = path.join(installation, 'icu-67', 'usr', 'bin')
+    await installer['add'](installation, 'x86_64')
+    expect(process.env.PATH?.includes(swiftPath)).toBeTruthy()
+    expect(process.env.PATH?.includes(swiftDev)).toBeTruthy()
+    expect(process.env.PATH?.includes(icu67)).toBeTruthy()
+    expect(process.env.SDKROOT).toBe(sdkroot)
+    expect(process.env.SWIFTFLAGS).toContain(`-sdk ${sdkroot}`)
+    expect(process.env.SWIFTFLAGS).toContain(`-I ${swiftLibs}`)
+    expect(process.env.SWIFTFLAGS).toContain(
+      `-L ${path.join(swiftLibs, 'windows')}`
+    )
+  })
+
+  it('tests add to PATH with fallback SDK copying', async () => {
+    const installer = new WindowsToolchainInstaller(toolchain)
+    const installation = path.resolve('tool', 'installed', 'path')
+    jest.spyOn(VisualStudio, 'setup').mockResolvedValue(visualStudio)
+    jest
+      .spyOn(fs, 'access')
+      .mockRejectedValueOnce(new Error())
+      .mockImplementation(async p => {
+        if (typeof p === 'string' && p.endsWith('vcruntime.modulemap')) {
+          return Promise.reject(new Error())
+        }
+        return Promise.resolve()
+      })
+    jest.spyOn(fs, 'copyFile').mockResolvedValue()
+    jest.spyOn(exec, 'exec').mockResolvedValue(0)
+    jest.spyOn(exec, 'getExecOutput').mockResolvedValue({
+      exitCode: 0,
+      stdout: vsEnvs.join(os.EOL),
+      stderr: ''
+    })
+    const toolPath = path.join(
+      installation,
+      'Developer',
+      'Toolchains',
+      'unknown-Asserts-development.xctoolchain'
+    )
+    const sdkroot = path.join(
+      installation,
+      'Developer',
+      'Platforms',
+      'Windows.platform',
+      'Developer',
+      'SDKs',
+      'Windows.sdk'
+    )
+    const swiftLibs = path.join(sdkroot, 'usr', 'lib', 'swift')
+    const swiftPath = path.join(toolPath, 'usr', 'bin')
+    const swiftDev = path.join(installation, 'Swift-development', 'bin')
+    const icu67 = path.join(installation, 'icu-67', 'usr', 'bin')
+    await installer['add'](installation, 'x86_64')
+    expect(process.env.PATH?.includes(swiftPath)).toBeTruthy()
+    expect(process.env.PATH?.includes(swiftDev)).toBeTruthy()
+    expect(process.env.PATH?.includes(icu67)).toBeTruthy()
+    expect(process.env.SDKROOT).toBe(sdkroot)
+    expect(process.env.SWIFTFLAGS).toContain(`-sdk ${sdkroot}`)
+    expect(process.env.SWIFTFLAGS).toContain(`-I ${swiftLibs}`)
+    expect(process.env.SWIFTFLAGS).toContain(
+      `-L ${path.join(swiftLibs, 'windows')}`
+    )
+  })
+
+  it('tests add to PATH without SDK copying', async () => {
+    const installer = new WindowsToolchainInstaller(toolchain)
+    const installation = path.resolve('tool', 'installed', 'path')
+    jest.spyOn(VisualStudio, 'setup').mockResolvedValue(visualStudio)
+    jest
+      .spyOn(fs, 'access')
+      .mockRejectedValueOnce(new Error())
+      .mockImplementation(async p => {
+        if (
+          typeof p === 'string' &&
+          (p.endsWith('ucrt.modulemap') || p.endsWith('winsdk.modulemap'))
+        ) {
+          return Promise.reject(new Error())
+        }
+        return Promise.resolve()
+      })
     jest.spyOn(fs, 'copyFile').mockResolvedValue()
     jest.spyOn(exec, 'exec').mockResolvedValue(0)
     jest.spyOn(exec, 'getExecOutput').mockResolvedValue({

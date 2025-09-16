@@ -2,8 +2,18 @@ import * as path from 'path'
 import * as core from '@actions/core'
 import {glob} from 'glob'
 import {MODULE_DIR} from '../const'
-import {ToolchainSnapshot} from '../snapshot'
+import {ToolchainSnapshot, SwiftRelease, SdkSnapshot} from '../snapshot'
 
+export const SWIFT_BUILDS_DIR = path.join(
+  MODULE_DIR,
+  'swiftorg',
+  '_data',
+  'builds'
+)
+export const SWIFT_RELEASE_FILE = path.join(
+  SWIFT_BUILDS_DIR,
+  'swift_releases.yml'
+)
 export const SWIFT_RELEASE_REGEX = /swift-(.*)-release/
 
 export abstract class ToolchainVersion {
@@ -22,8 +32,11 @@ export abstract class ToolchainVersion {
   }
 
   async toolFiles(fileGlob: string) {
-    const builds = 'swiftorg/_data/builds'
-    const pattern = path.posix.join(builds, this.dirGlob, `${fileGlob}.yml`)
+    const pattern = path.posix.join(
+      SWIFT_BUILDS_DIR,
+      this.dirGlob,
+      `${fileGlob}.yml`
+    )
     core.debug(`Searching for glob "${pattern}"`)
     let files = await glob(pattern, {absolute: true, cwd: MODULE_DIR})
     core.debug(`Retrieved files "${files}" for glob "${pattern}"`)
@@ -38,7 +51,14 @@ export abstract class ToolchainVersion {
     return files
   }
 
-  satisfiedBy(dir: string) {
-    return this.dirRegex.exec(dir)
+  satisfiedBy(release: SwiftRelease | string) {
+    const tag = typeof release === 'string' ? release : release.tag
+    return this.dirRegex.exec(tag) != null
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async sdkSnapshots(toolchain: ToolchainSnapshot): Promise<SdkSnapshot[]> {
+    core.info('No SDKs to install')
+    return []
   }
 }

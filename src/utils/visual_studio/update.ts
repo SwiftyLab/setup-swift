@@ -30,10 +30,22 @@ VisualStudio.prototype.update = async function (sdkroot: string) {
   const winsdk = path.join(universalCRTSdkDir, 'Include', uCRTVersion)
   const vcToolsInclude = path.join(vCToolsInstallDir, 'include')
   const vcModulemap = path.join(vcToolsInclude, 'module.modulemap')
-  const uCRTmap = path.join(sdkshare, 'ucrt.modulemap')
+  const uCRTMapInstalled = path.join(sdkshare, 'ucrt.modulemap')
   const winsdkMap = path.join(sdkshare, 'winsdk.modulemap')
-  await fs.copyFile(uCRTmap, path.join(winsdk, 'ucrt', 'module.modulemap'))
-  await fs.copyFile(winsdkMap, path.join(winsdk, 'um', 'module.modulemap'))
+  const uCRTMapSdk = path.join(winsdk, 'ucrt', 'module.modulemap')
+  const umMap = path.join(winsdk, 'um', 'module.modulemap')
+
+  try {
+    await fs.access(uCRTMapInstalled)
+    await fs.access(winsdkMap)
+  } catch (error) {
+    core.warning(`Skipping modulemap copies: "${error}"`)
+    return
+  }
+
+  await fs.copyFile(uCRTMapInstalled, uCRTMapSdk)
+  await fs.copyFile(winsdkMap, umMap)
+
   try {
     const modulemap = path.join(sdkshare, 'vcruntime.modulemap')
     const runtimenotes = 'vcruntime.apinotes'

@@ -12,8 +12,10 @@ export interface SwiftRelease {
 export namespace SwiftRelease {
   export interface Platform {
     readonly name: string
+    readonly platform: string
     readonly archs: string[]
     readonly dir?: string
     readonly docker?: string
+    readonly checksum?: string
   }
 }

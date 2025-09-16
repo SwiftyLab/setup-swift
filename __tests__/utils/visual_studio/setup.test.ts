@@ -127,7 +127,7 @@ describe('visual studio setup validation', () => {
       stderr: ''
     })
     await visualStudio.env()
-    const arg = execSpy.mock.calls.at(0)
+    const arg = execSpy.mock.calls[0]
     expect(arg).toBeTruthy()
     expect(arg?.[0]).toBe('cmd')
     expect(arg?.[1]).toStrictEqual([

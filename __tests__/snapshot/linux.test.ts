@@ -304,4 +304,203 @@ describe('fetch linux tool data based on options', () => {
     expect(tool.dir).toBe(name)
     expect(tool.branch).toBe('swiftwasm')
   })
+
+  it.each([
+    'static-sdk',
+    'static-sdk:0.0.1',
+    'static-linux',
+    'static-linux:0.0.1'
+  ])('fetches ubuntu 22.04 swift tool with SDK %s', async sdk => {
+    setos({os: 'linux', dist: 'Ubuntu', release: '22.04'})
+    jest.spyOn(os, 'arch').mockReturnValue('x64')
+    const version = ToolchainVersion.create('6.1.1', false, [sdk])
+    const tool = await Platform.toolchain(version)
+    expect(tool).toBeTruthy()
+    const lTool = tool as LinuxToolchainSnapshot
+    expect(lTool.download).toBe('swift-6.1.1-RELEASE-ubuntu22.04.tar.gz')
+    expect(lTool.dir).toBe('swift-6.1.1-RELEASE')
+    expect(lTool.platform).toBe('ubuntu2204')
+    expect(lTool.branch).toBe('swift-6.1.1-release')
+    expect(lTool.download_signature).toBe(
+      'swift-6.1.1-RELEASE-ubuntu22.04.tar.gz.sig'
+    )
+    expect(lTool.preventCaching).toBe(false)
+    if (!tool) {
+      return
+    }
+
+    const sdkSnapshots = await version.sdkSnapshots(tool)
+    expect(sdkSnapshots.length).toBe(1)
+    const sdkSnapshot = sdkSnapshots[0]
+    expect(sdkSnapshot.platform).toBe('static-sdk')
+    expect(sdkSnapshot.dir).toBe('swift-6.1.1-RELEASE')
+    expect(sdkSnapshot.branch).toBe('swift-6.1.1-release')
+    expect(sdkSnapshot.download).toBe(
+      'swift-6.1.1-RELEASE_static-linux-0.0.1.artifactbundle.tar.gz'
+    )
+    expect(sdkSnapshot.checksum).toBe(
+      '8a69753e181e40c202465f03bcafcc898070a86817ca0f39fc808f76638e90c2'
+    )
+  })
+
+  it.each(['wasm-sdk', 'wasm'])(
+    'fetches ubuntu 22.04 swift tool with SDK %s',
+    async sdk => {
+      setos({os: 'linux', dist: 'Ubuntu', release: '22.04'})
+      jest.spyOn(os, 'arch').mockReturnValue('x64')
+      const version = ToolchainVersion.create('6.2.0', false, [sdk])
+      const tool = await Platform.toolchain(version)
+      expect(tool).toBeTruthy()
+      const lTool = tool as LinuxToolchainSnapshot
+      expect(lTool.download).toBe('swift-6.2-RELEASE-ubuntu22.04.tar.gz')
+      expect(lTool.dir).toBe('swift-6.2-RELEASE')
+      expect(lTool.platform).toBe('ubuntu2204')
+      expect(lTool.branch).toBe('swift-6.2-release')
+      expect(lTool.download_signature).toBe(
+        'swift-6.2-RELEASE-ubuntu22.04.tar.gz.sig'
+      )
+      expect(lTool.preventCaching).toBe(false)
+      if (!tool) {
+        return
+      }
+
+      const sdkSnapshots = await version.sdkSnapshots(tool)
+      expect(sdkSnapshots.length).toBe(1)
+      const sdkSnapshot = sdkSnapshots[0]
+      expect(sdkSnapshot.platform).toBe('wasm')
+      expect(sdkSnapshot.dir).toBe('swift-6.2-RELEASE')
+      expect(sdkSnapshot.branch).toBe('swift-6.2-release')
+      expect(sdkSnapshot.download).toBe(
+        'swift-6.2-RELEASE_wasm.artifactbundle.tar.gz'
+      )
+      expect(sdkSnapshot.checksum).toBe(
+        'fe4e8648309fce86ea522e9e0d1dc48e82df6ba6e5743dbf0c53db8429fb5224'
+      )
+    }
+  )
+
+  it('fetches ubuntu 22.04 named swift tool with Linux SDK', async () => {
+    setos({os: 'linux', dist: 'Ubuntu', release: '22.04'})
+    jest.spyOn(os, 'arch').mockReturnValue('x64')
+    const name = 'swift-6.0-DEVELOPMENT-SNAPSHOT-2024-09-17-a'
+    const version = ToolchainVersion.create(name, false, ['static-sdk'])
+    const tool = await Platform.toolchain(version)
+    expect(tool).toBeTruthy()
+    const lTool = tool as LinuxToolchainSnapshot
+    expect(lTool.download).toBe(
+      'swift-6.0-DEVELOPMENT-SNAPSHOT-2024-09-17-a-ubuntu22.04.tar.gz'
+    )
+    expect(lTool.dir).toBe('swift-6.0-DEVELOPMENT-SNAPSHOT-2024-09-17-a')
+    expect(lTool.platform).toBe('ubuntu2204')
+    expect(lTool.branch).toBe('swift-6.0-branch')
+    expect(lTool.download_signature).toBe(
+      'swift-6.0-DEVELOPMENT-SNAPSHOT-2024-09-17-a-ubuntu22.04.tar.gz.sig'
+    )
+    expect(lTool.preventCaching).toBe(false)
+    if (!tool) {
+      return
+    }
+
+    const sdkSnapshots = await version.sdkSnapshots(tool)
+    expect(sdkSnapshots.length).toBe(1)
+    const sdkSnapshot = sdkSnapshots[0]
+    expect(sdkSnapshot.platform).toBe('static-sdk')
+    expect(sdkSnapshot.dir).toBe('swift-6.0-DEVELOPMENT-SNAPSHOT-2024-09-17-a')
+    expect(sdkSnapshot.branch).toBe('swift-6.0-branch')
+    expect(sdkSnapshot.download).toBe(
+      'swift-6.0-DEVELOPMENT-SNAPSHOT-2024-09-17-a_static-linux-0.0.1.artifactbundle.tar.gz'
+    )
+    expect(sdkSnapshot.checksum).toBe(
+      '83a88650cd0675552ce2cf8159c31966fde73418f49493c1644073fffe8be9f4'
+    )
+  })
+
+  it('fetches ubuntu 22.04 named swift tool with WASM SDK', async () => {
+    setos({os: 'linux', dist: 'Ubuntu', release: '22.04'})
+    jest.spyOn(os, 'arch').mockReturnValue('x64')
+    const name = 'swift-6.2-DEVELOPMENT-SNAPSHOT-2025-08-01-a'
+    const version = ToolchainVersion.create(name, false, ['wasm-sdk'])
+    const tool = await Platform.toolchain(version)
+    expect(tool).toBeTruthy()
+    const lTool = tool as LinuxToolchainSnapshot
+    expect(lTool.download).toBe(
+      'swift-6.2-DEVELOPMENT-SNAPSHOT-2025-08-01-a-ubuntu22.04.tar.gz'
+    )
+    expect(lTool.dir).toBe('swift-6.2-DEVELOPMENT-SNAPSHOT-2025-08-01-a')
+    expect(lTool.platform).toBe('ubuntu2204')
+    expect(lTool.branch).toBe('swift-6.2-branch')
+    expect(lTool.download_signature).toBe(
+      'swift-6.2-DEVELOPMENT-SNAPSHOT-2025-08-01-a-ubuntu22.04.tar.gz.sig'
+    )
+    expect(lTool.preventCaching).toBe(false)
+    if (!tool) {
+      return
+    }
+
+    const sdkSnapshots = await version.sdkSnapshots(tool)
+    expect(sdkSnapshots.length).toBe(1)
+    const sdkSnapshot = sdkSnapshots[0]
+    expect(sdkSnapshot.platform).toBe('wasm')
+    expect(sdkSnapshot.dir).toBe('swift-6.2-DEVELOPMENT-SNAPSHOT-2025-08-01-a')
+    expect(sdkSnapshot.branch).toBe('swift-6.2-branch')
+    expect(sdkSnapshot.download).toBe(
+      'swift-6.2-DEVELOPMENT-SNAPSHOT-2025-08-01-a_wasm.artifactbundle.tar.gz'
+    )
+    expect(sdkSnapshot.checksum).toBe(
+      '40f3c780d4a8f3d369c203615330e1b00441b6f8b7023535bebc16bf4dd5f84a'
+    )
+  })
+
+  it('fetches ubuntu 22.04 named swift tool with Linux and WASM SDK', async () => {
+    setos({os: 'linux', dist: 'Ubuntu', release: '22.04'})
+    jest.spyOn(os, 'arch').mockReturnValue('x64')
+    const name = 'swift-6.2-DEVELOPMENT-SNAPSHOT-2025-08-01-a'
+    const version = ToolchainVersion.create(name, false, [
+      'static-sdk',
+      'wasm-sdk'
+    ])
+    const tool = await Platform.toolchain(version)
+    expect(tool).toBeTruthy()
+    const lTool = tool as LinuxToolchainSnapshot
+    expect(lTool.download).toBe(
+      'swift-6.2-DEVELOPMENT-SNAPSHOT-2025-08-01-a-ubuntu22.04.tar.gz'
+    )
+    expect(lTool.dir).toBe('swift-6.2-DEVELOPMENT-SNAPSHOT-2025-08-01-a')
+    expect(lTool.platform).toBe('ubuntu2204')
+    expect(lTool.branch).toBe('swift-6.2-branch')
+    expect(lTool.download_signature).toBe(
+      'swift-6.2-DEVELOPMENT-SNAPSHOT-2025-08-01-a-ubuntu22.04.tar.gz.sig'
+    )
+    expect(lTool.preventCaching).toBe(false)
+    if (!tool) {
+      return
+    }
+
+    const sdkSnapshots = await version.sdkSnapshots(tool)
+    expect(sdkSnapshots.length).toBe(2)
+    for (let i = 0; i < 2; i++) {
+      const sdkSnapshot = sdkSnapshots[i]
+      expect(sdkSnapshot.dir).toBe(
+        'swift-6.2-DEVELOPMENT-SNAPSHOT-2025-08-01-a'
+      )
+      expect(sdkSnapshot.branch).toBe('swift-6.2-branch')
+      if (i == 0) {
+        expect(sdkSnapshot.platform).toBe('static-sdk')
+        expect(sdkSnapshot.download).toBe(
+          'swift-6.2-DEVELOPMENT-SNAPSHOT-2025-08-01-a_static-linux-0.0.1.artifactbundle.tar.gz'
+        )
+        expect(sdkSnapshot.checksum).toBe(
+          '9e4065031461c00a88912e94d0c7d847e701a28667f58facad49dc636de77b6f'
+        )
+      } else {
+        expect(sdkSnapshot.platform).toBe('wasm')
+        expect(sdkSnapshot.download).toBe(
+          'swift-6.2-DEVELOPMENT-SNAPSHOT-2025-08-01-a_wasm.artifactbundle.tar.gz'
+        )
+        expect(sdkSnapshot.checksum).toBe(
+          '40f3c780d4a8f3d369c203615330e1b00441b6f8b7023535bebc16bf4dd5f84a'
+        )
+      }
+    }
+  })
 })

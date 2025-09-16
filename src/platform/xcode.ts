@@ -41,7 +41,7 @@ export class XcodePlatform extends Platform<XcodeToolchainInstaller> {
   protected async releasedTools(version: ToolchainVersion) {
     const releases = await this.releases()
     return releases
-      .filter(release => version.satisfiedBy(release.tag))
+      .filter(release => version.satisfiedBy(release))
       .map(release => {
         const xMatch = /Xcode\s+(.*)/.exec(release.xcode)
         return {
