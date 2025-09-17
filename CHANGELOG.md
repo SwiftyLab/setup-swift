@@ -1,3 +1,15 @@
+## [1.12.0](https://github.com/SwiftyLab/setup-swift/compare/v1.11.0...v1.12.0) (2025-09-17)
+
+
+### 🚀 Features
+
+* added support for installing SDKs with `sdks` input parameter ([#415](https://github.com/SwiftyLab/setup-swift/issues/415)) ([b67b1fb](https://github.com/SwiftyLab/setup-swift/commit/b67b1fb72258e8570737b42f37bd33ebd7b21f5e))
+
+
+### 🐛 Fixes
+
+* used installed Windows SDKs instead of hardcoded version ([#417](https://github.com/SwiftyLab/setup-swift/issues/417)) ([376f89c](https://github.com/SwiftyLab/setup-swift/commit/376f89cd5a71db507594ce1223b099d53c233c6f))
+
 ## [1.11.0](https://github.com/SwiftyLab/setup-swift/compare/v1.10.0...v1.11.0) (2025-05-24)
 
 
