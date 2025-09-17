@@ -58,7 +58,7 @@ inputs:
     description: >-
       Semi-colon separated list of Swift SDKs to install along with the main toolchain.
       Available SDKs are based on platforms available for the specified version.
-      Examples: "static-sdk", "static-sdk;wasm-sdk", "static-sdk:0.0.1;wasm-sdk".
+      Examples: "static-linux", "static-linux;wasm", "static-linux:0.0.1;wasm".
     required: false
     default: ''
 outputs:

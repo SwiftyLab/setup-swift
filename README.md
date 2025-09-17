@@ -49,7 +49,7 @@ Install additional SDKs as part of toolchain setup, i.e. install static Linux SD
 ```yml
 - uses: SwiftyLab/setup-swift@latest
   with:
-    sdks: static-sdk
+    sdks: static-linux;wasm
 ```
 
 After the environment is configured you can run swift and xcode commands using the standard [`run`](https://help.github.com/en/actions/automating-your-workflow-with-github-actions/workflow-syntax-for-github-actions#jobsjob_idstepsrun) step:

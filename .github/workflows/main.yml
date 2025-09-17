@@ -327,7 +327,7 @@ jobs:
       uses: ./
       with:
         check-latest: ${{ needs.ci.outputs.check_latest }}
-        sdks: static-sdk
+        sdks: static-linux;wasm
         dry-run: true
 
     - name: Verify Swift version
@@ -383,7 +383,7 @@ jobs:
                     'swift-version': 'latest',
                     'check-latest': '${{ needs.ci.outputs.check_latest }}',
                     'visual-studio-components': '${{ matrix.os }}'.includes('arm') ? 'Microsoft.VisualStudio.Component.Windows11SDK.22000' : '',
-                    'sdks': '${{ runner.os }}' != 'Windows' ? 'static-sdk' : ''
+                    'sdks': '${{ runner.os }}' != 'Windows' ? 'static-linux;wasm' : ''
                   }
                 }
               ]
