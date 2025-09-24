@@ -367,7 +367,7 @@ describe('fetch linux tool data based on options', () => {
       const sdkSnapshots = await version.sdkSnapshots(tool)
       expect(sdkSnapshots.length).toBe(1)
       const sdkSnapshot = sdkSnapshots[0]
-      expect(sdkSnapshot.platform).toBe('wasm')
+      expect(sdkSnapshot.platform).toBe('wasm-sdk')
       expect(sdkSnapshot.dir).toBe('swift-6.2-RELEASE')
       expect(sdkSnapshot.branch).toBe('swift-6.2-release')
       expect(sdkSnapshot.download).toBe(
@@ -440,7 +440,7 @@ describe('fetch linux tool data based on options', () => {
     const sdkSnapshots = await version.sdkSnapshots(tool)
     expect(sdkSnapshots.length).toBe(1)
     const sdkSnapshot = sdkSnapshots[0]
-    expect(sdkSnapshot.platform).toBe('wasm')
+    expect(sdkSnapshot.platform).toBe('wasm-sdk')
     expect(sdkSnapshot.dir).toBe('swift-6.2-DEVELOPMENT-SNAPSHOT-2025-08-01-a')
     expect(sdkSnapshot.branch).toBe('swift-6.2-branch')
     expect(sdkSnapshot.download).toBe(
@@ -493,7 +493,7 @@ describe('fetch linux tool data based on options', () => {
           '9e4065031461c00a88912e94d0c7d847e701a28667f58facad49dc636de77b6f'
         )
       } else {
-        expect(sdkSnapshot.platform).toBe('wasm')
+        expect(sdkSnapshot.platform).toBe('wasm-sdk')
         expect(sdkSnapshot.download).toBe(
           'swift-6.2-DEVELOPMENT-SNAPSHOT-2025-08-01-a_wasm.artifactbundle.tar.gz'
         )

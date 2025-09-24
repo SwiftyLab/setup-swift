@@ -30,7 +30,7 @@ export class StaticLinux extends SdkRequirement {
 
 export class Wasm extends SdkRequirement {
   constructor(version: string | undefined) {
-    super('wasm', version)
+    super('wasm-sdk', version)
   }
 
   get download(): string {
