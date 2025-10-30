@@ -12,6 +12,8 @@ import {LinuxToolchainInstaller} from '../../src/installer/linux'
 import {ToolchainVersion} from '../../src/version'
 import {Platform} from '../../src/platform'
 
+jest.mock('getos')
+
 describe('linux toolchain installation verification', () => {
   const env = process.env
   const toolchain = {

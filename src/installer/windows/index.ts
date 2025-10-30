@@ -8,6 +8,7 @@ import {WindowsToolchainSnapshot} from '../../snapshot'
 import {VisualStudio, VISUAL_STUDIO_WINSDK_COMPONENT_REGEX} from '../../utils'
 import {program86} from '../../utils/windows'
 import {Installation, CustomInstallation} from './installation'
+import {updateSdkModules} from './modules'
 
 export class WindowsToolchainInstaller extends VerifyingToolchainInstaller<WindowsToolchainSnapshot> {
   private async winsdk() {
@@ -154,6 +155,10 @@ export class WindowsToolchainInstaller extends VerifyingToolchainInstaller<Windo
         await this.vsRequirement(arch)
       )
       await visualStudio.update(sdkroot)
+    }
+
+    if (core.getBooleanInput('update-sdk-modules')) {
+      await updateSdkModules(sdkroot)
     }
 
     const swiftFlags = [
