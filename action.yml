@@ -54,6 +54,11 @@ inputs:
       i.e. Enable this option for installing static SDK: https://www.swift.org/documentation/articles/static-linux-getting-started.html
     required: false
     default: 'false'
+  prefer-visual-studio-linker:
+    description: >-
+      Whether to prefer using the Visual Studio linker over the default linker. This is unsafe and not recommended to set.
+    required: false
+    default: 'false'
   sdks:
     description: >-
       Semi-colon separated list of Swift SDKs to install along with the main toolchain.

@@ -81,13 +81,20 @@ export class WindowsToolchainInstaller extends VerifyingToolchainInstaller<Windo
   }
 
   protected async download(arch: string) {
-    core.debug(
-      `Using VS requirement ${JSON.stringify(this.vsRequirement(arch))}`
-    )
+    let vsSetupAction = new Promise(resolve => resolve({}))
+    const vsComponents = core.getInput('visual-studio-components')
+    if (vsComponents.length) {
+      core.debug(
+        `Using VS requirement ${JSON.stringify(this.vsRequirement(arch))}`
+      )
+      vsSetupAction = VisualStudio.setup(await this.vsRequirement(arch))
+    }
+
     const [, toolchain] = await Promise.all([
-      VisualStudio.setup(await this.vsRequirement(arch)),
+      vsSetupAction,
       super.download(arch)
     ])
+
     const exeFile = `${toolchain}.exe`
     await fs.rename(toolchain, exeFile)
     core.debug(`Toolchain installer downloaded at "${exeFile}"`)
@@ -138,10 +145,17 @@ export class WindowsToolchainInstaller extends VerifyingToolchainInstaller<Windo
       return
     }
 
-    const visualStudio = await VisualStudio.setup(
-      await this.vsRequirement(arch)
-    )
-    await visualStudio.update(sdkroot)
+    const version = await this.installedSwiftVersion()
+    if (
+      semver.lte(semver.coerce(version) ?? version, '5.9.0') ||
+      core.getBooleanInput('prefer-visual-studio-linker')
+    ) {
+      const visualStudio = await VisualStudio.setup(
+        await this.vsRequirement(arch)
+      )
+      await visualStudio.update(sdkroot)
+    }
+
     const swiftFlags = [
       '-sdk',
       sdkroot,

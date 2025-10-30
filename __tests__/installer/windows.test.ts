@@ -180,7 +180,7 @@ describe('windows toolchain installation verification', () => {
     jest.spyOn(fs, 'rename').mockResolvedValue()
     jest.spyOn(core, 'getBooleanInput').mockReturnValue(false)
     jest.spyOn(exec, 'exec').mockResolvedValue(0)
-    jest.spyOn(exec, 'getExecOutput').mockResolvedValue({
+    const execSpy = jest.spyOn(exec, 'getExecOutput').mockResolvedValue({
       exitCode: 0,
       stdout: JSON.stringify([visualStudio]),
       stderr: ''
@@ -192,6 +192,37 @@ describe('windows toolchain installation verification', () => {
     await expect(installer['download']('x86_64')).resolves.toBe(
       `${download}.exe`
     )
+    expect(execSpy).not.toHaveBeenCalled()
+    expect(cacheSpy).not.toHaveBeenCalled()
+  })
+
+  it('tests download without caching with custom Visual Studio components', async () => {
+    const installer = new WindowsToolchainInstaller(toolchain)
+    expect(installer['version']).toStrictEqual(parseSemVer('5.8'))
+    expect(installer['baseUrl'].href).toBe(
+      'https://download.swift.org/swift-5.8-release/windows10/swift-5.8-RELEASE'
+    )
+
+    const download = path.resolve('tool', 'download', 'path')
+    process.env.VSWHERE_PATH = path.join('C:', 'Visual Studio')
+    jest.spyOn(fs, 'access').mockResolvedValue()
+    jest.spyOn(fs, 'rename').mockResolvedValue()
+    jest.spyOn(core, 'getInput').mockReturnValue(' ')
+    jest.spyOn(core, 'getBooleanInput').mockReturnValue(false)
+    jest.spyOn(exec, 'exec').mockResolvedValue(0)
+    const execSpy = jest.spyOn(exec, 'getExecOutput').mockResolvedValue({
+      exitCode: 0,
+      stdout: JSON.stringify([visualStudio]),
+      stderr: ''
+    })
+    jest.spyOn(cache, 'restoreCache').mockResolvedValue(undefined)
+    const cacheSpy = jest.spyOn(cache, 'saveCache').mockResolvedValue(1)
+    jest.spyOn(toolCache, 'downloadTool').mockResolvedValue(download)
+    jest.spyOn(exec, 'exec').mockResolvedValue(0)
+    await expect(installer['download']('x86_64')).resolves.toBe(
+      `${download}.exe`
+    )
+    expect(execSpy).toHaveBeenCalled()
     expect(cacheSpy).not.toHaveBeenCalled()
   })
 
@@ -265,6 +296,11 @@ describe('windows toolchain installation verification', () => {
     expect(addPathSpy.mock.calls).toStrictEqual([['b'], ['c']])
     expect(exportVariableSpy.mock.calls).toStrictEqual([['SDKROOT', 'root']])
 
+    jest.spyOn(exec, 'getExecOutput').mockResolvedValueOnce({
+      exitCode: 0,
+      stdout: 'Apple Swift version 5.8',
+      stderr: ''
+    })
     const setupSpy = jest
       .spyOn(VisualStudio, 'setup')
       .mockResolvedValue(visualStudio)
@@ -315,6 +351,11 @@ describe('windows toolchain installation verification', () => {
     expect(addPathSpy.mock.calls).toStrictEqual([['b'], ['c']])
     expect(exportVariableSpy.mock.calls).toStrictEqual([['SDKROOT', 'root']])
 
+    jest.spyOn(exec, 'getExecOutput').mockResolvedValueOnce({
+      exitCode: 0,
+      stdout: 'Apple Swift version 5.8',
+      stderr: ''
+    })
     const setupSpy = jest
       .spyOn(VisualStudio, 'setup')
       .mockResolvedValue(visualStudio)
@@ -336,11 +377,18 @@ describe('windows toolchain installation verification', () => {
       .mockResolvedValue()
     jest.spyOn(fs, 'copyFile').mockResolvedValue()
     jest.spyOn(exec, 'exec').mockResolvedValue(0)
-    jest.spyOn(exec, 'getExecOutput').mockResolvedValue({
-      exitCode: 0,
-      stdout: vsEnvs.join(os.EOL),
-      stderr: ''
-    })
+    jest
+      .spyOn(exec, 'getExecOutput')
+      .mockResolvedValueOnce({
+        exitCode: 0,
+        stdout: 'Apple Swift version 5.8',
+        stderr: ''
+      })
+      .mockResolvedValue({
+        exitCode: 0,
+        stdout: vsEnvs.join(os.EOL),
+        stderr: ''
+      })
     const toolPath = path.join(
       installation,
       'Developer',
@@ -387,11 +435,18 @@ describe('windows toolchain installation verification', () => {
       })
     jest.spyOn(fs, 'copyFile').mockResolvedValue()
     jest.spyOn(exec, 'exec').mockResolvedValue(0)
-    jest.spyOn(exec, 'getExecOutput').mockResolvedValue({
-      exitCode: 0,
-      stdout: vsEnvs.join(os.EOL),
-      stderr: ''
-    })
+    jest
+      .spyOn(exec, 'getExecOutput')
+      .mockResolvedValueOnce({
+        exitCode: 0,
+        stdout: 'Apple Swift version 5.8',
+        stderr: ''
+      })
+      .mockResolvedValue({
+        exitCode: 0,
+        stdout: vsEnvs.join(os.EOL),
+        stderr: ''
+      })
     const toolPath = path.join(
       installation,
       'Developer',
@@ -426,7 +481,9 @@ describe('windows toolchain installation verification', () => {
   it('tests add to PATH without SDK copying', async () => {
     const installer = new WindowsToolchainInstaller(toolchain)
     const installation = path.resolve('tool', 'installed', 'path')
-    jest.spyOn(VisualStudio, 'setup').mockResolvedValue(visualStudio)
+    const vsSetupSpy = jest
+      .spyOn(VisualStudio, 'setup')
+      .mockResolvedValue(visualStudio)
     jest
       .spyOn(fs, 'access')
       .mockRejectedValueOnce(new Error())
@@ -441,11 +498,18 @@ describe('windows toolchain installation verification', () => {
       })
     jest.spyOn(fs, 'copyFile').mockResolvedValue()
     jest.spyOn(exec, 'exec').mockResolvedValue(0)
-    jest.spyOn(exec, 'getExecOutput').mockResolvedValue({
-      exitCode: 0,
-      stdout: vsEnvs.join(os.EOL),
-      stderr: ''
-    })
+    jest
+      .spyOn(exec, 'getExecOutput')
+      .mockResolvedValueOnce({
+        exitCode: 0,
+        stdout: 'Apple Swift version 5.8',
+        stderr: ''
+      })
+      .mockResolvedValue({
+        exitCode: 0,
+        stdout: vsEnvs.join(os.EOL),
+        stderr: ''
+      })
     const toolPath = path.join(
       installation,
       'Developer',
@@ -466,6 +530,157 @@ describe('windows toolchain installation verification', () => {
     const swiftDev = path.join(installation, 'Swift-development', 'bin')
     const icu67 = path.join(installation, 'icu-67', 'usr', 'bin')
     await installer['add'](installation, 'x86_64')
+    expect(vsSetupSpy).toHaveBeenCalled()
+    expect(process.env.PATH?.includes(swiftPath)).toBeTruthy()
+    expect(process.env.PATH?.includes(swiftDev)).toBeTruthy()
+    expect(process.env.PATH?.includes(icu67)).toBeTruthy()
+    expect(process.env.SDKROOT).toBe(sdkroot)
+    expect(process.env.SWIFTFLAGS).toContain(`-sdk ${sdkroot}`)
+    expect(process.env.SWIFTFLAGS).toContain(`-I ${swiftLibs}`)
+    expect(process.env.SWIFTFLAGS).toContain(
+      `-L ${path.join(swiftLibs, 'windows')}`
+    )
+  })
+
+  it('tests add to PATH without SDK copying Swift 5.9.1', async () => {
+    const toolchain = {
+      name: 'Windows 10',
+      date: new Date('2023-10-19'),
+      download: 'swift-5.9-RELEASE-windows10.exe',
+      download_signature: 'swift-5.9.1-RELEASE-windows10.exe.sig',
+      dir: 'swift-5.9.1-RELEASE',
+      platform: 'windows10',
+      branch: 'swift-5.9.1-release',
+      windows: true,
+      preventCaching: false
+    }
+    const installer = new WindowsToolchainInstaller(toolchain)
+    const installation = path.resolve('tool', 'installed', 'path')
+    const vsSetupSpy = jest.spyOn(VisualStudio, 'setup')
+    jest
+      .spyOn(fs, 'access')
+      .mockRejectedValueOnce(new Error())
+      .mockImplementation(async p => {
+        if (
+          typeof p === 'string' &&
+          (p.endsWith('ucrt.modulemap') || p.endsWith('winsdk.modulemap'))
+        ) {
+          return Promise.reject(new Error())
+        }
+        return Promise.resolve()
+      })
+    jest.spyOn(fs, 'copyFile').mockResolvedValue()
+    jest.spyOn(exec, 'exec').mockResolvedValue(0)
+    jest
+      .spyOn(exec, 'getExecOutput')
+      .mockResolvedValueOnce({
+        exitCode: 0,
+        stdout: 'Apple Swift version 5.9.1',
+        stderr: ''
+      })
+      .mockResolvedValue({
+        exitCode: 0,
+        stdout: vsEnvs.join(os.EOL),
+        stderr: ''
+      })
+    jest.spyOn(core, 'getBooleanInput').mockReturnValue(false)
+    const toolPath = path.join(
+      installation,
+      'Developer',
+      'Toolchains',
+      'unknown-Asserts-development.xctoolchain'
+    )
+    const sdkroot = path.join(
+      installation,
+      'Developer',
+      'Platforms',
+      'Windows.platform',
+      'Developer',
+      'SDKs',
+      'Windows.sdk'
+    )
+    const swiftLibs = path.join(sdkroot, 'usr', 'lib', 'swift')
+    const swiftPath = path.join(toolPath, 'usr', 'bin')
+    const swiftDev = path.join(installation, 'Swift-development', 'bin')
+    const icu67 = path.join(installation, 'icu-67', 'usr', 'bin')
+    await installer['add'](installation, 'x86_64')
+    expect(vsSetupSpy).not.toHaveBeenCalled()
+    expect(process.env.PATH?.includes(swiftPath)).toBeTruthy()
+    expect(process.env.PATH?.includes(swiftDev)).toBeTruthy()
+    expect(process.env.PATH?.includes(icu67)).toBeTruthy()
+    expect(process.env.SDKROOT).toBe(sdkroot)
+    expect(process.env.SWIFTFLAGS).toContain(`-sdk ${sdkroot}`)
+    expect(process.env.SWIFTFLAGS).toContain(`-I ${swiftLibs}`)
+    expect(process.env.SWIFTFLAGS).toContain(
+      `-L ${path.join(swiftLibs, 'windows')}`
+    )
+  })
+
+  it('tests add to PATH without SDK copying Swift 5.9.1 with Visual Studio linker', async () => {
+    const toolchain = {
+      name: 'Windows 10',
+      date: new Date('2023-10-19'),
+      download: 'swift-5.9-RELEASE-windows10.exe',
+      download_signature: 'swift-5.9.1-RELEASE-windows10.exe.sig',
+      dir: 'swift-5.9.1-RELEASE',
+      platform: 'windows10',
+      branch: 'swift-5.9.1-release',
+      windows: true,
+      preventCaching: false
+    }
+    const installer = new WindowsToolchainInstaller(toolchain)
+    const installation = path.resolve('tool', 'installed', 'path')
+    const vsSetupSpy = jest
+      .spyOn(VisualStudio, 'setup')
+      .mockResolvedValue(visualStudio)
+    jest
+      .spyOn(fs, 'access')
+      .mockRejectedValueOnce(new Error())
+      .mockImplementation(async p => {
+        if (
+          typeof p === 'string' &&
+          (p.endsWith('ucrt.modulemap') || p.endsWith('winsdk.modulemap'))
+        ) {
+          return Promise.reject(new Error())
+        }
+        return Promise.resolve()
+      })
+    jest.spyOn(fs, 'copyFile').mockResolvedValue()
+    jest.spyOn(exec, 'exec').mockResolvedValue(0)
+    jest
+      .spyOn(exec, 'getExecOutput')
+      .mockResolvedValueOnce({
+        exitCode: 0,
+        stdout: 'Apple Swift version 5.9.1',
+        stderr: ''
+      })
+      .mockResolvedValue({
+        exitCode: 0,
+        stdout: vsEnvs.join(os.EOL),
+        stderr: ''
+      })
+    jest.spyOn(core, 'getBooleanInput').mockReturnValue(true)
+    const toolPath = path.join(
+      installation,
+      'Developer',
+      'Toolchains',
+      'unknown-Asserts-development.xctoolchain'
+    )
+    const sdkroot = path.join(
+      installation,
+      'Developer',
+      'Platforms',
+      'Windows.platform',
+      'Developer',
+      'SDKs',
+      'Windows.sdk'
+    )
+    const swiftLibs = path.join(sdkroot, 'usr', 'lib', 'swift')
+    const swiftPath = path.join(toolPath, 'usr', 'bin')
+    const swiftDev = path.join(installation, 'Swift-development', 'bin')
+    const icu67 = path.join(installation, 'icu-67', 'usr', 'bin')
+    await installer['add'](installation, 'x86_64')
+    expect(vsSetupSpy).toHaveBeenCalled()
     expect(process.env.PATH?.includes(swiftPath)).toBeTruthy()
     expect(process.env.PATH?.includes(swiftDev)).toBeTruthy()
     expect(process.env.PATH?.includes(icu67)).toBeTruthy()
@@ -517,11 +732,18 @@ describe('windows toolchain installation verification', () => {
     jest.spyOn(toolCache, 'cacheDir').mockResolvedValue(cached)
     jest.spyOn(cache, 'saveCache').mockResolvedValue(1)
     jest.spyOn(exec, 'exec').mockResolvedValue(0)
-    jest.spyOn(exec, 'getExecOutput').mockResolvedValue({
-      exitCode: 0,
-      stdout: vsEnvs.join(os.EOL),
-      stderr: ''
-    })
+    jest
+      .spyOn(exec, 'getExecOutput')
+      .mockResolvedValueOnce({
+        exitCode: 0,
+        stdout: 'Apple Swift version 5.8',
+        stderr: ''
+      })
+      .mockResolvedValue({
+        exitCode: 0,
+        stdout: vsEnvs.join(os.EOL),
+        stderr: ''
+      })
     await installer.install('x86_64')
     expect(setupSpy).toHaveBeenCalled()
     expect(process.env.PATH?.includes(swiftPath)).toBeTruthy()
