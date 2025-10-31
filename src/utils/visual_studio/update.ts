@@ -19,6 +19,7 @@ VisualStudio.prototype.update = async function (sdkroot: string) {
     }
     core.exportVariable(property, vsEnv[property])
   }
+
   const universalCRTSdkDir = vsEnv.UniversalCRTSdkDir
   const uCRTVersion = vsEnv.UCRTVersion
   const vCToolsInstallDir = vsEnv.VCToolsInstallDir

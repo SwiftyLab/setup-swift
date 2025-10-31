@@ -145,12 +145,12 @@ jobs:
         fail_ci_if_error: ${{ github.event_name == 'push' }}
 
   integration-test:
-    name: Integrate Swift ${{ matrix.swift }} on ${{ matrix.os }} with development ${{ matrix.development }}
+    name: Integrate Swift ${{ matrix.swift }} on ${{ matrix.os }} with development ${{ matrix.development }}, VS linker ${{ matrix.vs-link }}, latest modules ${{ matrix.latest-modules }}
     if: needs.ci.outputs.run == 'true'
     needs: ci
     runs-on: ${{ matrix.os }}
     concurrency:
-      group: integration-test-${{ github.ref }}-${{ matrix.os }}-${{ matrix.swift }}-${{ matrix.development }}
+      group: integration-test-${{ github.ref }}-${{ matrix.os }}-${{ matrix.swift }}-${{ matrix.development }}-${{ matrix.vs-link }}-${{ matrix.latest-modules }}
       cancel-in-progress: true
     env:
       SETUPSWIFT_SWIFTORG_METADATA: ${{ format('{{"commit":"{0}"}}', needs.ci.outputs.check_latest) }}
@@ -159,28 +159,41 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
         swift: ['latest']
         development: [false, true]
-        check-link: [false]
+        vs-link: [false]
+        latest-modules: [false]
         include:
         - os: macos-latest
           swift: '5.0.0' # oldest
           development: false
         - os: macos-13
-          swift: 'latest' # action caching architecture mismatch
+          swift: latest # action caching architecture mismatch
           development: false
         - os: macos-13
           swift: '5.9' # Xcode toolchain inclusion optimization
           development: false
         - os: windows-latest
+          swift: latest
+          development: false
+          vs-link: true
+          latest-modules: true
+        - os: windows-latest
           swift: '5.9' # 2nd installation approach
           development: false
-          check-link: false
+          vs-link: false
+          latest-modules: false
+        - os: windows-latest
+          swift: '5.9.1' # 2nd installation approach
+          development: false
+          vs-link: true
+          latest-modules: false
         - os: ubuntu-latest
           swift: '5.3.0' # oldest
           development: false
         - os: windows-latest
           swift: '5.3' # 1st installation approach
           development: false
-          check-link: true
+          vs-link: false
+          latest-modules: false
         - os: ubuntu-22.04
           swift: ${{ fromJSON(vars.SETUPSWIFT_CUSTOM_TOOLCHAINS).ubuntu2204 }} # custom toolchain
           development: true
@@ -221,6 +234,8 @@ jobs:
         check-latest: ${{ needs.ci.outputs.check_latest }}
         cache-snapshot: ${{ !matrix.development }}
         prefer-oss-toolchain: ${{ matrix.sdk != '' }}
+        prefer-visual-studio-linker: ${{ runner.os == 'Windows' && matrix.vs-link }}
+        update-sdk-modules: ${{ runner.os == 'Windows' && matrix.latest-modules }}
 
     - name: Verify Swift version in macos
       if: runner.os == 'macOS'
@@ -230,8 +245,8 @@ jobs:
       run: swift --version | grep ${{ steps.setup-swift.outputs.swift-version }} || exit 1
 
     - name: Check link
-      if: runner.os == 'Windows' && matrix.check-link == 'true'
-      run: which link | grep "Microsoft Visual Studio" || exit 1
+      if: runner.os == 'Windows'
+      run: which link
 
     - name: Install SDK
       if: matrix.sdk != ''

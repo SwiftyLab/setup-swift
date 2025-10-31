@@ -57,8 +57,15 @@ inputs:
   prefer-visual-studio-linker:
     description: >-
       Whether to prefer using the Visual Studio linker over the default linker. This is unsafe and not recommended to set.
+      If you are getting any linker errors with this option, try setting `update-sdk-modules` to `true`.
     required: false
     default: 'false'
+  update-sdk-modules:
+    description: >-
+      Update SDK module definitions to latest version after installation (Windows only).
+    required: false
+    default: 'false'
+    type: boolean
   sdks:
     description: >-
       Semi-colon separated list of Swift SDKs to install along with the main toolchain.
