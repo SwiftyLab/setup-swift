@@ -165,10 +165,10 @@ jobs:
         - os: macos-latest
           swift: '5.0.0' # oldest
           development: false
-        - os: macos-13
+        - os: macos-14
           swift: latest # action caching architecture mismatch
           development: false
-        - os: macos-13
+        - os: macos-14
           swift: '5.9' # Xcode toolchain inclusion optimization
           development: false
         - os: windows-latest
@@ -400,7 +400,6 @@ jobs:
                   with: {
                     'swift-version': 'latest',
                     'check-latest': '${{ needs.ci.outputs.check_latest }}',
-                    'visual-studio-components': '${{ matrix.os }}'.includes('arm') ? 'Microsoft.VisualStudio.Component.Windows11SDK.22000' : '',
                     'sdks': '${{ runner.os }}' != 'Windows' ? 'static-linux;wasm' : ''
                   }
                 }
