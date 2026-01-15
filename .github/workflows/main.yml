@@ -400,7 +400,6 @@ jobs:
                   with: {
                     'swift-version': 'latest',
                     'check-latest': '${{ needs.ci.outputs.check_latest }}',
-                    'visual-studio-components': '${{ matrix.os }}'.includes('arm') ? 'Microsoft.VisualStudio.Component.Windows11SDK.22000' : '',
                     'sdks': '${{ runner.os }}' != 'Windows' ? 'static-linux;wasm' : ''
                   }
                 }
