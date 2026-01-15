@@ -302,7 +302,7 @@ jobs:
 
     - name: Upload cached installation as artifact
       if: always() && steps.get-tool.outputs.result != ''
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       with:
         name: ${{ fromJson(steps.get-tool.outputs.result).key }}-${{ matrix.os }}-tool
         path: ${{ fromJson(steps.get-tool.outputs.result).tool }}
