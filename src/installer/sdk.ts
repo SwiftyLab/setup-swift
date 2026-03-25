@@ -5,18 +5,15 @@ import {ToolchainInstaller} from './base'
 import {SdkSnapshot} from '../snapshot'
 
 export class SdkToolchainInstaller extends ToolchainInstaller<SdkSnapshot> {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected async unpack(resource: string, arch: string): Promise<string> {
+  protected async unpack(_resource: string, _arch: string): Promise<string> {
     throw new Error('Method not implemented.')
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected async add(installation: string, arch: string): Promise<void> {
+  protected async add(_installation: string, _arch: string): Promise<void> {
     throw new Error('Method not implemented.')
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async install(arch: string) {
+  async install(_arch: string, _hasSDKs: boolean) {
     const url = new URL(
       path.posix.join(this.baseUrl.pathname, this.data.download),
       this.baseUrl
@@ -26,7 +23,27 @@ export class SdkToolchainInstaller extends ToolchainInstaller<SdkSnapshot> {
     if (this.data.checksum) {
       args.push('--checksum', this.data.checksum)
     }
-    await exec('swift', args)
+
+    for (let index = 1; index < 4; index++) {
+      try {
+        await exec('swift', args)
+        break
+      } catch (error) {
+        core.debug(
+          `Failed to install SDK ${url.href} with args ${args.join(' ')}: ${error}`
+        )
+        if (index === 3) {
+          throw error
+        }
+
+        core.info(`Waiting ${1000 * index}ms before retrying`)
+        await new Promise(resolve => setTimeout(resolve, 1000 * index))
+        core.info(
+          `Retrying to install SDK ${url.href} with args ${args.join(' ')}: ${index}`
+        )
+      }
+    }
+
     core.endGroup()
   }
 }

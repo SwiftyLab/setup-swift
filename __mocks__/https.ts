@@ -1,6 +1,6 @@
 import {ClientRequest, IncomingMessage, IncomingHttpHeaders} from 'http'
 
-let urls: (string | URL)[] = []
+const urls: (string | URL)[] = []
 let content: Content
 
 export interface Content {
@@ -18,12 +18,14 @@ export function get(
   callback: ((res: IncomingMessage) => void) | undefined
 ) {
   urls.push(url)
-  let res = {
+  const res = {
     statusCode: content.statusCode,
     url: url,
     headers: content.headers,
     data: content.data,
+    /* eslint-disable @typescript-eslint/no-explicit-any */
     on: (event: string, listener: (...args: any[]) => void) => {
+      /* eslint-enable @typescript-eslint/no-explicit-any */
       if (event === 'data') {
         listener(content.data)
       } else if (event === 'end') {

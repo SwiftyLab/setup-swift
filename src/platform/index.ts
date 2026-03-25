@@ -83,13 +83,22 @@ Platform.install = async (version: ToolchainVersion) => {
   }
   const toolchain = toolchains[0]
   core.startGroup(`Installing Swift toolchain snapshot ${toolchain.dir}`)
-  const installer = await platform.install(toolchain)
+  const sdkSnapshotsResult = await version.sdkSnapshots(toolchain)
+  const installer = await platform.install(
+    toolchain,
+    sdkSnapshotsResult.length > 0
+  )
   core.endGroup()
 
   const sdkInstallers: SdkToolchainInstaller[] = []
-  for (const sdkSnapshot of await version.sdkSnapshots(toolchain)) {
+  for (const [sdkSnapshot, sdkRequirement] of sdkSnapshotsResult) {
+    if (sdkSnapshot == undefined) {
+      throw new Error(`Unable to find SDK for ${sdkRequirement}`)
+    }
+
     const sdkInstaller = new SdkToolchainInstaller(sdkSnapshot)
-    await sdkInstaller.install(toolchain.platform)
+    await sdkInstaller.install(toolchain.platform, true)
+    await sdkRequirement.setup(sdkSnapshot)
     sdkInstallers.push(sdkInstaller)
   }
   return {installer, sdkInstallers}

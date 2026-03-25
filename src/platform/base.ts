@@ -110,6 +110,7 @@ export abstract class Platform<
   }
 
   abstract install(
-    toolchain: SnapshotForInstaller<Installer>
+    toolchain: SnapshotForInstaller<Installer>,
+    hasSDKs: boolean
   ): Promise<Installer>
 }

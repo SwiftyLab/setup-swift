@@ -10,6 +10,7 @@ import os from 'os'
 import {coerce as parseSemVer} from 'semver'
 import {WindowsToolchainInstaller} from '../../src/installer/windows'
 import {VisualStudio} from '../../src/utils/visual_studio'
+import {describe, expect, it, jest, beforeEach, afterEach} from '@jest/globals'
 
 jest.mock('https')
 
@@ -747,7 +748,7 @@ describe('windows toolchain installation verification', () => {
     })
     const mkdirSpy = jest
       .spyOn(fs, 'mkdir')
-      .mockImplementation(path => Promise.resolve(path.toString()))
+      .mockImplementation(async path => Promise.resolve(path.toString()))
     jest.spyOn(fs, 'copyFile').mockResolvedValue()
     const writeFileSpy = jest.spyOn(fs, 'writeFile').mockResolvedValue()
     const toolPath = path.join(
@@ -873,7 +874,7 @@ describe('windows toolchain installation verification', () => {
         stdout: vsEnvs.join(os.EOL),
         stderr: ''
       })
-    await installer.install('x86_64')
+    await installer.install('x86_64', false)
     expect(setupSpy).toHaveBeenCalled()
     expect(process.env.PATH?.includes(swiftPath)).toBeTruthy()
     expect(process.env.PATH?.includes(swiftDev)).toBeTruthy()

@@ -5,6 +5,7 @@ import {__setos as setos} from 'getos'
 import {ToolchainVersion} from '../../src/version'
 import {Platform} from '../../src/platform'
 import {LinuxToolchainSnapshot} from '../../src/snapshot'
+import {describe, expect, it, jest} from '@jest/globals'
 
 jest.mock('getos')
 
@@ -329,7 +330,9 @@ describe('fetch linux tool data based on options', () => {
       return
     }
 
-    const sdkSnapshots = await version.sdkSnapshots(tool)
+    const sdkSnapshots = (await version.sdkSnapshots(tool)).map(
+      snapshot => snapshot[0]
+    )
     expect(sdkSnapshots.length).toBe(1)
     const sdkSnapshot = sdkSnapshots[0]
     expect(sdkSnapshot.platform).toBe('static-sdk')
@@ -364,7 +367,9 @@ describe('fetch linux tool data based on options', () => {
         return
       }
 
-      const sdkSnapshots = await version.sdkSnapshots(tool)
+      const sdkSnapshots = (await version.sdkSnapshots(tool)).map(
+        snapshot => snapshot[0]
+      )
       expect(sdkSnapshots.length).toBe(1)
       const sdkSnapshot = sdkSnapshots[0]
       expect(sdkSnapshot.platform).toBe('wasm-sdk')
@@ -375,6 +380,44 @@ describe('fetch linux tool data based on options', () => {
       )
       expect(sdkSnapshot.checksum).toBe(
         'fe4e8648309fce86ea522e9e0d1dc48e82df6ba6e5743dbf0c53db8429fb5224'
+      )
+    }
+  )
+
+  it.each(['android-sdk', 'android'])(
+    'fetches ubuntu 22.04 swift tool with SDK %s',
+    async sdk => {
+      setos({os: 'linux', dist: 'Ubuntu', release: '22.04'})
+      jest.spyOn(os, 'arch').mockReturnValue('x64')
+      const version = ToolchainVersion.create('6.3.0', false, [sdk])
+      const tool = await Platform.toolchain(version)
+      expect(tool).toBeTruthy()
+      const lTool = tool as LinuxToolchainSnapshot
+      expect(lTool.download).toBe('swift-6.3-RELEASE-ubuntu22.04.tar.gz')
+      expect(lTool.dir).toBe('swift-6.3-RELEASE')
+      expect(lTool.platform).toBe('ubuntu2204')
+      expect(lTool.branch).toBe('swift-6.3-release')
+      expect(lTool.download_signature).toBe(
+        'swift-6.3-RELEASE-ubuntu22.04.tar.gz.sig'
+      )
+      expect(lTool.preventCaching).toBe(false)
+      if (!tool) {
+        return
+      }
+
+      const sdkSnapshots = (await version.sdkSnapshots(tool)).map(
+        snapshot => snapshot[0]
+      )
+      expect(sdkSnapshots.length).toBe(1)
+      const sdkSnapshot = sdkSnapshots[0]
+      expect(sdkSnapshot.platform).toBe('android-sdk')
+      expect(sdkSnapshot.dir).toBe('swift-6.3-RELEASE')
+      expect(sdkSnapshot.branch).toBe('swift-6.3-release')
+      expect(sdkSnapshot.download).toBe(
+        'swift-6.3-RELEASE_android.artifactbundle.tar.gz'
+      )
+      expect(sdkSnapshot.checksum).toBe(
+        '2f2942c4bcea7965a08665206212c66991dabe23725aeec7c4365fc91acad088'
       )
     }
   )
@@ -401,7 +444,9 @@ describe('fetch linux tool data based on options', () => {
       return
     }
 
-    const sdkSnapshots = await version.sdkSnapshots(tool)
+    const sdkSnapshots = (await version.sdkSnapshots(tool)).map(
+      snapshot => snapshot[0]
+    )
     expect(sdkSnapshots.length).toBe(1)
     const sdkSnapshot = sdkSnapshots[0]
     expect(sdkSnapshot.platform).toBe('static-sdk')
@@ -437,7 +482,9 @@ describe('fetch linux tool data based on options', () => {
       return
     }
 
-    const sdkSnapshots = await version.sdkSnapshots(tool)
+    const sdkSnapshots = (await version.sdkSnapshots(tool)).map(
+      snapshot => snapshot[0]
+    )
     expect(sdkSnapshots.length).toBe(1)
     const sdkSnapshot = sdkSnapshots[0]
     expect(sdkSnapshot.platform).toBe('wasm-sdk')
@@ -476,7 +523,9 @@ describe('fetch linux tool data based on options', () => {
       return
     }
 
-    const sdkSnapshots = await version.sdkSnapshots(tool)
+    const sdkSnapshots = (await version.sdkSnapshots(tool)).map(
+      snapshot => snapshot[0]
+    )
     expect(sdkSnapshots.length).toBe(2)
     for (let i = 0; i < 2; i++) {
       const sdkSnapshot = sdkSnapshots[i]

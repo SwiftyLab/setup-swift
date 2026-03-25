@@ -5,12 +5,12 @@ import * as toolCache from '@actions/tool-cache'
 import {VerifyingToolchainInstaller} from './verify'
 import {LinuxToolchainSnapshot} from '../snapshot'
 import {PackageManager} from './package_manager'
-import {MODULE_DIR} from '../const'
+import {MODULE_DIR, SWIFTORG} from '../const'
 
 export class LinuxToolchainInstaller extends VerifyingToolchainInstaller<LinuxToolchainSnapshot> {
   private async installDependencies() {
     const platform = this.data.platform
-    const linuxRequirements = 'swiftorg/_includes/linux'
+    const linuxRequirements = path.join(SWIFTORG, '_includes', 'linux')
     const file = path.join(MODULE_DIR, linuxRequirements, `${platform}.html`)
     try {
       await fs.access(file)

@@ -1,8 +1,14 @@
 import * as path from 'path'
 import * as exec from '@actions/exec'
 import nock from 'nock'
-import {Swiftorg, SWIFTORG} from '../src/swiftorg'
-import {MODULE_DIR, SWIFTORG_ORIGIN, SWIFTORG_METADATA} from '../src/const'
+import {Swiftorg} from '../src/swiftorg'
+import {
+  MODULE_DIR,
+  SWIFTORG,
+  SWIFTORG_ORIGIN,
+  SWIFTORG_METADATA
+} from '../src/const'
+import {describe, expect, it, jest, beforeEach, afterEach} from '@jest/globals'
 
 describe('swiftorg sync validation', () => {
   const env = process.env
@@ -120,7 +126,7 @@ describe('swiftorg sync validation', () => {
     nock(SWIFTORG_METADATA)
       .get(/.*/)
       .reply(statusCode, {}, {'content-type': 'application/json'})
-    await expect(swiftorg.update()).rejects.toMatchObject(
+    await expect(swiftorg.update()).rejects.toThrow(
       new Error(`Request Failed Status Code: '${statusCode}'`)
     )
     expect(execSpy).toHaveBeenCalledTimes(0)
@@ -134,7 +140,7 @@ describe('swiftorg sync validation', () => {
     nock(SWIFTORG_METADATA)
       .get(/.*/)
       .reply(200, {}, {'content-type': contentType})
-    await expect(swiftorg.update()).rejects.toMatchObject(
+    await expect(swiftorg.update()).rejects.toThrow(
       new Error(`Invalid content-type: '${contentType}'`)
     )
     expect(execSpy).toHaveBeenCalledTimes(0)

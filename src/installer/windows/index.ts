@@ -9,6 +9,11 @@ import {VisualStudio, VISUAL_STUDIO_WINSDK_COMPONENT_REGEX} from '../../utils'
 import {program86} from '../../utils/windows'
 import {Installation, CustomInstallation} from './installation'
 import {updateSdkModules} from './modules'
+import {
+  INPUT_VISUAL_STUDIO_COMPONENTS,
+  INPUT_PREFER_VISUAL_STUDIO_LINKER,
+  INPUT_UPDATE_SDK_MODULES
+} from '../../const'
 
 export class WindowsToolchainInstaller extends VerifyingToolchainInstaller<WindowsToolchainSnapshot> {
   private async winsdk() {
@@ -47,7 +52,7 @@ export class WindowsToolchainInstaller extends VerifyingToolchainInstaller<Windo
   }
 
   private async vsRequirement(arch: string) {
-    const componentsStr = core.getInput('visual-studio-components')
+    const componentsStr = core.getInput(INPUT_VISUAL_STUDIO_COMPONENTS)
     const providedComponents = componentsStr ? componentsStr.split(';') : []
     const winsdkComponent = providedComponents.find(component => {
       return (
@@ -83,8 +88,11 @@ export class WindowsToolchainInstaller extends VerifyingToolchainInstaller<Windo
 
   protected async download(arch: string) {
     let vsSetupAction = new Promise(resolve => resolve({}))
-    const vsComponents = core.getInput('visual-studio-components')
-    if (vsComponents.length) {
+    const vsComponents = core.getInput(INPUT_VISUAL_STUDIO_COMPONENTS)
+    if (
+      vsComponents.length ||
+      core.getBooleanInput(INPUT_PREFER_VISUAL_STUDIO_LINKER)
+    ) {
       core.debug(
         `Using VS requirement ${JSON.stringify(this.vsRequirement(arch))}`
       )
@@ -149,7 +157,7 @@ export class WindowsToolchainInstaller extends VerifyingToolchainInstaller<Windo
     const version = await this.installedSwiftVersion()
     if (
       semver.lte(semver.coerce(version) ?? version, '5.9.0') ||
-      core.getBooleanInput('prefer-visual-studio-linker')
+      core.getBooleanInput(INPUT_PREFER_VISUAL_STUDIO_LINKER)
     ) {
       const visualStudio = await VisualStudio.setup(
         await this.vsRequirement(arch)
@@ -157,7 +165,7 @@ export class WindowsToolchainInstaller extends VerifyingToolchainInstaller<Windo
       await visualStudio.update(sdkroot)
     }
 
-    if (core.getBooleanInput('update-sdk-modules')) {
+    if (core.getBooleanInput(INPUT_UPDATE_SDK_MODULES)) {
       await updateSdkModules(sdkroot)
     }
 

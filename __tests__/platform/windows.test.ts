@@ -2,6 +2,7 @@ import os from 'os'
 // @ts-ignore
 import {__setos as setos} from 'getos'
 import {Platform, WindowsPlatform} from '../../src/platform'
+import {describe, expect, it, jest} from '@jest/globals'
 
 jest.mock('getos')
 
@@ -21,7 +22,7 @@ describe('windows platform detection', () => {
     expect.assertions(1)
     setos({os: 'unknown', dist: 'unknown', release: '1'})
     jest.spyOn(os, 'arch').mockReturnValue('x64')
-    await expect(Platform.currentPlatform()).rejects.toMatchObject(
+    await expect(Platform.currentPlatform()).rejects.toThrow(
       new Error(`OS unknown unsupported for Swift`)
     )
   })

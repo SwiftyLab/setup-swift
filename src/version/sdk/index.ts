@@ -96,7 +96,7 @@ export class SdkSupportedVersion<
 
   private async getDevelopmentSdkSnapshots(
     toolchain: ToolchainSnapshot
-  ): Promise<SdkSnapshot[]> {
+  ): Promise<[SdkSnapshot | undefined, SdkRequirement][]> {
     return await Promise.all(
       this.requestedSdks.map(async requestedSdk => {
         let data: string
@@ -121,26 +121,31 @@ export class SdkSupportedVersion<
 
         let snapshots = yaml.load(data) as SdkSnapshot[]
         snapshots = snapshots.filter(snapshot => snapshot.dir === toolchain.dir)
-        return {
-          ...snapshots[0],
-          name: requestedSdk.platform,
-          platform: requestedSdk.platform,
-          branch: toolchain.branch,
-          baseUrl: toolchain.baseUrl,
-          preventCaching: true
-        }
+        return [
+          snapshots.length
+            ? {
+                ...snapshots[0],
+                name: requestedSdk.platform,
+                platform: requestedSdk.platform,
+                branch: toolchain.branch,
+                baseUrl: toolchain.baseUrl,
+                preventCaching: true
+              }
+            : undefined,
+          requestedSdk
+        ]
       })
     )
   }
 
   private async getReleasedSdkSnapshots(
     toolchain: ToolchainSnapshot
-  ): Promise<SdkSnapshot[]> {
+  ): Promise<[SdkSnapshot, SdkRequirement][]> {
     const data = await fs.readFile(SWIFT_RELEASE_FILE, 'utf-8')
     const releases = yaml.load(data) as SwiftRelease[]
     const release = releases.find(release => release.tag === toolchain.dir)
 
-    const snapshots: SdkSnapshot[] = []
+    const snapshots: [SdkSnapshot, SdkRequirement][] = []
     for (const platform of release?.platforms ?? []) {
       const requestedSdk = this.requestedSdks.find(
         requestedSdk => requestedSdk.platform == platform.platform
@@ -150,22 +155,27 @@ export class SdkSupportedVersion<
         continue
       }
 
-      snapshots.push({
-        name: platform.name,
-        date: toolchain.date,
-        download: `${toolchain.dir}_${requestedSdk.download}.artifactbundle.tar.gz`,
-        dir: toolchain.dir,
-        platform: platform.platform,
-        branch: toolchain.branch,
-        baseUrl: toolchain.baseUrl,
-        preventCaching: true,
-        checksum: platform.checksum
-      })
+      snapshots.push([
+        {
+          name: platform.name,
+          date: toolchain.date,
+          download: `${toolchain.dir}_${requestedSdk.download(platform.version)}.artifactbundle.tar.gz`,
+          dir: toolchain.dir,
+          platform: platform.platform,
+          branch: toolchain.branch,
+          baseUrl: toolchain.baseUrl,
+          preventCaching: true,
+          checksum: platform.checksum
+        },
+        requestedSdk
+      ])
     }
     return snapshots
   }
 
-  async sdkSnapshots(toolchain: ToolchainSnapshot): Promise<SdkSnapshot[]> {
+  async sdkSnapshots(
+    toolchain: ToolchainSnapshot
+  ): Promise<[SdkSnapshot | undefined, SdkRequirement][]> {
     return SWIFT_RELEASE_REGEX.exec(toolchain.branch) != null
       ? await this.getReleasedSdkSnapshots(toolchain)
       : await this.getDevelopmentSdkSnapshots(toolchain)

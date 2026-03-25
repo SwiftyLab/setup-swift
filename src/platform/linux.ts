@@ -7,7 +7,7 @@ import {VersionedPlatform} from './versioned'
 import {ToolchainVersion} from '../version'
 import {LinuxToolchainSnapshot, ToolchainSnapshot} from '../snapshot'
 import {LinuxToolchainInstaller} from '../installer'
-import {MODULE_DIR} from '../const'
+import {MODULE_DIR, SWIFTORG} from '../const'
 
 export class LinuxPlatform extends VersionedPlatform<LinuxToolchainInstaller> {
   constructor(
@@ -33,7 +33,7 @@ export class LinuxPlatform extends VersionedPlatform<LinuxToolchainInstaller> {
   }
 
   private async html() {
-    const doc = path.join(MODULE_DIR, 'swiftorg', 'download', 'index.md')
+    const doc = path.join(MODULE_DIR, SWIFTORG, 'download', 'index.md')
     const content = await fs.readFile(doc, 'utf8')
     return content
   }
@@ -47,7 +47,7 @@ export class LinuxPlatform extends VersionedPlatform<LinuxToolchainInstaller> {
     try {
       const vGlob = `${this.version}`.split('').join('*')
       const index = ['linux', this.name, vGlob, 'index.md']
-      const doc = path.join('swiftorg', 'install', ...index)
+      const doc = path.join(SWIFTORG, 'install', ...index)
       const file = (await glob(doc, {absolute: true, cwd: MODULE_DIR}))[0]
       if (!file) {
         return tools
@@ -76,9 +76,9 @@ export class LinuxPlatform extends VersionedPlatform<LinuxToolchainInstaller> {
     return tools
   }
 
-  async install(data: LinuxToolchainSnapshot) {
+  async install(data: LinuxToolchainSnapshot, hasSDKs: boolean) {
     const installer = new LinuxToolchainInstaller(data)
-    await installer.install(this.arch)
+    await installer.install(this.arch, hasSDKs)
     return installer
   }
 }

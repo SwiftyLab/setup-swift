@@ -5,6 +5,7 @@ import {__setos as setos} from 'getos'
 import {ToolchainVersion} from '../../src/version'
 import {Platform} from '../../src/platform'
 import {WindowsToolchainSnapshot} from '../../src/snapshot'
+import {describe, expect, it, jest} from '@jest/globals'
 
 jest.mock('getos')
 

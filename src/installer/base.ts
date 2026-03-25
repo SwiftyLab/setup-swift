@@ -9,6 +9,7 @@ import * as toolCache from '@actions/tool-cache'
 import {coerce as parseSemVer} from 'semver'
 import {SWIFT_BRANCH_REGEX} from '../version'
 import {ToolchainSnapshot} from '../snapshot'
+import {INPUT_CACHE_SNAPSHOT} from '../const'
 
 export type SnapshotForInstaller<Installer> =
   Installer extends ToolchainInstaller<infer Snapshot extends ToolchainSnapshot>
@@ -43,7 +44,7 @@ export abstract class ToolchainInstaller<Snapshot extends ToolchainSnapshot> {
     }
   }
 
-  async install(arch: string) {
+  async install(arch: string, _hasSDKs: boolean) {
     const toolCacheKey = `${this.data.dir}-${this.data.platform}`
     const actionCacheKey = arch ? `${toolCacheKey}-${arch}` : toolCacheKey
     const version = this.version?.raw
@@ -90,7 +91,7 @@ export abstract class ToolchainInstaller<Snapshot extends ToolchainSnapshot> {
     }
     if (
       tool &&
-      core.getBooleanInput('cache-snapshot') &&
+      core.getBooleanInput(INPUT_CACHE_SNAPSHOT) &&
       !actionCacheHit &&
       !toolCacheHit &&
       !this.data.preventCaching

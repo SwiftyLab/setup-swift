@@ -1,12 +1,13 @@
 import * as path from 'path'
 import * as core from '@actions/core'
 import {glob} from 'glob'
-import {MODULE_DIR} from '../const'
+import {MODULE_DIR, SWIFTORG} from '../const'
 import {ToolchainSnapshot, SwiftRelease, SdkSnapshot} from '../snapshot'
+import {SdkRequirement} from './sdk/requirement'
 
 export const SWIFT_BUILDS_DIR = path.join(
   MODULE_DIR,
-  'swiftorg',
+  SWIFTORG,
   '_data',
   'builds'
 )
@@ -56,8 +57,9 @@ export abstract class ToolchainVersion {
     return this.dirRegex.exec(tag) != null
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async sdkSnapshots(toolchain: ToolchainSnapshot): Promise<SdkSnapshot[]> {
+  async sdkSnapshots(
+    _toolchain: ToolchainSnapshot
+  ): Promise<[SdkSnapshot | undefined, SdkRequirement][]> {
     core.info('No SDKs to install')
     return []
   }
