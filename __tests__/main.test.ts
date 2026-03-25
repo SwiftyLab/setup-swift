@@ -4,6 +4,9 @@ import {Swiftorg} from '../src/swiftorg'
 import {Platform} from '../src/platform'
 import {SdkSupportedVersion} from '../src/version'
 import {LinuxToolchainInstaller, SdkToolchainInstaller} from '../src/installer'
+import {SdkRequirement, StaticLinux} from '../src/version/sdk/requirement/base'
+import {SdkSnapshot} from '../src/snapshot'
+import {describe, expect, it, jest} from '@jest/globals'
 
 describe('setup-swift run validation', () => {
   const swiftorgSpy = jest
@@ -25,17 +28,20 @@ describe('setup-swift run validation', () => {
     preventCaching: false
   }
   const sdkToolchains = [
-    {
-      name: 'Static SDK',
-      date: new Date('2023-03-30 10:28:49.000000000 -05:00'),
-      download: 'swift-5.8-RELEASE_static-linux-0.0.1.artifactbundle.tar.gz',
-      checksum:
-        'df0b40b9b582598e7e3d70c82ab503fd6fbfdff71fd17e7f1ab37115a0665b3b',
-      dir: 'swift-5.8-RELEASE',
-      platform: 'static-sdk',
-      branch: 'swift-5.8-release',
-      preventCaching: true
-    }
+    [
+      {
+        name: 'Static SDK',
+        date: new Date('2023-03-30 10:28:49.000000000 -05:00'),
+        download: 'swift-5.8-RELEASE_static-linux-0.0.1.artifactbundle.tar.gz',
+        checksum:
+          'df0b40b9b582598e7e3d70c82ab503fd6fbfdff71fd17e7f1ab37115a0665b3b',
+        dir: 'swift-5.8-RELEASE',
+        platform: 'static-sdk',
+        branch: 'swift-5.8-release',
+        preventCaching: true
+      } as SdkSnapshot,
+      new StaticLinux()
+    ] as [SdkSnapshot, SdkRequirement]
   ]
 
   it('tests dry run', async () => {
@@ -68,7 +74,7 @@ describe('setup-swift run validation', () => {
             const obj = objs[i]
             const sdkToolchain = sdkToolchains[i]
             obj.date = new Date(obj.date)
-            expect(obj).toStrictEqual(sdkToolchain)
+            expect(obj).toStrictEqual(sdkToolchain[0])
           }
           break
         }
@@ -79,7 +85,7 @@ describe('setup-swift run validation', () => {
   it('tests install', async () => {
     const installer = new LinuxToolchainInstaller(toolchain)
     const sdkInstallers = sdkToolchains.map(
-      toolchain => new SdkToolchainInstaller(toolchain)
+      ([toolchain, _requirement]) => new SdkToolchainInstaller(toolchain)
     )
     installSpy.mockResolvedValue({installer, sdkInstallers})
     jest.spyOn(core, 'getBooleanInput').mockReturnValue(false)
@@ -108,7 +114,7 @@ describe('setup-swift run validation', () => {
             const obj = objs[i]
             const sdkToolchain = sdkToolchains[i]
             obj.date = new Date(obj.date)
-            expect(obj).toStrictEqual(sdkToolchain)
+            expect(obj).toStrictEqual(sdkToolchain[0])
           }
           break
         }

@@ -11,6 +11,7 @@
         "noImplicitReturns": true,
         "strictBuiltinIteratorReturn": false,
         "skipLibCheck": true,
+        "isolatedModules": true,
         "lib": [
             "ES2021.String",
         ]

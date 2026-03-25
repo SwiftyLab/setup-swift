@@ -2,6 +2,7 @@ import os from 'os'
 // @ts-ignore
 import {__setos as setos} from 'getos'
 import {Platform, XcodePlatform} from '../../src/platform'
+import {describe, expect, it, jest} from '@jest/globals'
 
 jest.mock('getos')
 

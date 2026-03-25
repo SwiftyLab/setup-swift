@@ -7,6 +7,7 @@ import {
   VisualStudio,
   VisualStudioConfig
 } from '../../../src/utils/visual_studio'
+import {describe, expect, it, jest, beforeEach, afterEach} from '@jest/globals'
 
 describe('visual studio setup validation', () => {
   const env = process.env
@@ -45,7 +46,7 @@ describe('visual studio setup validation', () => {
     })
     await expect(
       VisualStudio.setup({version: '16', components: visualStudio.components})
-    ).rejects.toMatchObject(
+    ).rejects.toThrow(
       new Error(
         `Unable to find any Visual Studio installation for version: 16.`
       )
@@ -63,7 +64,7 @@ describe('visual studio setup validation', () => {
     })
     await expect(
       VisualStudio.setup({version: '16', components: visualStudio.components})
-    ).resolves.toMatchObject(visualStudio)
+    ).resolves.toEqual(visualStudio)
     expect(VisualStudio.shared).toStrictEqual(visualStudio)
   })
 
@@ -74,7 +75,7 @@ describe('visual studio setup validation', () => {
     const getExecOutputSpy = jest.spyOn(exec, 'getExecOutput')
     await expect(
       VisualStudio.setup({version: '16', components: visualStudio.components})
-    ).resolves.toMatchObject(visualStudio)
+    ).resolves.toEqual(visualStudio)
     expect(VisualStudio.shared).toBe(visualStudio)
     for (const spy of [fsAccessSpy, execSpy, getExecOutputSpy]) {
       expect(spy).not.toHaveBeenCalled()
@@ -114,7 +115,7 @@ describe('visual studio setup validation', () => {
 
     await expect(
       VisualStudio.setup({version: '16', components: visualStudio.components})
-    ).resolves.toMatchObject(visualStudio)
+    ).resolves.toEqual(visualStudio)
     expect(readFileSpy.mock.calls[0][0]).toBe(path.join(tmpDir, configFileName))
     expect(VisualStudio.shared).toStrictEqual(visualStudio)
   })

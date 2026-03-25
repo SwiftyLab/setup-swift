@@ -6,6 +6,7 @@ import * as toolCache from '@actions/tool-cache'
 import * as plist from 'plist'
 import {ToolchainInstaller} from './base'
 import {XcodeToolchainSnapshot} from '../snapshot'
+import {INPUT_PREFER_OSS_TOOLCHAIN} from '../const'
 
 export class XcodeToolchainInstaller extends ToolchainInstaller<XcodeToolchainSnapshot> {
   protected swiftVersionCommand(
@@ -18,7 +19,7 @@ export class XcodeToolchainInstaller extends ToolchainInstaller<XcodeToolchainSn
     }
   }
 
-  async isInstallationNeeded() {
+  async isInstallationNeeded(hasSDKs: boolean) {
     const xcode = this.data.xcode
     if (!xcode) {
       core.debug('No Xcode version for toolchain, downloading toolchain')
@@ -38,18 +39,18 @@ export class XcodeToolchainInstaller extends ToolchainInstaller<XcodeToolchainSn
     const command = this.swiftVersionCommand('')
     const version = await this.installedSwiftVersion(command)
     core.debug(`Found toolchain "${version}" bundled with Xcode ${xcode}`)
-    if (core.getBooleanInput('prefer-oss-toolchain')) {
+    if (core.getBooleanInput(INPUT_PREFER_OSS_TOOLCHAIN) || hasSDKs) {
       core.debug(`Giving preference to open source toolchain`)
       return true
     }
     return this.data.dir !== `swift-${version}-RELEASE`
   }
 
-  async install(arch: string) {
-    if (!(await this.isInstallationNeeded())) {
+  async install(arch: string, hasSDKs: boolean) {
+    if (!(await this.isInstallationNeeded(hasSDKs))) {
       return
     }
-    await super.install(arch)
+    await super.install(arch, hasSDKs)
   }
 
   protected async download(arch: string) {

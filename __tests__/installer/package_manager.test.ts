@@ -1,5 +1,6 @@
 import * as exec from '@actions/exec'
 import {PackageManager} from '../../src/installer/package_manager'
+import {describe, expect, it, jest} from '@jest/globals'
 
 describe('package manager setup validation', () => {
   it('tests package manager running correct commands', async () => {
@@ -10,7 +11,7 @@ describe('package manager setup validation', () => {
     expect(manager.name).toBe('apt-get')
     expect(manager.installationCommands).toBe(installationCommands)
     await manager.install()
-    await expect(execSpy).toHaveBeenCalledTimes(2)
+    expect(execSpy).toHaveBeenCalledTimes(2)
     const calls = execSpy.mock.calls
     expect(calls[0]).toStrictEqual(['sudo', ['apt-get', 'update']])
     expect(calls[1]).toStrictEqual(['sudo', [...installationCommands, '-y']])

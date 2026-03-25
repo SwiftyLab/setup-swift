@@ -16,6 +16,7 @@ export namespace SwiftRelease {
     readonly archs: string[]
     readonly dir?: string
     readonly docker?: string
+    readonly version?: string
     readonly checksum?: string
   }
 }

@@ -30,9 +30,9 @@ export class WindowsPlatform extends VersionedPlatform<WindowsToolchainInstaller
     }
   }
 
-  async install(data: WindowsToolchainSnapshot) {
+  async install(data: WindowsToolchainSnapshot, hasSDKs: boolean) {
     const installer = new WindowsToolchainInstaller(data)
-    await installer.install(this.arch)
+    await installer.install(this.arch, hasSDKs)
     return installer
   }
 }

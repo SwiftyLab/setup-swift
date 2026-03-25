@@ -1,10 +1,11 @@
 import * as gpg from '../../src/utils/gpg'
 import * as exec from '@actions/exec'
+import {describe, expect, it, jest} from '@jest/globals'
 
 jest.mock('@actions/tool-cache', () => {
   const original = jest.requireActual('@actions/tool-cache')
   return {
-    ...original,
+    ...(original as object),
     downloadTool: jest.fn(() => 'keys')
   }
 })
@@ -29,7 +30,7 @@ describe('gpg setup validation', () => {
     const execSpy = jest.spyOn(exec, 'exec')
     execSpy.mockResolvedValueOnce(0)
     execSpy.mockRejectedValue(new Error())
-    await expect(gpg.setupKeys()).rejects.toMatchObject(
+    await expect(gpg.setupKeys()).rejects.toThrow(
       new Error('Failed to refresh keys from any server in the pool')
     )
   })
@@ -38,6 +39,6 @@ describe('gpg setup validation', () => {
     const execSpy = jest.spyOn(exec, 'exec')
     const error = new Error('Signature mismatch')
     execSpy.mockRejectedValue(error)
-    await expect(gpg.verify('', '')).rejects.toMatchObject(error)
+    await expect(gpg.verify('', '')).rejects.toThrow(error)
   })
 })

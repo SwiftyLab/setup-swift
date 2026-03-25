@@ -1,10 +1,8 @@
 import * as path from 'path'
 import * as core from '@actions/core'
 import {exec} from '@actions/exec'
-import {MODULE_DIR, SWIFTORG_ORIGIN, SWIFTORG_METADATA} from './const'
+import {MODULE_DIR, SWIFTORG, SWIFTORG_ORIGIN, SWIFTORG_METADATA} from './const'
 import * as https from 'https'
-
-export const SWIFTORG = 'swiftorg'
 
 export class Swiftorg {
   constructor(readonly checkLatest: boolean | string) {

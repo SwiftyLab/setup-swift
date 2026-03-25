@@ -345,14 +345,35 @@ jobs:
       uses: ./
       with:
         check-latest: ${{ needs.ci.outputs.check_latest }}
-        sdks: static-linux;wasm
+        sdks: static-linux;wasm;android
         dry-run: true
+
+    - name: Generate SDK install command
+      id: gen-sdk-install
+      uses: actions/github-script@v8
+      with:
+        script: |
+          const sdks = JSON.parse(process.env.SWIFT_SDK_SNAPSHOTS);
+          const commands = sdks.map(sdk => {
+            const url = new URL(`https://download.swift.org/${sdk.branch}/${sdk.platform}/${sdk.dir}/${sdk.download}`).href;
+            const args = ['swift', 'sdk', 'install', url];
+            if (sdk.checksum) {
+              args.push('--checksum', sdk.checksum);
+            }
+            return args.join(' ');
+          });
+          core.setOutput('command', commands.join(' && '));
+      env:
+        SWIFT_SDK_SNAPSHOTS: ${{ steps.setup-swift.outputs.sdks }}
 
     - name: Verify Swift version
       uses: addnab/docker-run-action@v3
       with:
         image: swift:${{ fromJSON(steps.setup-swift.outputs.toolchain).docker }}
-        run: swift --version | grep ${{ steps.setup-swift.outputs.swift-version }} || exit 1
+        shell: bash
+        run: |
+          swift --version | grep ${{ steps.setup-swift.outputs.swift-version }} || exit 1
+          ${{ steps.gen-sdk-install.outputs.command }}
 
   e2e-test:
     name: End-to-end test latest Swift on ${{ matrix.os }}
@@ -400,7 +421,7 @@ jobs:
                   with: {
                     'swift-version': 'latest',
                     'check-latest': '${{ needs.ci.outputs.check_latest }}',
-                    'sdks': '${{ runner.os }}' != 'Windows' ? 'static-linux;wasm' : ''
+                    'sdks': '${{ runner.os }}' != 'Windows' ? 'static-linux;wasm;android' : ''
                   }
                 }
               ]
@@ -431,13 +452,21 @@ jobs:
 
     - name: Verify Swift SDKs
       if: runner.os != 'Windows'
-      run: swift sdk list | grep ${{ steps.setup-swift.outputs.swift-version }}-RELEASE_static-linux || exit 1
+      run: |
+        SWIFT_SDK_LIST=$(swift sdk list)
+        echo "$SWIFT_SDK_LIST" | grep ${{ steps.setup-swift.outputs.swift-version }}-RELEASE_static-linux || exit 1
+        echo "$SWIFT_SDK_LIST" | grep ${{ steps.setup-swift.outputs.swift-version }}-RELEASE_wasm || exit 1
+        echo "$SWIFT_SDK_LIST" | grep ${{ steps.setup-swift.outputs.swift-version }}-RELEASE_android || exit 1
 
     - name: Test Swift package
       run: |
         swift package init --type library --name SetupLib
         swift build --build-tests
         swift test
+
+    - name: Test Swift package for Android
+      if: runner.os != 'Windows'
+      run: swift build --swift-sdk aarch64-unknown-linux-android28 --static-swift-stdlib
 
   pages:
     name: Publish metadata to GitHub Pages

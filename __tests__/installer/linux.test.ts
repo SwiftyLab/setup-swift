@@ -11,6 +11,7 @@ import {coerce as parseSemVer} from 'semver'
 import {LinuxToolchainInstaller} from '../../src/installer/linux'
 import {ToolchainVersion} from '../../src/version'
 import {Platform} from '../../src/platform'
+import {describe, expect, it, jest, beforeEach, afterEach} from '@jest/globals'
 
 jest.mock('getos')
 
@@ -94,7 +95,7 @@ describe('linux toolchain installation verification', () => {
       const actionCacheSpy = jest.spyOn(cache, 'saveCache')
       actionCacheSpy.mockResolvedValue(1)
       jest.spyOn(exec, 'exec').mockResolvedValue(0)
-      await installer.install(arch)
+      await installer.install(arch, false)
       expect(process.env.PATH?.includes(swiftPath)).toBeTruthy()
       for (const spy of [
         downloadSpy,
@@ -129,7 +130,7 @@ describe('linux toolchain installation verification', () => {
     const toolCacheSpy = jest.spyOn(toolCache, 'cacheDir')
     const actionCacheSpy = jest.spyOn(cache, 'saveCache')
     toolCacheSpy.mockResolvedValue(cached)
-    await installer.install('aarch64')
+    await installer.install('aarch64', false)
     const toolCacheKey = `${toolchain.dir}-${toolchain.platform}`
     const tmpDir = process.env.RUNNER_TEMP || os.tmpdir()
     const restore = path.join(tmpDir, 'setup-swift', toolCacheKey)
@@ -153,7 +154,7 @@ describe('linux toolchain installation verification', () => {
     const extractSpy = jest.spyOn(toolCache, 'extractTar')
     const toolCacheSpy = jest.spyOn(toolCache, 'cacheDir')
     const actionCacheSpy = jest.spyOn(cache, 'saveCache')
-    await installer.install('aarch64')
+    await installer.install('aarch64', false)
     expect(process.env.PATH?.includes(swiftPath)).toBeTruthy()
     for (const spy of [downloadSpy, extractSpy, toolCacheSpy, actionCacheSpy]) {
       expect(spy).not.toHaveBeenCalled()
@@ -209,5 +210,35 @@ describe('linux toolchain installation verification', () => {
     expect(installer.data.download).toBe(resource)
     expect(installer.data.dir).toBe(name)
     expect(installer.data.branch).toBe('swiftwasm')
+  })
+
+  it('tests SDK installation', async () => {
+    setos({os: 'linux', dist: 'Ubuntu', release: '22.04'})
+    jest.spyOn(os, 'arch').mockReturnValue('x64')
+    const cVer = ToolchainVersion.create('6.3.0', false, [
+      'static-linux',
+      'wasm',
+      'android'
+    ])
+    const download = path.resolve('tool', 'download', 'path')
+    const extracted = path.resolve('tool', 'extracted', 'path')
+    const cached = path.resolve('tool', 'cached', 'path')
+    jest.spyOn(core, 'getBooleanInput').mockReturnValue(true)
+    jest.spyOn(cache, 'restoreCache').mockResolvedValue(undefined)
+    jest.spyOn(toolCache, 'find').mockReturnValue('')
+    jest.spyOn(fs, 'cp').mockResolvedValue()
+    jest.spyOn(fs, 'access').mockResolvedValue()
+    jest.spyOn(toolCache, 'downloadTool').mockResolvedValue(download)
+    jest.spyOn(toolCache, 'extractTar').mockResolvedValue(extracted)
+    jest.spyOn(toolCache, 'extractZip').mockResolvedValue(extracted)
+    jest.spyOn(toolCache, 'cacheDir').mockResolvedValue(cached)
+    jest.spyOn(exec, 'exec').mockResolvedValue(0)
+    jest.spyOn(cache, 'saveCache').mockResolvedValue(1)
+    const {installer} = await Platform.install(cVer)
+    expect(installer.data.preventCaching).toBe(false)
+    expect(installer.data.platform).toBe('ubuntu2204')
+    expect(installer.data.download).toBe('swift-6.3-RELEASE-ubuntu22.04.tar.gz')
+    expect(installer.data.dir).toBe('swift-6.3-RELEASE')
+    expect(installer.data.branch).toBe('swift-6.3-release')
   })
 })

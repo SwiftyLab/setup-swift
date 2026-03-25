@@ -6,6 +6,7 @@ import {__setos as setos} from 'getos'
 import {ToolchainVersion} from '../../src/version'
 import {Platform, XcodePlatform} from '../../src/platform'
 import {XcodeToolchainSnapshot} from '../../src/snapshot'
+import {describe, expect, it, jest} from '@jest/globals'
 
 jest.mock('getos')
 

@@ -1,9 +1,10 @@
 import * as path from 'path'
 import {promises as fs} from 'fs'
+import * as https from 'https'
 // @ts-ignore
 import {__setContent as setContent} from 'https'
-import * as core from '@actions/core'
 import {updateSdkModules} from '../../../src/installer/windows/modules'
+import {describe, expect, it, jest, beforeEach, afterEach} from '@jest/globals'
 
 jest.mock('https')
 
@@ -102,10 +103,12 @@ describe('windows modules SDK update', () => {
     // Mock setTimeout to avoid actual delays
     const setTimeoutSpy = jest
       .spyOn(global, 'setTimeout')
+      /* eslint-disable @typescript-eslint/no-explicit-any */
       .mockImplementation((callback: any) => {
         callback()
         return {} as any
       })
+    /* eslint-enable @typescript-eslint/no-explicit-any */
 
     await expect(updateSdkModules(mockSdkRoot)).rejects.toThrow(
       "Request Failed Status Code: '404'"
@@ -119,8 +122,10 @@ describe('windows modules SDK update', () => {
 
     // Mock https.get to fail twice then succeed
     jest
-      .spyOn(require('https'), 'get')
+      .spyOn(https, 'get')
+      /* eslint-disable @typescript-eslint/no-explicit-any */
       .mockImplementation((url: any, callback: any) => {
+        /* eslint-enable @typescript-eslint/no-explicit-any */
         attemptCount++
 
         if (attemptCount <= 2) {
@@ -129,7 +134,9 @@ describe('windows modules SDK update', () => {
             statusCode: 500,
             url: url,
             headers: {'content-type': 'text/plain'},
+            /* eslint-disable @typescript-eslint/no-unsafe-function-type */
             on: (event: string, listener: Function) => {
+              /* eslint-enable @typescript-eslint/no-unsafe-function-type */
               if (event === 'data') {
                 listener('Internal Server Error')
               } else if (event === 'end') {
@@ -146,7 +153,9 @@ describe('windows modules SDK update', () => {
             statusCode: 200,
             url: url,
             headers: {'content-type': 'text/plain'},
+            /* eslint-disable @typescript-eslint/no-unsafe-function-type */
             on: (event: string, listener: Function) => {
+              /* eslint-enable @typescript-eslint/no-unsafe-function-type */
               if (event === 'data') {
                 listener(moduleContent)
               } else if (event === 'end') {
@@ -159,7 +168,7 @@ describe('windows modules SDK update', () => {
           callback(res)
         }
 
-        return {} as any
+        return {} as any // eslint-disable-line @typescript-eslint/no-explicit-any
       })
 
     jest.spyOn(fs, 'access').mockResolvedValue()
@@ -169,10 +178,12 @@ describe('windows modules SDK update', () => {
     // Mock setTimeout to avoid actual delays
     const setTimeoutSpy = jest
       .spyOn(global, 'setTimeout')
+      /* eslint-disable @typescript-eslint/no-explicit-any */
       .mockImplementation((callback: any) => {
         callback()
         return {} as any
       })
+    /* eslint-enable @typescript-eslint/no-explicit-any */
 
     await updateSdkModules(mockSdkRoot)
 
@@ -199,10 +210,12 @@ describe('windows modules SDK update', () => {
     // Mock setTimeout to avoid actual delays but still track calls
     const setTimeoutSpy = jest
       .spyOn(global, 'setTimeout')
+      /* eslint-disable @typescript-eslint/no-explicit-any */
       .mockImplementation((callback: any) => {
         callback()
         return {} as any
       })
+    /* eslint-enable @typescript-eslint/no-explicit-any */
 
     await expect(updateSdkModules(mockSdkRoot)).rejects.toThrow()
 
@@ -217,10 +230,12 @@ describe('windows modules SDK update', () => {
     // Mock setTimeout to avoid actual delays but still track calls
     const setTimeoutSpy = jest
       .spyOn(global, 'setTimeout')
+      /* eslint-disable @typescript-eslint/no-explicit-any */
       .mockImplementation((callback: any) => {
         callback()
         return {} as any
       })
+    /* eslint-enable @typescript-eslint/no-explicit-any */
 
     await expect(updateSdkModules(mockSdkRoot)).rejects.toThrow(
       'Swift command not found in PATH'

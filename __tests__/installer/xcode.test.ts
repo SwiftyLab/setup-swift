@@ -7,6 +7,7 @@ import * as toolCache from '@actions/tool-cache'
 import {coerce as parseSemVer} from 'semver'
 import * as plist from 'plist'
 import {XcodeToolchainInstaller} from '../../src/installer/xcode'
+import {describe, expect, it, jest, beforeEach, afterEach} from '@jest/globals'
 
 jest.mock('plist')
 
@@ -47,8 +48,8 @@ describe('macOS toolchain installation verification', () => {
     const installationNeededSpy = jest.spyOn(installer, 'isInstallationNeeded')
     const downloadSpy = jest.spyOn(toolCache, 'downloadTool')
     const extractSpy = jest.spyOn(toolCache, 'extractXar')
-    await installer.install('x86_64')
-    await installer.install('aarch64')
+    await installer.install('x86_64', false)
+    await installer.install('aarch64', false)
     for (const spy of [downloadSpy, extractSpy]) {
       expect(spy).not.toHaveBeenCalled()
     }
@@ -89,8 +90,8 @@ describe('macOS toolchain installation verification', () => {
       .spyOn(toolCache, 'extractTar')
       .mockResolvedValue(deployed)
     const cacheSpy = jest.spyOn(toolCache, 'cacheDir').mockResolvedValue(cached)
-    await installer.install('x86_64')
-    await installer.install('aarch64')
+    await installer.install('x86_64', false)
+    await installer.install('aarch64', false)
     for (const spy of [downloadSpy, extractXarSpy, extractTarSpy, cacheSpy]) {
       expect(spy).toHaveBeenCalled()
     }
@@ -173,7 +174,7 @@ describe('macOS toolchain installation verification', () => {
       jest
         .spyOn(plist, 'parse')
         .mockReturnValue({CFBundleIdentifier: identifier})
-      await installer.install(arch)
+      await installer.install(arch, false)
       expect(process.env.PATH?.includes(swiftPath)).toBeTruthy()
       expect(process.env.TOOLCHAINS).toBe(identifier)
       for (const spy of [
@@ -217,7 +218,7 @@ describe('macOS toolchain installation verification', () => {
     jest.spyOn(fs, 'access').mockResolvedValue()
     jest.spyOn(fs, 'readFile').mockResolvedValue('')
     jest.spyOn(plist, 'parse').mockReturnValue({CFBundleIdentifier: identifier})
-    await installer.install('aarch64')
+    await installer.install('aarch64', false)
     expect(process.env.PATH?.includes(swiftPath)).toBeTruthy()
     expect(process.env.TOOLCHAINS).toBe(identifier)
     for (const spy of [downloadSpy, extractSpy, deploySpy]) {
@@ -236,7 +237,7 @@ describe('macOS toolchain installation verification', () => {
       stdout: `swift-driver version: 1.75.2 Apple Swift version 5.8.1 (swiftlang-5.8.0.124.5 clang-1403.0.22.11.100)\nTarget: arm64-apple-macosx13.0`,
       stderr: ''
     })
-    await expect(installer.install('aarch64')).resolves
+    await installer.install('aarch64', false)
     expect(process.env.DEVELOPER_DIR).toBe(toolchain.xcodePath)
   })
 

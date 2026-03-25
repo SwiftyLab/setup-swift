@@ -2,6 +2,7 @@ import * as path from 'path'
 import {promises as fs} from 'fs'
 import * as io from '@actions/io'
 import {VSWhere} from '../../../src/utils/visual_studio/vswhere'
+import {describe, expect, it, jest, beforeEach, afterEach} from '@jest/globals'
 
 describe('vswhere find validation', () => {
   const env = process.env
@@ -44,7 +45,7 @@ describe('vswhere find validation', () => {
 
   it('tests vswhere missing', async () => {
     jest.spyOn(fs, 'access').mockRejectedValue(new Error())
-    await expect(VSWhere.get()).rejects.toMatchObject(
+    await expect(VSWhere.get()).rejects.toThrow(
       new Error('Missing vswhere.exe, needed Visual Studio installation')
     )
   })
