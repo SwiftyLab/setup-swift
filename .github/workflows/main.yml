@@ -581,9 +581,9 @@ jobs:
         version-file: ./package.json
         version-path: version
         fallback-version: ${{ inputs.version || '1.0.0' }}
-        config-file-path: .github/changelog/config.js
-        pre-commit: .github/changelog/pre_commit_hook.js
-        pre-changelog-generation: .github/changelog/pre_changelog_hook.js
+        config-file-path: .github/changelog/config.cjs
+        pre-commit: .github/changelog/pre_commit_hook.cjs
+        pre-changelog-generation: .github/changelog/pre_changelog_hook.cjs
         create-summary: true
       env:
         VERSION: ${{ inputs.version }}
