@@ -1,6 +1,6 @@
 {
   "name": "setup-swift",
-  "version": "1.12.0",
+  "version": "1.13.0",
   "private": true,
   "type": "module",
   "description": "Setup Swift environment.",
