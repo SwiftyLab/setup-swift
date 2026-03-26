@@ -1,15 +1,15 @@
 import os from 'os'
-// @ts-ignore
-import {__setos as setos} from 'getos'
+import {__setos as setos} from '../../__mocks__/getos'
 import {Platform, XcodePlatform} from '../../src/platform'
-import {describe, expect, it, jest} from '@jest/globals'
+import {describe, expect, it, vi} from 'vitest'
 
-jest.mock('getos')
+vi.mock('getos')
+vi.mock('os', {spy: true})
 
 describe('macos platform detection', () => {
   it('detects macOS', async () => {
-    setos({os: 'darwin', dist: 'macOS', release: '21'})
-    jest.spyOn(os, 'arch').mockReturnValue('x64')
+    setos({os: 'darwin'})
+    vi.spyOn(os, 'arch').mockReturnValue('x64')
     const platform = await Platform.currentPlatform()
     expect(platform).toBeInstanceOf(XcodePlatform)
     expect(platform.name).toBe('xcode')
@@ -17,8 +17,8 @@ describe('macos platform detection', () => {
   })
 
   it('detects macOS with arm arch', async () => {
-    setos({os: 'darwin', dist: 'macOS', release: '21'})
-    jest.spyOn(os, 'arch').mockReturnValue('arm64')
+    setos({os: 'darwin'})
+    vi.spyOn(os, 'arch').mockReturnValue('arm64')
     const platform = await Platform.currentPlatform()
     expect(platform).toBeInstanceOf(XcodePlatform)
     expect(platform.name).toBe('xcode')

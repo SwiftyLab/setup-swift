@@ -1,15 +1,15 @@
 import os from 'os'
-// @ts-ignore
-import {__setos as setos} from 'getos'
+import {__setos as setos} from '../../__mocks__/getos'
 import {Platform, WindowsPlatform} from '../../src/platform'
-import {describe, expect, it, jest} from '@jest/globals'
+import {describe, expect, it, vi} from 'vitest'
 
-jest.mock('getos')
+vi.mock('getos')
+vi.mock('os', {spy: true})
 
 describe('windows platform detection', () => {
   it('detects windows', async () => {
-    setos({os: 'win32', dist: 'Windows', release: '10.0.17063'})
-    jest.spyOn(os, 'arch').mockReturnValue('x64')
+    setos({os: 'win32'})
+    vi.spyOn(os, 'arch').mockReturnValue('x64')
     const platform = await Platform.currentPlatform()
     expect(platform.name).toBe('windows')
     expect(platform).toBeInstanceOf(WindowsPlatform)
@@ -20,10 +20,10 @@ describe('windows platform detection', () => {
 
   it('throws error for unsupported os', async () => {
     expect.assertions(1)
-    setos({os: 'unknown', dist: 'unknown', release: '1'})
-    jest.spyOn(os, 'arch').mockReturnValue('x64')
+    setos({os: 'cygwin'})
+    vi.spyOn(os, 'arch').mockReturnValue('x64')
     await expect(Platform.currentPlatform()).rejects.toThrow(
-      new Error(`OS unknown unsupported for Swift`)
+      new Error(`OS cygwin unsupported for Swift`)
     )
   })
 })

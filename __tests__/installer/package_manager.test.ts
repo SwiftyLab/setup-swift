@@ -1,10 +1,12 @@
 import * as exec from '@actions/exec'
 import {PackageManager} from '../../src/installer/package_manager'
-import {describe, expect, it, jest} from '@jest/globals'
+import {describe, expect, it, vi} from 'vitest'
+
+vi.mock('@actions/exec', {spy: true})
 
 describe('package manager setup validation', () => {
   it('tests package manager running correct commands', async () => {
-    const execSpy = jest.spyOn(exec, 'exec')
+    const execSpy = vi.spyOn(exec, 'exec')
     execSpy.mockResolvedValue(0)
     const installationCommands = ['apt-get', 'install', 'pkg1', 'pkg2']
     const manager = new PackageManager(installationCommands)

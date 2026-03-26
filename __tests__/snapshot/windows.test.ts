@@ -1,13 +1,13 @@
 import os from 'os'
 import {posix} from 'path'
-// @ts-ignore
-import {__setos as setos} from 'getos'
+import {__setos as setos} from '../../__mocks__/getos'
 import {ToolchainVersion} from '../../src/version'
 import {Platform} from '../../src/platform'
 import {WindowsToolchainSnapshot} from '../../src/snapshot'
-import {describe, expect, it, jest} from '@jest/globals'
+import {describe, expect, it, vi} from 'vitest'
 
-jest.mock('getos')
+vi.mock('getos')
+vi.mock('os', {spy: true})
 
 describe('fetch windows tool data based on options', () => {
   const ver5 = ToolchainVersion.create('5', false)
@@ -19,8 +19,8 @@ describe('fetch windows tool data based on options', () => {
   const latestDev = ToolchainVersion.create('latest', true)
 
   it('fetches windows 10 latest swift 5 tool', async () => {
-    setos({os: 'win32', dist: 'Windows', release: '10.0.17063'})
-    jest.spyOn(os, 'arch').mockReturnValue('x64')
+    setos({os: 'win32'})
+    vi.spyOn(os, 'arch').mockReturnValue('x64')
     const tool = await Platform.toolchain(ver5)
     expect(tool).toBeTruthy()
     const wTool = tool as WindowsToolchainSnapshot
@@ -33,15 +33,15 @@ describe('fetch windows tool data based on options', () => {
   })
 
   it('fetches windows 10 latest swift 5.0 tool', async () => {
-    setos({os: 'win32', dist: 'Windows', release: '10.0.17063'})
-    jest.spyOn(os, 'arch').mockReturnValue('x64')
+    setos({os: 'win32'})
+    vi.spyOn(os, 'arch').mockReturnValue('x64')
     const tool = await Platform.toolchain(ver5_0)
     expect(tool).toBeUndefined()
   })
 
   it('fetches windows 10 latest swift 5.5.0 tool', async () => {
-    setos({os: 'win32', dist: 'Windows', release: '10.0.17063'})
-    jest.spyOn(os, 'arch').mockReturnValue('x64')
+    setos({os: 'win32'})
+    vi.spyOn(os, 'arch').mockReturnValue('x64')
     const tool = await Platform.toolchain(ver5_5_0)
     expect(tool).toBeTruthy()
     const wTool = tool as WindowsToolchainSnapshot
@@ -54,8 +54,8 @@ describe('fetch windows tool data based on options', () => {
   })
 
   it('fetches windows 10 latest swift 5.5 tool', async () => {
-    setos({os: 'win32', dist: 'Windows', release: '10.0.17063'})
-    jest.spyOn(os, 'arch').mockReturnValue('x64')
+    setos({os: 'win32'})
+    vi.spyOn(os, 'arch').mockReturnValue('x64')
     const tool = await Platform.toolchain(ver5_5)
     expect(tool).toBeTruthy()
     const wTool = tool as WindowsToolchainSnapshot
@@ -70,8 +70,8 @@ describe('fetch windows tool data based on options', () => {
   })
 
   it('fetches windows 10 latest swift 5.5 tool including dev snapshot', async () => {
-    setos({os: 'win32', dist: 'Windows', release: '10.0.17063'})
-    jest.spyOn(os, 'arch').mockReturnValue('x64')
+    setos({os: 'win32'})
+    vi.spyOn(os, 'arch').mockReturnValue('x64')
     const tool = await Platform.toolchain(dev5_5)
     expect(tool).toBeTruthy()
     const wTool = tool as WindowsToolchainSnapshot
@@ -86,8 +86,8 @@ describe('fetch windows tool data based on options', () => {
   })
 
   it('fetches windows 10 latest swift tool', async () => {
-    setos({os: 'win32', dist: 'Windows', release: '10.0.17063'})
-    jest.spyOn(os, 'arch').mockReturnValue('x64')
+    setos({os: 'win32'})
+    vi.spyOn(os, 'arch').mockReturnValue('x64')
     const tool = await Platform.toolchain(latest)
     expect(tool).toBeTruthy()
     const wTool = tool as WindowsToolchainSnapshot
@@ -101,8 +101,8 @@ describe('fetch windows tool data based on options', () => {
   })
 
   it('fetches windows 10 latest swift tool including dev snapshot', async () => {
-    setos({os: 'win32', dist: 'Windows', release: '10.0.17063'})
-    jest.spyOn(os, 'arch').mockReturnValue('x64')
+    setos({os: 'win32'})
+    vi.spyOn(os, 'arch').mockReturnValue('x64')
     const tool = await Platform.toolchain(latestDev)
     expect(tool).toBeTruthy()
     const wTool = tool as WindowsToolchainSnapshot
@@ -114,8 +114,8 @@ describe('fetch windows tool data based on options', () => {
   })
 
   it('fetches windows 10 named swift tool', async () => {
-    setos({os: 'win32', dist: 'Windows', release: '10.0.17063'})
-    jest.spyOn(os, 'arch').mockReturnValue('x64')
+    setos({os: 'win32'})
+    vi.spyOn(os, 'arch').mockReturnValue('x64')
     const name = 'swift-DEVELOPMENT-SNAPSHOT-2023-08-10-a'
     const version = ToolchainVersion.create(name, false)
     const tool = await Platform.toolchain(version)
@@ -134,8 +134,8 @@ describe('fetch windows tool data based on options', () => {
   })
 
   it('fetches windows 10 named versioned swift tool', async () => {
-    setos({os: 'win32', dist: 'Windows', release: '10.0.17063'})
-    jest.spyOn(os, 'arch').mockReturnValue('x64')
+    setos({os: 'win32'})
+    vi.spyOn(os, 'arch').mockReturnValue('x64')
     const name = 'swift-5.9-DEVELOPMENT-SNAPSHOT-2023-05-11-a'
     const version = ToolchainVersion.create(name, false)
     const tool = await Platform.toolchain(version)
@@ -154,22 +154,22 @@ describe('fetch windows tool data based on options', () => {
   })
 
   it('fetches windows 10 latest swift 5.5 tools', async () => {
-    setos({os: 'win32', dist: 'Windows', release: '10.0.17063'})
-    jest.spyOn(os, 'arch').mockReturnValue('x64')
+    setos({os: 'win32'})
+    vi.spyOn(os, 'arch').mockReturnValue('x64')
     const tools = await Platform.toolchains(ver5_5)
     expect(tools.length).toBe(4)
   })
 
   it('fetches windows 10 latest swift 5.5 tools including dev snapshot', async () => {
-    setos({os: 'win32', dist: 'Windows', release: '10.0.17063'})
-    jest.spyOn(os, 'arch').mockReturnValue('x64')
+    setos({os: 'win32'})
+    vi.spyOn(os, 'arch').mockReturnValue('x64')
     const tools = await Platform.toolchains(dev5_5)
     expect(tools.length).toBe(34)
   })
 
   it('fetches windows 10 custom swift tools', async () => {
-    setos({os: 'win32', dist: 'Windows', release: '10.0.17063'})
-    jest.spyOn(os, 'arch').mockReturnValue('x64')
+    setos({os: 'win32'})
+    vi.spyOn(os, 'arch').mockReturnValue('x64')
     const swiftwasm = 'https://github.com/swiftwasm/swift/releases/download'
     const name = 'swift-wasm-5.10-SNAPSHOT-2024-03-30-a'
     const resource = `${name}-windows10.exe`
@@ -188,8 +188,8 @@ describe('fetch windows tool data based on options', () => {
   })
 
   it('fetches windows 11 arm64 latest swift 6.0.0 tool', async () => {
-    setos({os: 'win32', dist: 'Windows', release: '10.0.26100'})
-    jest.spyOn(os, 'arch').mockReturnValue('arm64')
+    setos({os: 'win32'})
+    vi.spyOn(os, 'arch').mockReturnValue('arm64')
     const ver6_0_0 = ToolchainVersion.create('6.0.0', false)
     const tool = await Platform.toolchain(ver6_0_0)
     expect(tool).toBeTruthy()

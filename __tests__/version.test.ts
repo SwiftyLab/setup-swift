@@ -13,7 +13,10 @@ import {StaticLinux, Wasm, Android} from '../src/version/sdk/requirement/base'
 import {SdkSnapshot} from '../src/snapshot'
 import * as toolCache from '@actions/tool-cache'
 import * as exec from '@actions/exec'
-import {describe, expect, it, jest} from '@jest/globals'
+import {describe, expect, it, vi} from 'vitest'
+
+vi.mock('@actions/exec', {spy: true})
+vi.mock('os', {spy: true})
 
 describe('parse version from provided string', () => {
   it('parses latest version', async () => {
@@ -170,7 +173,7 @@ describe('SdkRequirement setup method', () => {
   })
 
   it('Android setup successfully executes script from first SwiftPM directory', async () => {
-    const accessSpy = jest
+    const accessSpy = vi
       .spyOn(fs, 'access')
       .mockImplementation(
         async (path: PathLike, _mode?: number | undefined) => {
@@ -185,12 +188,12 @@ describe('SdkRequirement setup method', () => {
           throw new Error('Directory not found')
         }
       )
-    const execSpy = jest.spyOn(exec, 'exec').mockResolvedValue(0)
+    const execSpy = vi.spyOn(exec, 'exec').mockResolvedValue(0)
     const ndkzip = path.resolve('ndk', 'zip')
-    const toolCacheDownloadSpy = jest
+    const toolCacheDownloadSpy = vi
       .spyOn(toolCache, 'downloadTool')
       .mockResolvedValue(ndkzip)
-    const toolCacheExtractSpy = jest
+    const toolCacheExtractSpy = vi
       .spyOn(toolCache, 'extractZip')
       .mockResolvedValue(path.resolve('ndk', 'extracted'))
 
@@ -217,7 +220,7 @@ describe('SdkRequirement setup method', () => {
   })
 
   it('Android setup successfully executes script from second SwiftPM directory', async () => {
-    const accessSpy = jest
+    const accessSpy = vi
       .spyOn(fs, 'access')
       .mockImplementation(
         async (path: PathLike, _mode?: number | undefined) => {
@@ -233,12 +236,12 @@ describe('SdkRequirement setup method', () => {
           throw new Error('Directory not found')
         }
       )
-    const execSpy = jest.spyOn(exec, 'exec').mockResolvedValue(0)
+    const execSpy = vi.spyOn(exec, 'exec').mockResolvedValue(0)
     const ndkzip = path.resolve('ndk', 'zip')
-    const toolCacheDownloadSpy = jest
+    const toolCacheDownloadSpy = vi
       .spyOn(toolCache, 'downloadTool')
       .mockResolvedValue(ndkzip)
-    const toolCacheExtractSpy = jest
+    const toolCacheExtractSpy = vi
       .spyOn(toolCache, 'extractZip')
       .mockResolvedValue(path.resolve('ndk', 'extracted'))
 
@@ -264,7 +267,7 @@ describe('SdkRequirement setup method', () => {
   })
 
   it('Android setup fails when SwiftPM directory not found', async () => {
-    const accessSpy = jest
+    const accessSpy = vi
       .spyOn(fs, 'access')
       .mockImplementation(
         async (_path: PathLike, _mode?: number | undefined) => {
@@ -280,7 +283,7 @@ describe('SdkRequirement setup method', () => {
   })
 
   it('Android setup fails when setup script not found', async () => {
-    const accessSpy = jest
+    const accessSpy = vi
       .spyOn(fs, 'access')
       .mockImplementation(
         async (path: PathLike, _mode?: number | undefined) => {

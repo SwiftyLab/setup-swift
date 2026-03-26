@@ -68,6 +68,6 @@ export async function run() {
   }
 }
 
-if (process.env.JEST_WORKER_ID === undefined) {
+if (process.env.VITEST === undefined) {
   run()
 }
