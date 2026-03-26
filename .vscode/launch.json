@@ -2,18 +2,16 @@
   "configurations": [
     {
       "type": "node",
-      "name": "vscode-jest-tests.v2",
+      "name": "Debug Vitest Tests",
       "request": "launch",
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
       "cwd": "${workspaceFolder}",
-      "runtimeExecutable": "npm",
+      "runtimeExecutable": "npx",
       "args": [
+        "vitest",
         "run",
-        "test",
-        "--",
-        "--runInBand",
-        "--watchAll=false"
+        "--no-file-parallelism"
       ]
     }
   ]

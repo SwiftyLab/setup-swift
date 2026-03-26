@@ -8,11 +8,13 @@ import {
   SWIFTORG_ORIGIN,
   SWIFTORG_METADATA
 } from '../src/const'
-import {describe, expect, it, jest, beforeEach, afterEach} from '@jest/globals'
+import {describe, expect, it, vi, beforeEach, afterEach} from 'vitest'
+
+vi.mock('@actions/exec', {spy: true})
 
 describe('swiftorg sync validation', () => {
   const env = process.env
-  const execSpy = jest.spyOn(exec, 'exec')
+  const execSpy = vi.spyOn(exec, 'exec')
 
   beforeEach(() => {
     process.env = {...env}

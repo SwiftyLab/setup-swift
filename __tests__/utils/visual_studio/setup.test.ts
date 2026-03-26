@@ -7,7 +7,12 @@ import {
   VisualStudio,
   VisualStudioConfig
 } from '../../../src/utils/visual_studio'
-import {describe, expect, it, jest, beforeEach, afterEach} from '@jest/globals'
+import {describe, expect, it, vi, beforeEach, afterEach} from 'vitest'
+
+vi.mock('@actions/exec', {spy: true})
+vi.mock('fs', {spy: true})
+vi.mock('os', {spy: true})
+vi.mock('crypto', {spy: true})
 
 describe('visual studio setup validation', () => {
   const env = process.env
@@ -30,16 +35,16 @@ describe('visual studio setup validation', () => {
   })
 
   afterEach(() => {
-    jest.restoreAllMocks()
+    vi.restoreAllMocks()
     process.env = env
     VisualStudio.shared = undefined
   })
 
   it('tests visual studio setup fails when invalid path', async () => {
     process.env.VSWHERE_PATH = path.join('C:', 'Visual Studio')
-    jest.spyOn(fs, 'access').mockResolvedValue()
-    jest.spyOn(exec, 'exec').mockResolvedValue(-1)
-    jest.spyOn(exec, 'getExecOutput').mockResolvedValue({
+    vi.spyOn(fs, 'access').mockResolvedValue()
+    vi.spyOn(exec, 'exec').mockResolvedValue(-1)
+    vi.spyOn(exec, 'getExecOutput').mockResolvedValue({
       exitCode: 0,
       stdout: JSON.stringify([{...visualStudio, installationPath: ''}]),
       stderr: ''
@@ -55,9 +60,9 @@ describe('visual studio setup validation', () => {
 
   it('tests visual studio setup successfully', async () => {
     process.env.VSWHERE_PATH = path.join('C:', 'Visual Studio')
-    jest.spyOn(fs, 'access').mockResolvedValue()
-    jest.spyOn(exec, 'exec').mockResolvedValue(0)
-    jest.spyOn(exec, 'getExecOutput').mockResolvedValue({
+    vi.spyOn(fs, 'access').mockResolvedValue()
+    vi.spyOn(exec, 'exec').mockResolvedValue(0)
+    vi.spyOn(exec, 'getExecOutput').mockResolvedValue({
       exitCode: 0,
       stdout: JSON.stringify([visualStudio]),
       stderr: ''
@@ -70,9 +75,9 @@ describe('visual studio setup validation', () => {
 
   it('tests visual studio duplicate setup', async () => {
     VisualStudio.shared = visualStudio
-    const fsAccessSpy = jest.spyOn(fs, 'access')
-    const execSpy = jest.spyOn(exec, 'exec')
-    const getExecOutputSpy = jest.spyOn(exec, 'getExecOutput')
+    const fsAccessSpy = vi.spyOn(fs, 'access')
+    const execSpy = vi.spyOn(exec, 'exec')
+    const getExecOutputSpy = vi.spyOn(exec, 'getExecOutput')
     await expect(
       VisualStudio.setup({version: '16', components: visualStudio.components})
     ).resolves.toEqual(visualStudio)
@@ -95,11 +100,10 @@ describe('visual studio setup validation', () => {
       components: visualStudio.components
     }
 
-    jest.spyOn(fs, 'access').mockResolvedValue()
-    jest.spyOn(exec, 'exec').mockResolvedValue(0)
-    jest.spyOn(crypto, 'randomUUID').mockReturnValue(configId)
-    jest
-      .spyOn(exec, 'getExecOutput')
+    vi.spyOn(fs, 'access').mockResolvedValue()
+    vi.spyOn(exec, 'exec').mockResolvedValue(0)
+    vi.spyOn(crypto, 'randomUUID').mockReturnValue(configId)
+    vi.spyOn(exec, 'getExecOutput')
       .mockResolvedValueOnce({
         exitCode: 0,
         stdout: JSON.stringify([visualStudio]),
@@ -110,7 +114,7 @@ describe('visual studio setup validation', () => {
         stdout: `UniversalCRTSdkDir=${ucrtSdkDir}\nUCRTVersion=${ucrtVersion}\nVCToolsInstallDir=${vcToolsInstallDir}`,
         stderr: ''
       })
-    const readFileSpy = jest.spyOn(fs, 'readFile')
+    const readFileSpy = vi.spyOn(fs, 'readFile')
     readFileSpy.mockResolvedValue(JSON.stringify(vsConfig))
 
     await expect(
@@ -121,8 +125,8 @@ describe('visual studio setup validation', () => {
   })
 
   it('tests visual studio environment setup', async () => {
-    jest.spyOn(os, 'arch').mockReturnValue('x64')
-    const execSpy = jest.spyOn(exec, 'getExecOutput').mockResolvedValue({
+    vi.spyOn(os, 'arch').mockReturnValue('x64')
+    const execSpy = vi.spyOn(exec, 'getExecOutput').mockResolvedValue({
       exitCode: 0,
       stdout: '',
       stderr: ''

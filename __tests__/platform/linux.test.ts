@@ -1,15 +1,15 @@
 import os from 'os'
-// @ts-ignore
-import {__setos as setos} from 'getos'
+import {__setos as setos} from '../../__mocks__/getos'
 import {Platform, LinuxPlatform} from '../../src/platform'
-import {describe, expect, it, jest} from '@jest/globals'
+import {describe, expect, it, vi} from 'vitest'
 
-jest.mock('getos')
+vi.mock('getos')
+vi.mock('os', {spy: true})
 
 describe('linux platform detection', () => {
   it('detects ubuntu', async () => {
     setos({os: 'linux', dist: 'Ubuntu', release: '18.04'})
-    jest.spyOn(os, 'arch').mockReturnValue('x64')
+    vi.spyOn(os, 'arch').mockReturnValue('x64')
     const platform = await Platform.currentPlatform()
     expect(platform.name).toBe('ubuntu')
     expect(platform).toBeInstanceOf(LinuxPlatform)
@@ -20,7 +20,7 @@ describe('linux platform detection', () => {
 
   it('detects ubuntu with arm arch', async () => {
     setos({os: 'linux', dist: 'Ubuntu', release: '18.04'})
-    jest.spyOn(os, 'arch').mockReturnValue('arm64')
+    vi.spyOn(os, 'arch').mockReturnValue('arm64')
     const platform = await Platform.currentPlatform()
     expect(platform.name).toBe('ubuntu')
     expect(platform).toBeInstanceOf(LinuxPlatform)
@@ -31,7 +31,7 @@ describe('linux platform detection', () => {
 
   it('detects centos', async () => {
     setos({os: 'linux', dist: 'CentOS', release: '7'})
-    jest.spyOn(os, 'arch').mockReturnValue('x64')
+    vi.spyOn(os, 'arch').mockReturnValue('x64')
     const platform = await Platform.currentPlatform()
     expect(platform.name).toBe('centos')
     expect(platform).toBeInstanceOf(LinuxPlatform)

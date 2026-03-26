@@ -1,7 +1,10 @@
 import * as core from '@actions/core'
 import * as exec from '@actions/exec'
 import {SdkToolchainInstaller} from '../../src/installer/sdk'
-import {describe, expect, it, jest, beforeEach, afterEach} from '@jest/globals'
+import {describe, expect, it, vi, beforeEach, afterEach} from 'vitest'
+
+vi.mock('@actions/core', {spy: true})
+vi.mock('@actions/exec', {spy: true})
 
 describe('SDK toolchain installation', () => {
   const sdkSnapshot = {
@@ -16,17 +19,17 @@ describe('SDK toolchain installation', () => {
   }
 
   beforeEach(() => {
-    jest.useFakeTimers()
+    vi.useFakeTimers()
   })
 
   afterEach(() => {
-    jest.restoreAllMocks()
-    jest.useRealTimers()
+    vi.restoreAllMocks()
+    vi.useRealTimers()
   })
 
   it('tests install succeeds on first attempt', async () => {
     const installer = new SdkToolchainInstaller(sdkSnapshot)
-    const execSpy = jest.spyOn(exec, 'exec').mockResolvedValue(0)
+    const execSpy = vi.spyOn(exec, 'exec').mockResolvedValue(0)
 
     await installer.install('x86_64', false)
 
@@ -43,7 +46,7 @@ describe('SDK toolchain installation', () => {
   it('tests install without checksum', async () => {
     const snapshotWithoutChecksum = {...sdkSnapshot, checksum: undefined}
     const installer = new SdkToolchainInstaller(snapshotWithoutChecksum)
-    const execSpy = jest.spyOn(exec, 'exec').mockResolvedValue(0)
+    const execSpy = vi.spyOn(exec, 'exec').mockResolvedValue(0)
 
     await installer.install('aarch64', false)
 
@@ -57,16 +60,16 @@ describe('SDK toolchain installation', () => {
 
   it('tests install retries on failure and succeeds on second attempt', async () => {
     const installer = new SdkToolchainInstaller(sdkSnapshot)
-    const execSpy = jest
+    const execSpy = vi
       .spyOn(exec, 'exec')
       .mockRejectedValueOnce(new Error('Network error'))
       .mockResolvedValueOnce(0)
-    const infoSpy = jest.spyOn(core, 'info').mockReturnValue()
+    const infoSpy = vi.spyOn(core, 'info').mockReturnValue()
 
     const installPromise = installer.install('x86_64', false)
 
     // Fast-forward through first retry delay (1000ms)
-    await jest.advanceTimersByTimeAsync(1000)
+    await vi.advanceTimersByTimeAsync(1000)
 
     await installPromise
 
@@ -76,19 +79,19 @@ describe('SDK toolchain installation', () => {
 
   it('tests install retries on failure and succeeds on third attempt', async () => {
     const installer = new SdkToolchainInstaller(sdkSnapshot)
-    const execSpy = jest
+    const execSpy = vi
       .spyOn(exec, 'exec')
       .mockRejectedValueOnce(new Error('Network error'))
       .mockRejectedValueOnce(new Error('Timeout'))
       .mockResolvedValueOnce(0)
-    const infoSpy = jest.spyOn(core, 'info').mockReturnValue()
+    const infoSpy = vi.spyOn(core, 'info').mockReturnValue()
 
     const installPromise = installer.install('x86_64', false)
 
     // Fast-forward through first retry delay (1000ms)
-    await jest.advanceTimersByTimeAsync(1000)
+    await vi.advanceTimersByTimeAsync(1000)
     // Fast-forward through second retry delay (2000ms)
-    await jest.advanceTimersByTimeAsync(2000)
+    await vi.advanceTimersByTimeAsync(2000)
 
     await installPromise
 
@@ -98,12 +101,12 @@ describe('SDK toolchain installation', () => {
   })
 
   it('tests install throws after three failed attempts', async () => {
-    jest.useRealTimers()
+    vi.useRealTimers()
     const installer = new SdkToolchainInstaller(sdkSnapshot)
     const error = new Error('Persistent network error')
-    const execSpy = jest.spyOn(exec, 'exec').mockRejectedValue(error)
+    const execSpy = vi.spyOn(exec, 'exec').mockRejectedValue(error)
     // Mock setTimeout to resolve immediately for faster test execution
-    jest.spyOn(global, 'setTimeout').mockImplementation(callback => {
+    vi.spyOn(global, 'setTimeout').mockImplementation(callback => {
       callback()
       return 0 as unknown as NodeJS.Timeout
     })
@@ -120,7 +123,7 @@ describe('SDK toolchain installation', () => {
       baseUrl: new URL('https://custom.swift.org/downloads/')
     }
     const installer = new SdkToolchainInstaller(customSnapshot)
-    const execSpy = jest.spyOn(exec, 'exec').mockResolvedValue(0)
+    const execSpy = vi.spyOn(exec, 'exec').mockResolvedValue(0)
 
     await installer.install('x86_64', false)
 

@@ -2,6 +2,7 @@
   "name": "setup-swift",
   "version": "1.12.0",
   "private": true,
+  "type": "module",
   "description": "Setup Swift environment.",
   "main": "lib/main.js",
   "author": "Soumya Ranjan Mahunt",
@@ -27,12 +28,12 @@
     "ci"
   ],
   "scripts": {
-    "prepare": "node -e \"require('./.github/utils/update_metadata').fetch()\" && npm run build",
+    "prepare": "node -e \"import('./.github/utils/update_metadata.js').then(m => m.fetch())\" && npm run build",
     "build": "tsc",
     "format": "prettier --write \"**/*.ts\"",
-    "lint": "depcheck --ignores ts-node,ts-jest,globals,@eslint/js,@eslint/eslintrc && eslint src/**/*.ts && prettier --check \"**/*.ts\"",
-    "package": "ncc build",
-    "test": "jest",
+    "lint": "depcheck --ignores ts-node,globals,@eslint/js,@eslint/eslintrc,@vitest/coverage-v8 && eslint src/**/*.ts && prettier --check \"**/*.ts\"",
+    "package": "esbuild lib/main.js --bundle --platform=node --target=node20 --format=cjs --outfile=dist/index.cjs",
+    "test": "vitest run --coverage",
     "all": "npm run format && npm run build && npm run lint && npm run package && npm run test"
   },
   "dependencies": {
@@ -49,26 +50,24 @@
     "semver": "^7.7.4"
   },
   "devDependencies": {
-    "@jest/globals": "^30.3.0",
     "@stylistic/eslint-plugin": "^5.7.1",
     "@types/getos": "^3.0.4",
-    "@types/jest": "^30.0.0",
     "@types/js-yaml": "^4.0.9",
     "@types/lodash": "^4.17.23",
     "@types/plist": "^3.0.5",
     "@types/semver": "^7.7.1",
     "@typescript-eslint/eslint-plugin": "^8.53.0",
     "@typescript-eslint/parser": "^8.54.0",
-    "@vercel/ncc": "^0.38.4",
+    "@vitest/coverage-v8": "^4.1.1",
     "conventional-changelog-conventionalcommits": "^7.0.0",
     "depcheck": "^1.4.7",
+    "esbuild": "0.27.4",
     "eslint": "^9.35.0",
-    "eslint-plugin-jest": "^29.15.0",
-    "jest": "^30.2.0",
+    "eslint-plugin-vitest": "^0.5.4",
     "nock": "^14.0.10",
     "prettier": "^3.8.1",
-    "ts-jest": "^29.4.6",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.1"
   }
 }

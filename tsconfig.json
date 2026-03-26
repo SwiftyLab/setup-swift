@@ -8,6 +8,6 @@
         "**/*.test.ts",
         "**/__mocks__/*",
         "lib",
-        "jest.config.ts"
+        "vitest.config.ts"
     ]
 }

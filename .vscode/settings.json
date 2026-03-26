@@ -1,6 +1,5 @@
 {
-  "jest.jestCommandLine": "npm run test -- ",
-  "jest.runMode": "on-demand",
+  "vitest.enable": true,
   "files.exclude": {
     "**/node_modules": true
   },

@@ -1,14 +1,14 @@
 import os from 'os'
 import {posix} from 'path'
 import {glob} from 'glob'
-// @ts-ignore
-import {__setos as setos} from 'getos'
+import {__setos as setos} from '../../__mocks__/getos'
 import {ToolchainVersion} from '../../src/version'
 import {Platform, XcodePlatform} from '../../src/platform'
 import {XcodeToolchainSnapshot} from '../../src/snapshot'
-import {describe, expect, it, jest} from '@jest/globals'
+import {describe, expect, it, vi} from 'vitest'
 
-jest.mock('getos')
+vi.mock('getos')
+vi.mock('os', {spy: true})
 
 describe('fetch macos tool data based on options', () => {
   const ver4 = ToolchainVersion.create('4', false)
@@ -20,8 +20,8 @@ describe('fetch macos tool data based on options', () => {
   const latestDev = ToolchainVersion.create('latest', true)
 
   it('fetches macOS latest swift 4 tool', async () => {
-    setos({os: 'darwin', dist: 'macOS', release: '21'})
-    jest.spyOn(os, 'arch').mockReturnValue('x64')
+    setos({os: 'darwin'})
+    vi.spyOn(os, 'arch').mockReturnValue('x64')
     const tool = await Platform.toolchain(ver4)
     expect(tool).toBeTruthy()
     const xTool = tool as XcodeToolchainSnapshot
@@ -34,8 +34,8 @@ describe('fetch macos tool data based on options', () => {
   })
 
   it('fetches macOS latest swift 5.0 tool', async () => {
-    setos({os: 'darwin', dist: 'macOS', release: '21'})
-    jest.spyOn(os, 'arch').mockReturnValue('x64')
+    setos({os: 'darwin'})
+    vi.spyOn(os, 'arch').mockReturnValue('x64')
     const tool = await Platform.toolchain(ver5_0)
     expect(tool).toBeTruthy()
     const xTool = tool as XcodeToolchainSnapshot
@@ -48,8 +48,8 @@ describe('fetch macos tool data based on options', () => {
   })
 
   it('fetches macOS latest swift 5.5.0 tool', async () => {
-    setos({os: 'darwin', dist: 'macOS', release: '21'})
-    jest.spyOn(os, 'arch').mockReturnValue('x64')
+    setos({os: 'darwin'})
+    vi.spyOn(os, 'arch').mockReturnValue('x64')
     const tool = await Platform.toolchain(ver5_5_0)
     expect(tool).toBeTruthy()
     const xTool = tool as XcodeToolchainSnapshot
@@ -62,8 +62,8 @@ describe('fetch macos tool data based on options', () => {
   })
 
   it('fetches macOS latest swift 5.5 tool', async () => {
-    setos({os: 'darwin', dist: 'macOS', release: '21'})
-    jest.spyOn(os, 'arch').mockReturnValue('x64')
+    setos({os: 'darwin'})
+    vi.spyOn(os, 'arch').mockReturnValue('x64')
     const tool = await Platform.toolchain(ver5_5)
     expect(tool).toBeTruthy()
     const xTool = tool as XcodeToolchainSnapshot
@@ -76,8 +76,8 @@ describe('fetch macos tool data based on options', () => {
   })
 
   it('fetches macOS latest swift 5.5 tool including dev snapshot', async () => {
-    setos({os: 'darwin', dist: 'macOS', release: '21'})
-    jest.spyOn(os, 'arch').mockReturnValue('x64')
+    setos({os: 'darwin'})
+    vi.spyOn(os, 'arch').mockReturnValue('x64')
     const tool = await Platform.toolchain(dev5_5)
     expect(tool).toBeTruthy()
     const xTool = tool as XcodeToolchainSnapshot
@@ -90,8 +90,8 @@ describe('fetch macos tool data based on options', () => {
   })
 
   it('fetches macOS latest swift tool', async () => {
-    setos({os: 'darwin', dist: 'macOS', release: '21'})
-    jest.spyOn(os, 'arch').mockReturnValue('x64')
+    setos({os: 'darwin'})
+    vi.spyOn(os, 'arch').mockReturnValue('x64')
     const tool = await Platform.toolchain(latest)
     expect(tool).toBeTruthy()
     const xTool = tool as XcodeToolchainSnapshot
@@ -104,8 +104,8 @@ describe('fetch macos tool data based on options', () => {
   })
 
   it('fetches macOS latest swift tool including dev snapshot', async () => {
-    setos({os: 'darwin', dist: 'macOS', release: '21'})
-    jest.spyOn(os, 'arch').mockReturnValue('x64')
+    setos({os: 'darwin'})
+    vi.spyOn(os, 'arch').mockReturnValue('x64')
     const tool = await Platform.toolchain(latestDev)
     expect(tool).toBeTruthy()
     const xTool = tool as XcodeToolchainSnapshot
@@ -117,8 +117,8 @@ describe('fetch macos tool data based on options', () => {
   })
 
   it('fetches macOS latest swift beta version tool', async () => {
-    setos({os: 'darwin', dist: 'macOS', release: '21'})
-    jest.spyOn(os, 'arch').mockReturnValue('x64')
+    setos({os: 'darwin'})
+    vi.spyOn(os, 'arch').mockReturnValue('x64')
     const branches = await glob(`swiftorg/_data/builds/swift-*`)
 
     function getVersions(folders: string[], suffix: string) {
@@ -150,8 +150,8 @@ describe('fetch macos tool data based on options', () => {
   })
 
   it('fetches macOs named swift tool', async () => {
-    setos({os: 'darwin', dist: 'macOS', release: '21'})
-    jest.spyOn(os, 'arch').mockReturnValue('x64')
+    setos({os: 'darwin'})
+    vi.spyOn(os, 'arch').mockReturnValue('x64')
     const name = 'swift-DEVELOPMENT-SNAPSHOT-2023-09-02-a'
     const version = ToolchainVersion.create(name, false)
     const tool = await Platform.toolchain(version)
@@ -167,8 +167,8 @@ describe('fetch macos tool data based on options', () => {
   })
 
   it('fetches macOS named versioned swift tool', async () => {
-    setos({os: 'darwin', dist: 'macOS', release: '21'})
-    jest.spyOn(os, 'arch').mockReturnValue('x64')
+    setos({os: 'darwin'})
+    vi.spyOn(os, 'arch').mockReturnValue('x64')
     const name = 'swift-5.9-DEVELOPMENT-SNAPSHOT-2023-09-01-a'
     const version = ToolchainVersion.create(name, false)
     const tool = await Platform.toolchain(version)
@@ -198,22 +198,22 @@ describe('fetch macos tool data based on options', () => {
   })
 
   it('fetches macOS latest swift 5.5 tools', async () => {
-    setos({os: 'darwin', dist: 'macOS', release: '21'})
-    jest.spyOn(os, 'arch').mockReturnValue('x64')
+    setos({os: 'darwin'})
+    vi.spyOn(os, 'arch').mockReturnValue('x64')
     const tools = await Platform.toolchains(ver5_5)
     expect(tools.length).toBe(4)
   })
 
   it('fetches macOS latest swift 5.5 tools including dev snapshot', async () => {
-    setos({os: 'darwin', dist: 'macOS', release: '21'})
-    jest.spyOn(os, 'arch').mockReturnValue('x64')
+    setos({os: 'darwin'})
+    vi.spyOn(os, 'arch').mockReturnValue('x64')
     const tools = await Platform.toolchains(dev5_5)
     expect(tools.length).toBe(103)
   })
 
   it('fetches macOS custom swift tools', async () => {
-    setos({os: 'darwin', dist: 'macOS', release: '21'})
-    jest.spyOn(os, 'arch').mockReturnValue('x64')
+    setos({os: 'darwin'})
+    vi.spyOn(os, 'arch').mockReturnValue('x64')
     const swiftwasm = 'https://github.com/swiftwasm/swift/releases/download'
     const name = 'swift-wasm-5.10-SNAPSHOT-2024-03-30-a'
     const resource = `${name}-macos_arm64.pkg`

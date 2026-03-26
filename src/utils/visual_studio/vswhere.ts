@@ -39,7 +39,7 @@ export namespace VSWhere {
 
     try {
       await fs.access(vswhereToolExe)
-    } catch (error) {
+    } catch {
       throw new Error('Missing vswhere.exe, needed Visual Studio installation')
     }
 

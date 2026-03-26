@@ -11,11 +11,11 @@ You can contribute by fixing bugs or adding new features, you can go through out
 
 1. Apply standard formatting with `npm run format`, and verify added code with lint rules by `npm run lint`.
 1. Add relevant tests and ensure your changes don't break any existing tests (see [Automated Tests](#automated-tests) below).
-1. Run `npm run build && npm run package` to generate `dist/index.js` with your changes that will be used as part to E2E tests.
+1. Run `npm run build && npm run package` to generate `dist/index.cjs` with your changes that will be used as part to E2E tests.
 1. Commit changes according to [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) standard.
 
 > [!TIP]
-> `npm run all` can be executed to apply formatting, linting, generate `dist/index.js` file and run unit tests.
+> `npm run all` can be executed to apply formatting, linting, generate `dist/index.cjs` file and run unit tests.
 
 ### Things you will need
 
@@ -25,7 +25,7 @@ You can contribute by fixing bugs or adding new features, you can go through out
 
 ### Automated Tests
 
-GitHub action is already setup to run tests on pull requests targeting `main` branch. However, `npm run build && npm run package` needs to be used to generate `dist/index.js` with your changes and these changes needs to be committed along with other code changes.
+GitHub action is already setup to run tests on pull requests targeting `main` branch. However, `npm run build && npm run package` needs to be used to generate `dist/index.cjs` with your changes and these changes needs to be committed along with other code changes.
 
 ## Developer's Certificate of Origin 1.1
 
