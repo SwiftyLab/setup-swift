@@ -1,10 +1,11 @@
 'use strict'
-const core = require('@actions/core');
-const {exec} = require('@actions/exec');
+const {exec} = require('child_process');
+const {promisify} = require('util');
+
+const execAsync = promisify(exec);
 
 exports.preCommit = async (props) => {
-  core.startGroup(`Bundling`);
-  await exec('npm install --legacy-peer-deps');
-  await exec('npm run package');
-  core.endGroup();
+  console.log('Bundling');
+  await execAsync('npm install --legacy-peer-deps');
+  await execAsync('npm run package');
 };
