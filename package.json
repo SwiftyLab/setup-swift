@@ -58,7 +58,7 @@
     "@types/semver": "^7.7.1",
     "@typescript-eslint/eslint-plugin": "^8.53.0",
     "@typescript-eslint/parser": "^8.54.0",
-    "@vitest/coverage-v8": "^4.1.1",
+    "@vitest/coverage-v8": "^4.1.2",
     "conventional-changelog-conventionalcommits": "^7.0.0",
     "depcheck": "^1.4.7",
     "esbuild": "0.27.4",
