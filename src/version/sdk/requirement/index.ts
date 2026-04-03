@@ -1,7 +1,7 @@
 import {SdkRequirement, StaticLinux, Wasm, Android, DefaultSdk} from './base'
 
 declare module './base' {
-  // eslint-disable-next-line no-shadow, @typescript-eslint/no-namespace
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   export namespace SdkRequirement {
     export function create(requirement: string): SdkRequirement
   }

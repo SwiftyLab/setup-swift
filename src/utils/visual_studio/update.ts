@@ -4,7 +4,6 @@ import * as core from '@actions/core'
 import {VisualStudio} from './base'
 
 declare module './base' {
-  // eslint-disable-next-line no-shadow
   export interface VisualStudio {
     update(sdkroot: string): Promise<void>
   }

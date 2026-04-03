@@ -72,7 +72,10 @@ jobs:
       uses: actions/github-script@v8
       with:
         script: |
-          const hook = await import('${{ github.workspace }}/.github/utils/update_metadata.js');
+          const path = require('path');
+          const {createJiti} = require(path.join('${{ github.workspace }}', 'node_modules', 'jiti'));
+          const jiti = createJiti('${{ github.workspace }}', {interopDefault: true});
+          const hook = jiti('./.github/utils/update_metadata.ts');
           const {stdout} = await exec.getExecOutput('git', ['rev-parse', 'HEAD'], {cwd: 'swiftorg'});
           const oldCommit = (await hook.currentData()).commit;
           const newCommit = stdout.trim();
@@ -508,7 +511,10 @@ jobs:
         uses: actions/github-script@v8
         with:
           script: |
-            const hook = await import('${{ github.workspace }}/.github/utils/update_metadata.js');
+            const path = require('path');
+            const {createJiti} = require(path.join('${{ github.workspace }}', 'node_modules', 'jiti'));
+            const jiti = createJiti('${{ github.workspace }}', {interopDefault: true});
+            const hook = jiti('./.github/utils/update_metadata.ts');
             await hook.update();
             return true;
 

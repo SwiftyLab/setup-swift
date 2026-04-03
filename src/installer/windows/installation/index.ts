@@ -5,7 +5,7 @@ import {firstDirectoryLayout, secondDirectoryLayout} from './approach'
 import {env, fallback} from './fallback'
 
 declare module './base' {
-  // eslint-disable-next-line no-shadow, @typescript-eslint/no-namespace
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   export namespace Installation {
     let lastInstallation: Installation | CustomInstallation
     export function get(

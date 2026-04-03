@@ -8,6 +8,8 @@
         "**/*.test.ts",
         "**/__mocks__/*",
         "lib",
-        "vitest.config.ts"
+        "vitest.config.ts",
+        "eslint.config.ts",
+        ".github/**/*.ts"
     ]
 }

@@ -16,6 +16,7 @@ import * as exec from '@actions/exec'
 import {describe, expect, it, vi} from 'vitest'
 
 vi.mock('@actions/exec', {spy: true})
+vi.mock('@actions/tool-cache', {spy: true})
 vi.mock('os', {spy: true})
 
 describe('parse version from provided string', () => {

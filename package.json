@@ -28,20 +28,20 @@
     "ci"
   ],
   "scripts": {
-    "prepare": "node -e \"import('./.github/utils/update_metadata.js').then(m => m.fetch())\" && npm run build",
+    "prepare": "node --import jiti/register -e \"import('./.github/utils/update_metadata.ts').then(m => (m.default?.fetch ?? m.fetch)())\" && npm run build",
     "build": "tsc",
     "format": "prettier --write \"**/*.ts\"",
-    "lint": "depcheck --ignores ts-node,globals,@eslint/js,@eslint/eslintrc,@vitest/coverage-v8 && eslint src/**/*.ts && prettier --check \"**/*.ts\"",
+    "lint": "depcheck --ignores @vitest/coverage-v8 && eslint **/*.ts && prettier --check \"**/*.ts\"",
     "package": "esbuild lib/main.js --bundle --platform=node --target=node20 --format=cjs --outfile=dist/index.cjs",
     "test": "vitest run --coverage",
     "all": "npm run format && npm run build && npm run lint && npm run package && npm run test"
   },
   "dependencies": {
     "@actions/cache": "^6.0.0",
-    "@actions/core": "^1.11.1",
+    "@actions/core": "^3.0.0",
     "@actions/exec": "^3.0.0",
     "@actions/io": "^3.0.2",
-    "@actions/tool-cache": "^2.0.2",
+    "@actions/tool-cache": "^4.0.0",
     "getos": "^3.2.1",
     "glob": "^13.0.0",
     "js-yaml": "^4.1.1",
@@ -50,6 +50,8 @@
     "semver": "^7.7.4"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.3.5",
+    "@eslint/js": "^10.0.1",
     "@stylistic/eslint-plugin": "^5.7.1",
     "@types/getos": "^3.0.4",
     "@types/js-yaml": "^4.0.9",
@@ -59,14 +61,15 @@
     "@typescript-eslint/eslint-plugin": "^8.53.0",
     "@typescript-eslint/parser": "^8.58.0",
     "@vitest/coverage-v8": "^4.1.2",
+    "@vitest/eslint-plugin": "^1.6.14",
     "conventional-changelog-conventionalcommits": "^7.0.0",
     "depcheck": "^1.4.7",
     "esbuild": "0.27.4",
     "eslint": "^10.1.0",
-    "eslint-plugin-vitest": "^0.5.4",
+    "globals": "^17.4.0",
+    "jiti": "^2.6.1",
     "nock": "^14.0.10",
     "prettier": "^3.8.1",
-    "ts-node": "^10.9.2",
     "typescript": "^6.0.2",
     "vitest": "^4.1.1"
   }
