@@ -8,7 +8,7 @@ import {VisualStudio, VisualStudioRequirement, VisualStudioConfig} from './base'
 import {VSWhere} from './vswhere'
 
 declare module './base' {
-  // eslint-disable-next-line no-shadow, @typescript-eslint/no-namespace
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   export namespace VisualStudio {
     let shared: VisualStudio | undefined
     function setup(requirement: VisualStudioRequirement): Promise<VisualStudio>
