@@ -380,6 +380,7 @@ describe('windows toolchain installation verification', () => {
     vi.spyOn(VisualStudio, 'setup').mockResolvedValue(visualStudio)
     vi.spyOn(fs, 'access')
       .mockRejectedValueOnce(new Error())
+      .mockRejectedValueOnce(new Error())
       .mockResolvedValue()
     vi.spyOn(fs, 'copyFile').mockResolvedValue()
     vi.spyOn(core, 'getBooleanInput').mockReturnValue(false)
@@ -431,6 +432,7 @@ describe('windows toolchain installation verification', () => {
     const installation = path.resolve('tool', 'installed', 'path')
     vi.spyOn(VisualStudio, 'setup').mockResolvedValue(visualStudio)
     vi.spyOn(fs, 'access')
+      .mockRejectedValueOnce(new Error())
       .mockRejectedValueOnce(new Error())
       .mockImplementation(async p => {
         if (typeof p === 'string' && p.endsWith('vcruntime.modulemap')) {
@@ -490,6 +492,7 @@ describe('windows toolchain installation verification', () => {
       .spyOn(VisualStudio, 'setup')
       .mockResolvedValue(visualStudio)
     vi.spyOn(fs, 'access')
+      .mockRejectedValueOnce(new Error())
       .mockRejectedValueOnce(new Error())
       .mockImplementation(async p => {
         if (
@@ -562,6 +565,7 @@ describe('windows toolchain installation verification', () => {
     const installation = path.resolve('tool', 'installed', 'path')
     const vsSetupSpy = vi.spyOn(VisualStudio, 'setup')
     vi.spyOn(fs, 'access')
+      .mockRejectedValueOnce(new Error())
       .mockRejectedValueOnce(new Error())
       .mockImplementation(async p => {
         if (
@@ -636,6 +640,7 @@ describe('windows toolchain installation verification', () => {
       .spyOn(VisualStudio, 'setup')
       .mockResolvedValue(visualStudio)
     vi.spyOn(fs, 'access')
+      .mockRejectedValueOnce(new Error())
       .mockRejectedValueOnce(new Error())
       .mockImplementation(async p => {
         if (
@@ -712,6 +717,7 @@ describe('windows toolchain installation verification', () => {
       .spyOn(VisualStudio, 'setup')
       .mockResolvedValue(visualStudio)
     vi.spyOn(fs, 'access')
+      .mockRejectedValueOnce(new Error())
       .mockRejectedValueOnce(new Error())
       .mockResolvedValue()
     vi.spyOn(exec, 'exec').mockResolvedValue(0)
@@ -805,6 +811,57 @@ describe('windows toolchain installation verification', () => {
     )
     expect(writeFileSpy.mock.calls[6][0]).toBe(
       path.join(clangInclude, 'module.modulemap')
+    )
+  })
+
+  it('tests add to PATH with third directory layout (Swift 6.3)', async () => {
+    const toolchain = {
+      name: 'Windows 10',
+      date: new Date('2025-03-12'),
+      download: 'swift-6.3-RELEASE-windows10.exe',
+      download_signature: 'swift-6.3-RELEASE-windows10.exe.sig',
+      dir: 'swift-6.3-RELEASE',
+      platform: 'windows10',
+      branch: 'swift-6.3-release',
+      windows: true,
+      preventCaching: false
+    }
+    const installer = new WindowsToolchainInstaller(toolchain)
+    const installation = path.resolve('tool', 'installed', 'path')
+    vi.spyOn(fs, 'access').mockResolvedValue()
+    vi.spyOn(core, 'getBooleanInput').mockReturnValue(false)
+    vi.spyOn(exec, 'getExecOutput').mockResolvedValueOnce({
+      exitCode: 0,
+      stdout: 'Swift version 6.3 (swift-6.3-RELEASE)',
+      stderr: ''
+    })
+    const toolPath = path.join(installation, 'Toolchains', '6.3.0+Asserts')
+    const sdkroot = path.join(
+      installation,
+      'Platforms',
+      '6.3.0',
+      'Windows.platform',
+      'Developer',
+      'SDKs',
+      'Windows.sdk'
+    )
+    const swiftLibs = path.join(sdkroot, 'usr', 'lib', 'swift')
+    const swiftPath = path.join(toolPath, 'usr', 'bin')
+    const runtimePath = path.join(
+      installation,
+      'Runtimes',
+      '6.3.0',
+      'usr',
+      'bin'
+    )
+    await installer['add'](installation, 'x86_64')
+    expect(process.env.PATH?.includes(swiftPath)).toBeTruthy()
+    expect(process.env.PATH?.includes(runtimePath)).toBeTruthy()
+    expect(process.env.SDKROOT).toBe(sdkroot)
+    expect(process.env.SWIFTFLAGS).toContain(`-sdk ${sdkroot}`)
+    expect(process.env.SWIFTFLAGS).toContain(`-I ${swiftLibs}`)
+    expect(process.env.SWIFTFLAGS).toContain(
+      `-L ${path.join(swiftLibs, 'windows')}`
     )
   })
 

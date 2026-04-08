@@ -8,11 +8,7 @@
       "internalConsoleOptions": "neverOpen",
       "cwd": "${workspaceFolder}",
       "runtimeExecutable": "npx",
-      "args": [
-        "vitest",
-        "run",
-        "--no-file-parallelism"
-      ]
+      "args": ["vitest", "run", "--no-file-parallelism"]
     }
   ]
 }

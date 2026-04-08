@@ -49,7 +49,7 @@ export async function fallback(
   oldEnv: Record<string, string>,
   newEnv: Record<string, string>
 ) {
-  core.debug('Procceding with fallback installation approach')
+  core.warning('Procceding with fallback installation approach')
   const data = Object.entries(newEnv).reduce(
     (previous, current) => {
       return {

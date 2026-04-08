@@ -1,10 +1,10 @@
 {
-    "extends": "./tsconfig.base.json",
-    "include": [
-        "__tests__/**/*.ts",
-        "__mocks__/**/*.ts",
-        ".github/**/*.ts",
-        "vitest.config.ts",
-        "eslint.config.ts"
-    ]
+  "extends": "./tsconfig.base.json",
+  "include": [
+    "__tests__/**/*.ts",
+    "__mocks__/**/*.ts",
+    ".github/**/*.ts",
+    "vitest.config.ts",
+    "eslint.config.ts"
+  ]
 }

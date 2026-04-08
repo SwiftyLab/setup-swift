@@ -1,8 +1,27 @@
 import * as path from 'path'
+import * as fs from 'fs/promises'
 import * as core from '@actions/core'
 import {exec} from '@actions/exec'
 import {MODULE_DIR, SWIFTORG, SWIFTORG_ORIGIN, SWIFTORG_METADATA} from './const'
 import * as https from 'https'
+
+let swiftorgContractVersion: Promise<string | undefined>
+
+async function getSwiftorgContractVersion(): Promise<string | undefined> {
+  if (swiftorgContractVersion) {
+    return await swiftorgContractVersion
+  }
+
+  swiftorgContractVersion = (async () => {
+    const data = await fs.readFile(
+      path.join(MODULE_DIR, 'package.json'),
+      'utf8'
+    )
+    const packageJson = JSON.parse(data)
+    return packageJson['swiftorg-contract-version']
+  })()
+  return swiftorgContractVersion
+}
 
 export class Swiftorg {
   constructor(readonly checkLatest: boolean | string) {
@@ -24,11 +43,23 @@ export class Swiftorg {
     }
   }
 
+  private static async commitFromMetadata(metadata: {
+    commit?: string
+    commits?: Record<string, string>
+  }): Promise<string | undefined> {
+    const version = await getSwiftorgContractVersion()
+    if (!version) {
+      return metadata.commit
+    }
+    return metadata.commits?.[version] ?? metadata.commit
+  }
+
   private async swiftorgMetadata(): Promise<{commit?: string}> {
     if (process.env.SETUPSWIFT_SWIFTORG_METADATA) {
       const metadata = JSON.parse(process.env.SETUPSWIFT_SWIFTORG_METADATA)
-      if (metadata.commit) {
-        return metadata
+      const commit = await Swiftorg.commitFromMetadata(metadata)
+      if (commit) {
+        return {commit}
       }
     }
     return new Promise((resolve, reject) => {
@@ -59,7 +90,10 @@ export class Swiftorg {
           try {
             const parsedData = JSON.parse(rawData)
             core.debug(`Recieved swift.org metadata: "${rawData}"`)
-            resolve(parsedData)
+            Swiftorg.commitFromMetadata(parsedData).then(
+              commit => resolve({commit}),
+              e => reject(e)
+            )
           } catch (e) {
             core.error(`Parsing swift.org metadata error: '${e}'`)
             reject(e)

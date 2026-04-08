@@ -112,12 +112,14 @@ export class WindowsToolchainInstaller extends VerifyingToolchainInstaller<Windo
 
   protected async unpack(exe: string, arch: string) {
     core.debug(`Unpacking for architecture "${arch}"`)
-    const installation = await Installation.install(exe)
+    const version = this.version?.version ?? ''
+    const installation = await Installation.install(exe, version)
     return installation instanceof Installation ? installation.location : ''
   }
 
   protected async add(installLocation: string, arch: string) {
-    const installation = await Installation.get(installLocation)
+    const swiftVersion = this.version?.version ?? ''
+    const installation = await Installation.get(swiftVersion, installLocation)
     const sdkrootKey = 'SDKROOT'
     let sdkroot: string | undefined
     if (installation instanceof Installation) {

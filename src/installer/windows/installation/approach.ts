@@ -40,3 +40,31 @@ export async function secondDirectoryLayout(root?: string) {
   core.debug('Second installation approach succeeded')
   return new Installation(location, toolchain, sdkroot, runtime)
 }
+
+export async function thirdDirectoryLayout(version: string, root?: string) {
+  core.debug('Trying third installation approach')
+  let location: string
+  if (root) {
+    location = root
+  } else {
+    const localAppData = process.env.LOCALAPPDATA
+    if (!localAppData) {
+      throw new Error('LOCALAPPDATA environment variable not set')
+    }
+    location = path.join(localAppData, 'Programs', 'Swift')
+  }
+  const toolchainName = `${version}+Asserts`
+  const toolchain = path.join(location, 'Toolchains', toolchainName)
+  await fs.access(toolchain)
+  const winsdk = path.join('Developer', 'SDKs', 'Windows.sdk')
+  const sdkroot = path.join(
+    location,
+    'Platforms',
+    version,
+    'Windows.platform',
+    winsdk
+  )
+  const runtime = path.join(location, 'Runtimes', version)
+  core.debug('Third installation approach succeeded')
+  return new Installation(location, toolchain, sdkroot, runtime)
+}

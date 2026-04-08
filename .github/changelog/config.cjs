@@ -1,5 +1,5 @@
 'use strict'
-const config = require('conventional-changelog-conventionalcommits');
+const config = require('conventional-changelog-conventionalcommits')
 
 module.exports = config({
   types: [
@@ -18,4 +18,4 @@ module.exports = config({
     {type: 'wip', hidden: true},
     {type: 'chore', hidden: true}
   ]
-});
+})

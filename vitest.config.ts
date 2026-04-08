@@ -6,7 +6,7 @@ export default defineConfig({
     include: ['**/*.test.ts'],
     clearMocks: true,
     coverage: {
-      provider: 'v8',
+      provider: 'istanbul',
       include: ['src/**'],
       reporter: ['text', 'lcov', 'json-summary'],
       reportsDirectory: 'coverage'

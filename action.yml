@@ -82,5 +82,5 @@ outputs:
   sdks:
     description: JSON formatted SDK snapshots metadata that were configured.
 runs:
-  using: node20
-  main: dist/index.cjs
+  using: node24
+  main: dist/index.js

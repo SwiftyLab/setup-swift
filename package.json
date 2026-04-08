@@ -2,23 +2,7 @@
   "name": "setup-swift",
   "version": "1.13.0",
   "private": true,
-  "type": "module",
   "description": "Setup Swift environment.",
-  "main": "lib/main.js",
-  "author": "Soumya Ranjan Mahunt",
-  "license": "MIT",
-  "homepage": "https://github.com/SwiftyLab/setup-swift#readme",
-  "engines": {
-    "node": ">=20.0.0",
-    "npm": ">=8.0.0"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/SwiftyLab/setup-swift.git"
-  },
-  "bugs": {
-    "url": "https://github.com/SwiftyLab/setup-swift/issues"
-  },
   "keywords": [
     "swift",
     "setup",
@@ -27,14 +11,26 @@
     "github-actions",
     "ci"
   ],
+  "homepage": "https://github.com/SwiftyLab/setup-swift#readme",
+  "bugs": {
+    "url": "https://github.com/SwiftyLab/setup-swift/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SwiftyLab/setup-swift.git"
+  },
+  "license": "MIT",
+  "author": "Soumya Ranjan Mahunt",
+  "type": "module",
+  "main": "lib/main.js",
   "scripts": {
-    "prepare": "node --import jiti/register -e \"import('./.github/utils/update_metadata.ts').then(m => (m.default?.fetch ?? m.fetch)())\" && npm run build",
+    "all": "npm run format && npm run build && npm run lint && npm run package && npm run test",
     "build": "tsc",
-    "format": "prettier --write \"**/*.ts\"",
-    "lint": "depcheck --ignores @vitest/coverage-v8 && eslint **/*.ts && prettier --check \"**/*.ts\"",
-    "package": "esbuild lib/main.js --bundle --platform=node --target=node20 --format=cjs --outfile=dist/index.cjs",
-    "test": "vitest run --coverage",
-    "all": "npm run format && npm run build && npm run lint && npm run package && npm run test"
+    "format": "sort-package-json && prettier --write .",
+    "lint": "depcheck --ignores @vitest/coverage-istanbul && eslint && prettier --check .",
+    "package": "esbuild lib/main.js --bundle --platform=node --target=node24 --format=esm --banner:js=\"import{createRequire}from'module';import{fileURLToPath}from'url';import{dirname}from'path';const require=createRequire(import.meta.url);const __filename=fileURLToPath(import.meta.url);const __dirname=dirname(__filename);\" --outfile=dist/index.js",
+    "prepare": "node --import jiti/register -e \"import('./.github/utils/update_metadata.ts').then(m => (m.default?.fetch ?? m.fetch)())\" && npm run build",
+    "test": "vitest run --coverage"
   },
   "dependencies": {
     "@actions/cache": "^6.0.0",
@@ -60,7 +56,7 @@
     "@types/semver": "^7.7.1",
     "@typescript-eslint/eslint-plugin": "^8.53.0",
     "@typescript-eslint/parser": "^8.58.0",
-    "@vitest/coverage-v8": "^4.1.2",
+    "@vitest/coverage-istanbul": "^4.1.4",
     "@vitest/eslint-plugin": "^1.6.14",
     "conventional-changelog-conventionalcommits": "^7.0.0",
     "depcheck": "^1.4.7",
@@ -70,7 +66,13 @@
     "jiti": "^2.6.1",
     "nock": "^14.0.10",
     "prettier": "^3.8.1",
+    "sort-package-json": "^3.6.1",
     "typescript": "^6.0.2",
     "vitest": "^4.1.1"
-  }
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=8.0.0"
+  },
+  "swiftorg-contract-version": "1"
 }

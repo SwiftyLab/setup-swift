@@ -1,10 +1,9 @@
 ---
 name: Feature request
 about: Suggest an idea for this project
-title: "[Feature Request] "
+title: '[Feature Request] '
 labels: enhancement
 assignees: ''
-
 ---
 
 - [ ] I have gone through the action [README](https://github.com/SwiftyLab/setup-swift/blob/main/README.md), [documentation](https://github.com/SwiftyLab/setup-swift/blob/main/action.yml) and [wiki](https://github.com/SwiftyLab/setup-swift/wiki).

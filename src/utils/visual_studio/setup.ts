@@ -71,7 +71,7 @@ VisualStudio.setup = async function (requirement: VisualStudioRequirement) {
     const vsConfig: VisualStudioConfig = JSON.parse(configContent)
     const installedComponents = new Set(vsConfig.components)
     comps = comps.filter(comp => !installedComponents.has(comp))
-    if (comps.length == 0) {
+    if (!comps.length) {
       core.debug('VS components already setup, skipping installation')
       this.shared = vs
       return vs
