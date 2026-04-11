@@ -88,7 +88,27 @@ export default [
       '@stylistic/semi': ['error', 'never'],
       '@stylistic/type-annotation-spacing': 'error',
       '@typescript-eslint/unbound-method': 'error'
+    }
+  },
+  {
+    ignores: ['dist/', 'lib/', 'node_modules/', 'swiftorg/', 'coverage/']
+  },
+  {
+    files: ['.github/changelog/*.cjs'],
+    languageOptions: {
+      sourceType: 'commonjs',
+      parserOptions: {
+        program: null,
+        project: false,
+        projectService: false
+      }
     },
-    ignores: ['dist/', 'lib/', 'node_modules/', 'swiftorg/']
+    rules: {
+      ...(typescriptEslint.configs as Record<string, Linter.Config>)[
+        'flat/disable-type-checked'
+      ].rules,
+      '@typescript-eslint/no-require-imports': 'off',
+      '@typescript-eslint/no-var-requires': 'off'
+    }
   }
 ] satisfies Linter.Config[]

@@ -19,9 +19,16 @@ interface SnapshotEntry {
 
 interface SwiftorgMetadata {
   commit: string
+  commits: Record<string, string>
   release: SwiftRelease
   dev: SwiftRelease
   snapshot: {date: string; tag: string}
+}
+
+async function swiftorgContractVersion(): Promise<string> {
+  const data = await fs.readFile('package.json', 'utf-8')
+  const packageJson = JSON.parse(data)
+  return packageJson['swiftorg-contract-version']
 }
 
 const SWIFT_ORG = 'swiftorg'
@@ -82,7 +89,16 @@ export async function update(): Promise<string> {
   const dev = await latestDevRelease()
   const snapshot = await latestSnapshot()
 
-  const swiftorg: SwiftorgMetadata = {commit, release, dev, snapshot}
+  const existing = await currentData()
+  const version = await swiftorgContractVersion()
+  const commits = {...existing.commits, [version]: commit}
+  const swiftorg: SwiftorgMetadata = {
+    commit: existing.commit,
+    commits,
+    release,
+    dev,
+    snapshot
+  }
   const data = JSON.stringify(swiftorg)
   core.info(`Updating swiftorg metadata to "${data}"`)
   const metadata = path.join('pages', 'metadata.json')
@@ -137,11 +153,15 @@ export async function fetch(): Promise<void> {
       process.env.SETUPSWIFT_SWIFTORG_METADATA
     ) as SwiftorgMetadata
   }
-  if (!checkoutData || !checkoutData.commit) {
+  const version = await swiftorgContractVersion()
+  if (
+    !checkoutData ||
+    (!checkoutData.commits?.[version] && !checkoutData.commit)
+  ) {
     checkoutData = await currentData()
   }
   const origin = 'https://github.com/apple/swift-org-website.git'
-  const ref = checkoutData.commit
+  const ref = checkoutData.commits?.[version] ?? checkoutData.commit
   await exec('git', ['init', SWIFT_ORG])
   await exec(
     'git',

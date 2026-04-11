@@ -1,22 +1,18 @@
 {
-    "compilerOptions": {
-        "target": "ESNext",
-        "module": "esnext",
-        "moduleResolution": "bundler",
-        "strict": true,
-        "noImplicitAny": true,
-        "esModuleInterop": true,
-        "allowUnreachableCode": false,
-        "allowUnusedLabels": false,
-        "noImplicitReturns": true,
-        "strictBuiltinIteratorReturn": false,
-        "skipLibCheck": true,
-        "isolatedModules": true,
-        "lib": [
-            "ES2021.String",
-        ]
-    },
-    "exclude": [
-        "node_modules"
-    ]
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "noImplicitAny": true,
+    "esModuleInterop": true,
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+    "noImplicitReturns": true,
+    "strictBuiltinIteratorReturn": false,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "lib": ["ES2021.String"]
+  },
+  "exclude": ["node_modules"]
 }

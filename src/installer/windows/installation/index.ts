@@ -1,7 +1,11 @@
 import * as core from '@actions/core'
 import {exec} from '@actions/exec'
 import {Installation, CustomInstallation} from './base'
-import {firstDirectoryLayout, secondDirectoryLayout} from './approach'
+import {
+  firstDirectoryLayout,
+  secondDirectoryLayout,
+  thirdDirectoryLayout
+} from './approach'
 import {env, fallback} from './fallback'
 
 declare module './base' {
@@ -9,24 +13,28 @@ declare module './base' {
   export namespace Installation {
     let lastInstallation: Installation | CustomInstallation
     export function get(
+      version: string,
       install?: string
     ): Promise<Installation | CustomInstallation | undefined>
     export function install(
-      exe: string
+      exe: string,
+      version: string
     ): Promise<Installation | CustomInstallation>
     export function detect(
       oldEnv: Record<string, string>,
-      newEnv: Record<string, string>
+      newEnv: Record<string, string>,
+      version: string
     ): Promise<Installation | CustomInstallation>
   }
 }
 
-Installation.get = async function (install?: string) {
-  if (!(install?.length ?? 1)) {
+Installation.get = async function (version: string, install?: string) {
+  if (install?.length === 0) {
     return this.lastInstallation
   }
 
   const approaches = [
+    async () => thirdDirectoryLayout(version, install),
     async () => secondDirectoryLayout(install),
     async () => firstDirectoryLayout(install)
   ]
@@ -48,20 +56,21 @@ Installation.get = async function (install?: string) {
   return undefined
 }
 
-Installation.install = async function (exe: string) {
+Installation.install = async function (exe: string, version: string) {
   core.debug(`Installing toolchain from "${exe}"`)
   const oldEnv = await env()
   await exec(`"${exe}"`, ['-q'])
   const newEnv = await env()
-  this.lastInstallation = await Installation.detect(oldEnv, newEnv)
+  this.lastInstallation = await Installation.detect(oldEnv, newEnv, version)
   return this.lastInstallation
 }
 
 Installation.detect = async (
   oldEnv: Record<string, string>,
-  newEnv: Record<string, string>
+  newEnv: Record<string, string>,
+  version: string
 ) => {
-  const installation = await Installation.get()
+  const installation = await Installation.get(version)
   if (!installation) {
     return fallback(oldEnv, newEnv)
   }

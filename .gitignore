@@ -62,7 +62,7 @@ typings/
 __tests__/runner/*
 lib/**/*
 dist/*
-!dist/index.cjs
+!dist/index.js
 
 # TypeScript cache
 *.tsbuildinfo

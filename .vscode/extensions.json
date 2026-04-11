@@ -1,9 +1,9 @@
 {
-    "recommendations": [
-        "ms-vscode.vscode-typescript-next",
-        "vitest.explorer",
-        "dbaeumer.vscode-eslint",
-        "esbenp.prettier-vscode",
-        "github.vscode-github-actions"
-    ]
+  "recommendations": [
+    "ms-vscode.vscode-typescript-next",
+    "vitest.explorer",
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "github.vscode-github-actions"
+  ]
 }
