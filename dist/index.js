@@ -11,10 +11,10 @@ var __require = /* @__PURE__ */ ((x2) => typeof require !== "undefined" ? requir
   if (typeof require !== "undefined") return require.apply(this, arguments);
   throw Error('Dynamic require of "' + x2 + '" is not supported');
 });
-var __glob = (map2) => (path36) => {
-  var fn = map2[path36];
+var __glob = (map2) => (path35) => {
+  var fn = map2[path35];
   if (fn) return fn();
-  throw new Error("Module not found in bundle: " + path36);
+  throw new Error("Module not found in bundle: " + path35);
 };
 var __esm = (fn, res) => function __init() {
   return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
@@ -1082,14 +1082,14 @@ var require_util = __commonJS({
         }
         const port = url2.port != null ? url2.port : url2.protocol === "https:" ? 443 : 80;
         let origin = url2.origin != null ? url2.origin : `${url2.protocol || ""}//${url2.hostname || ""}:${port}`;
-        let path36 = url2.path != null ? url2.path : `${url2.pathname || ""}${url2.search || ""}`;
+        let path35 = url2.path != null ? url2.path : `${url2.pathname || ""}${url2.search || ""}`;
         if (origin[origin.length - 1] === "/") {
           origin = origin.slice(0, origin.length - 1);
         }
-        if (path36 && path36[0] !== "/") {
-          path36 = `/${path36}`;
+        if (path35 && path35[0] !== "/") {
+          path35 = `/${path35}`;
         }
-        return new URL(`${origin}${path36}`);
+        return new URL(`${origin}${path35}`);
       }
       if (!isHttpOrHttpsPrefixed(url2.origin || url2.protocol)) {
         throw new InvalidArgumentError("Invalid URL protocol: the URL must start with `http:` or `https:`.");
@@ -1540,39 +1540,39 @@ var require_diagnostics = __commonJS({
       });
       diagnosticsChannel.channel("undici:client:sendHeaders").subscribe((evt) => {
         const {
-          request: { method, path: path36, origin }
+          request: { method, path: path35, origin }
         } = evt;
-        debuglog("sending request to %s %s/%s", method, origin, path36);
+        debuglog("sending request to %s %s/%s", method, origin, path35);
       });
       diagnosticsChannel.channel("undici:request:headers").subscribe((evt) => {
         const {
-          request: { method, path: path36, origin },
+          request: { method, path: path35, origin },
           response: { statusCode }
         } = evt;
         debuglog(
           "received response to %s %s/%s - HTTP %d",
           method,
           origin,
-          path36,
+          path35,
           statusCode
         );
       });
       diagnosticsChannel.channel("undici:request:trailers").subscribe((evt) => {
         const {
-          request: { method, path: path36, origin }
+          request: { method, path: path35, origin }
         } = evt;
-        debuglog("trailers received from %s %s/%s", method, origin, path36);
+        debuglog("trailers received from %s %s/%s", method, origin, path35);
       });
       diagnosticsChannel.channel("undici:request:error").subscribe((evt) => {
         const {
-          request: { method, path: path36, origin },
+          request: { method, path: path35, origin },
           error: error2
         } = evt;
         debuglog(
           "request to %s %s/%s errored - %s",
           method,
           origin,
-          path36,
+          path35,
           error2.message
         );
       });
@@ -1621,9 +1621,9 @@ var require_diagnostics = __commonJS({
         });
         diagnosticsChannel.channel("undici:client:sendHeaders").subscribe((evt) => {
           const {
-            request: { method, path: path36, origin }
+            request: { method, path: path35, origin }
           } = evt;
-          debuglog("sending request to %s %s/%s", method, origin, path36);
+          debuglog("sending request to %s %s/%s", method, origin, path35);
         });
       }
       diagnosticsChannel.channel("undici:websocket:open").subscribe((evt) => {
@@ -1686,7 +1686,7 @@ var require_request = __commonJS({
     var kHandler = /* @__PURE__ */ Symbol("handler");
     var Request = class {
       constructor(origin, {
-        path: path36,
+        path: path35,
         method,
         body: body2,
         headers,
@@ -1701,11 +1701,11 @@ var require_request = __commonJS({
         expectContinue,
         servername
       }, handler) {
-        if (typeof path36 !== "string") {
+        if (typeof path35 !== "string") {
           throw new InvalidArgumentError("path must be a string");
-        } else if (path36[0] !== "/" && !(path36.startsWith("http://") || path36.startsWith("https://")) && method !== "CONNECT") {
+        } else if (path35[0] !== "/" && !(path35.startsWith("http://") || path35.startsWith("https://")) && method !== "CONNECT") {
           throw new InvalidArgumentError("path must be an absolute URL or start with a slash");
-        } else if (invalidPathRegex.test(path36)) {
+        } else if (invalidPathRegex.test(path35)) {
           throw new InvalidArgumentError("invalid request path");
         }
         if (typeof method !== "string") {
@@ -1771,7 +1771,7 @@ var require_request = __commonJS({
         this.completed = false;
         this.aborted = false;
         this.upgrade = upgrade || null;
-        this.path = query ? buildURL(path36, query) : path36;
+        this.path = query ? buildURL(path35, query) : path35;
         this.origin = origin;
         this.idempotent = idempotent == null ? method === "HEAD" || method === "GET" : idempotent;
         this.blocking = blocking == null ? false : blocking;
@@ -6290,7 +6290,7 @@ var require_client_h1 = __commonJS({
       return method !== "GET" && method !== "HEAD" && method !== "OPTIONS" && method !== "TRACE" && method !== "CONNECT";
     }
     function writeH1(client, request) {
-      const { method, path: path36, host, upgrade, blocking, reset } = request;
+      const { method, path: path35, host, upgrade, blocking, reset } = request;
       let { body: body2, headers, contentLength: contentLength2 } = request;
       const expectsPayload = method === "PUT" || method === "POST" || method === "PATCH" || method === "QUERY" || method === "PROPFIND" || method === "PROPPATCH";
       if (util6.isFormDataLike(body2)) {
@@ -6356,7 +6356,7 @@ var require_client_h1 = __commonJS({
       if (blocking) {
         socket[kBlocking] = true;
       }
-      let header = `${method} ${path36} HTTP/1.1\r
+      let header = `${method} ${path35} HTTP/1.1\r
 `;
       if (typeof host === "string") {
         header += `host: ${host}\r
@@ -6882,7 +6882,7 @@ var require_client_h2 = __commonJS({
     }
     function writeH2(client, request) {
       const session = client[kHTTP2Session];
-      const { method, path: path36, host, upgrade, expectContinue, signal, headers: reqHeaders } = request;
+      const { method, path: path35, host, upgrade, expectContinue, signal, headers: reqHeaders } = request;
       let { body: body2 } = request;
       if (upgrade) {
         util6.errorRequest(client, request, new Error("Upgrade not supported for H2"));
@@ -6949,7 +6949,7 @@ var require_client_h2 = __commonJS({
         });
         return true;
       }
-      headers[HTTP2_HEADER_PATH] = path36;
+      headers[HTTP2_HEADER_PATH] = path35;
       headers[HTTP2_HEADER_SCHEME] = "https";
       const expectsPayload = method === "PUT" || method === "POST" || method === "PATCH";
       if (body2 && typeof body2.read === "function") {
@@ -7302,9 +7302,9 @@ var require_redirect_handler = __commonJS({
           return this.handler.onHeaders(statusCode, headers, resume, statusText);
         }
         const { origin, pathname, search } = util6.parseURL(new URL(this.location, this.opts.origin && new URL(this.opts.path, this.opts.origin)));
-        const path36 = search ? `${pathname}${search}` : pathname;
+        const path35 = search ? `${pathname}${search}` : pathname;
         this.opts.headers = cleanRequestHeaders(this.opts.headers, statusCode === 303, this.opts.origin !== origin);
-        this.opts.path = path36;
+        this.opts.path = path35;
         this.opts.origin = origin;
         this.opts.maxRedirections = 0;
         this.opts.query = null;
@@ -8538,10 +8538,10 @@ var require_proxy_agent = __commonJS({
         };
         const {
           origin,
-          path: path36 = "/",
+          path: path35 = "/",
           headers = {}
         } = opts;
-        opts.path = origin + path36;
+        opts.path = origin + path35;
         if (!("host" in headers) && !("Host" in headers)) {
           const { host } = new URL6(origin);
           headers.host = host;
@@ -10462,20 +10462,20 @@ var require_mock_utils = __commonJS({
       }
       return true;
     }
-    function safeUrl(path36) {
-      if (typeof path36 !== "string") {
-        return path36;
+    function safeUrl(path35) {
+      if (typeof path35 !== "string") {
+        return path35;
       }
-      const pathSegments = path36.split("?");
+      const pathSegments = path35.split("?");
       if (pathSegments.length !== 2) {
-        return path36;
+        return path35;
       }
       const qp = new URLSearchParams(pathSegments.pop());
       qp.sort();
       return [...pathSegments, qp.toString()].join("?");
     }
-    function matchKey(mockDispatch2, { path: path36, method, body: body2, headers }) {
-      const pathMatch = matchValue(mockDispatch2.path, path36);
+    function matchKey(mockDispatch2, { path: path35, method, body: body2, headers }) {
+      const pathMatch = matchValue(mockDispatch2.path, path35);
       const methodMatch = matchValue(mockDispatch2.method, method);
       const bodyMatch = typeof mockDispatch2.body !== "undefined" ? matchValue(mockDispatch2.body, body2) : true;
       const headersMatch = matchHeaders(mockDispatch2, headers);
@@ -10497,7 +10497,7 @@ var require_mock_utils = __commonJS({
     function getMockDispatch(mockDispatches, key) {
       const basePath = key.query ? buildURL(key.path, key.query) : key.path;
       const resolvedPath = typeof basePath === "string" ? safeUrl(basePath) : basePath;
-      let matchedMockDispatches = mockDispatches.filter(({ consumed }) => !consumed).filter(({ path: path36 }) => matchValue(safeUrl(path36), resolvedPath));
+      let matchedMockDispatches = mockDispatches.filter(({ consumed }) => !consumed).filter(({ path: path35 }) => matchValue(safeUrl(path35), resolvedPath));
       if (matchedMockDispatches.length === 0) {
         throw new MockNotMatchedError(`Mock dispatch not matched for path '${resolvedPath}'`);
       }
@@ -10535,9 +10535,9 @@ var require_mock_utils = __commonJS({
       }
     }
     function buildKey(opts) {
-      const { path: path36, method, body: body2, headers, query } = opts;
+      const { path: path35, method, body: body2, headers, query } = opts;
       return {
-        path: path36,
+        path: path35,
         method,
         body: body2,
         headers,
@@ -11000,10 +11000,10 @@ var require_pending_interceptors_formatter = __commonJS({
       }
       format(pendingInterceptors) {
         const withPrettyHeaders = pendingInterceptors.map(
-          ({ method, path: path36, data: { statusCode }, persist, times, timesInvoked, origin }) => ({
+          ({ method, path: path35, data: { statusCode }, persist, times, timesInvoked, origin }) => ({
             Method: method,
             Origin: origin,
-            Path: path36,
+            Path: path35,
             "Status code": statusCode,
             Persistent: persist ? PERSISTENT : NOT_PERSISTENT,
             Invocations: timesInvoked,
@@ -15884,9 +15884,9 @@ var require_util6 = __commonJS({
         }
       }
     }
-    function validateCookiePath(path36) {
-      for (let i = 0; i < path36.length; ++i) {
-        const code = path36.charCodeAt(i);
+    function validateCookiePath(path35) {
+      for (let i = 0; i < path35.length; ++i) {
+        const code = path35.charCodeAt(i);
         if (code < 32 || // exclude CTLs (0-31)
         code === 127 || // DEL
         code === 59) {
@@ -18526,11 +18526,11 @@ var require_undici = __commonJS({
           if (typeof opts.path !== "string") {
             throw new InvalidArgumentError("invalid opts.path");
           }
-          let path36 = opts.path;
+          let path35 = opts.path;
           if (!opts.path.startsWith("/")) {
-            path36 = `/${path36}`;
+            path35 = `/${path35}`;
           }
-          url2 = new URL(util6.parseOrigin(url2).origin + path36);
+          url2 = new URL(util6.parseOrigin(url2).origin + path35);
         } else {
           if (!opts) {
             opts = typeof url2 === "object" ? url2 : {};
@@ -21861,11 +21861,11 @@ var require_lodash = __commonJS({
             return isFunction(object[key]);
           });
         }
-        function baseGet(object, path36) {
-          path36 = castPath(path36, object);
-          var index = 0, length = path36.length;
+        function baseGet(object, path35) {
+          path35 = castPath(path35, object);
+          var index = 0, length = path35.length;
           while (object != null && index < length) {
-            object = object[toKey(path36[index++])];
+            object = object[toKey(path35[index++])];
           }
           return index && index == length ? object : undefined2;
         }
@@ -21929,10 +21929,10 @@ var require_lodash = __commonJS({
           });
           return accumulator;
         }
-        function baseInvoke(object, path36, args) {
-          path36 = castPath(path36, object);
-          object = parent(object, path36);
-          var func = object == null ? object : object[toKey(last(path36))];
+        function baseInvoke(object, path35, args) {
+          path35 = castPath(path35, object);
+          object = parent(object, path35);
+          var func = object == null ? object : object[toKey(last(path35))];
           return func == null ? undefined2 : apply(func, object, args);
         }
         function baseIsArguments(value) {
@@ -22088,13 +22088,13 @@ var require_lodash = __commonJS({
             return object === source || baseIsMatch(object, source, matchData);
           };
         }
-        function baseMatchesProperty(path36, srcValue) {
-          if (isKey(path36) && isStrictComparable(srcValue)) {
-            return matchesStrictComparable(toKey(path36), srcValue);
+        function baseMatchesProperty(path35, srcValue) {
+          if (isKey(path35) && isStrictComparable(srcValue)) {
+            return matchesStrictComparable(toKey(path35), srcValue);
           }
           return function(object) {
-            var objValue = get3(object, path36);
-            return objValue === undefined2 && objValue === srcValue ? hasIn(object, path36) : baseIsEqual(srcValue, objValue, COMPARE_PARTIAL_FLAG | COMPARE_UNORDERED_FLAG);
+            var objValue = get3(object, path35);
+            return objValue === undefined2 && objValue === srcValue ? hasIn(object, path35) : baseIsEqual(srcValue, objValue, COMPARE_PARTIAL_FLAG | COMPARE_UNORDERED_FLAG);
           };
         }
         function baseMerge(object, source, srcIndex, customizer, stack) {
@@ -22191,23 +22191,23 @@ var require_lodash = __commonJS({
           });
         }
         function basePick(object, paths) {
-          return basePickBy(object, paths, function(value, path36) {
-            return hasIn(object, path36);
+          return basePickBy(object, paths, function(value, path35) {
+            return hasIn(object, path35);
           });
         }
         function basePickBy(object, paths, predicate) {
           var index = -1, length = paths.length, result2 = {};
           while (++index < length) {
-            var path36 = paths[index], value = baseGet(object, path36);
-            if (predicate(value, path36)) {
-              baseSet(result2, castPath(path36, object), value);
+            var path35 = paths[index], value = baseGet(object, path35);
+            if (predicate(value, path35)) {
+              baseSet(result2, castPath(path35, object), value);
             }
           }
           return result2;
         }
-        function basePropertyDeep(path36) {
+        function basePropertyDeep(path35) {
           return function(object) {
-            return baseGet(object, path36);
+            return baseGet(object, path35);
           };
         }
         function basePullAll(array, values2, iteratee2, comparator) {
@@ -22281,14 +22281,14 @@ var require_lodash = __commonJS({
           var array = values(collection);
           return shuffleSelf(array, baseClamp(n7, 0, array.length));
         }
-        function baseSet(object, path36, value, customizer) {
+        function baseSet(object, path35, value, customizer) {
           if (!isObject3(object)) {
             return object;
           }
-          path36 = castPath(path36, object);
-          var index = -1, length = path36.length, lastIndex = length - 1, nested = object;
+          path35 = castPath(path35, object);
+          var index = -1, length = path35.length, lastIndex = length - 1, nested = object;
           while (nested != null && ++index < length) {
-            var key = toKey(path36[index]), newValue = value;
+            var key = toKey(path35[index]), newValue = value;
             if (key === "__proto__" || key === "constructor" || key === "prototype") {
               return object;
             }
@@ -22296,7 +22296,7 @@ var require_lodash = __commonJS({
               var objValue = nested[key];
               newValue = customizer ? customizer(objValue, key, nested) : undefined2;
               if (newValue === undefined2) {
-                newValue = isObject3(objValue) ? objValue : isIndex(path36[index + 1]) ? [] : {};
+                newValue = isObject3(objValue) ? objValue : isIndex(path35[index + 1]) ? [] : {};
               }
             }
             assignValue(nested, key, newValue);
@@ -22462,14 +22462,14 @@ var require_lodash = __commonJS({
             }
           return result2;
         }
-        function baseUnset(object, path36) {
-          path36 = castPath(path36, object);
-          var index = -1, length = path36.length;
+        function baseUnset(object, path35) {
+          path35 = castPath(path35, object);
+          var index = -1, length = path35.length;
           if (!length) {
             return true;
           }
           while (++index < length) {
-            var key = toKey(path36[index]);
+            var key = toKey(path35[index]);
             if (key === "__proto__" && !hasOwnProperty.call(object, "__proto__")) {
               return false;
             }
@@ -22477,11 +22477,11 @@ var require_lodash = __commonJS({
               return false;
             }
           }
-          var obj = parent(object, path36);
-          return obj == null || delete obj[toKey(last(path36))];
+          var obj = parent(object, path35);
+          return obj == null || delete obj[toKey(last(path35))];
         }
-        function baseUpdate(object, path36, updater, customizer) {
-          return baseSet(object, path36, updater(baseGet(object, path36)), customizer);
+        function baseUpdate(object, path35, updater, customizer) {
+          return baseSet(object, path35, updater(baseGet(object, path35)), customizer);
         }
         function baseWhile(array, predicate, isDrop, fromRight) {
           var length = array.length, index = fromRight ? length : -1;
@@ -23364,11 +23364,11 @@ var require_lodash = __commonJS({
           var match2 = source.match(reWrapDetails);
           return match2 ? match2[1].split(reSplitDetails) : [];
         }
-        function hasPath(object, path36, hasFunc) {
-          path36 = castPath(path36, object);
-          var index = -1, length = path36.length, result2 = false;
+        function hasPath(object, path35, hasFunc) {
+          path35 = castPath(path35, object);
+          var index = -1, length = path35.length, result2 = false;
           while (++index < length) {
-            var key = toKey(path36[index]);
+            var key = toKey(path35[index]);
             if (!(result2 = object != null && hasFunc(object, key))) {
               break;
             }
@@ -23570,8 +23570,8 @@ var require_lodash = __commonJS({
             return apply(func, this, otherArgs);
           };
         }
-        function parent(object, path36) {
-          return path36.length < 2 ? object : baseGet(object, baseSlice(path36, 0, -1));
+        function parent(object, path35) {
+          return path35.length < 2 ? object : baseGet(object, baseSlice(path35, 0, -1));
         }
         function reorder(array, indexes) {
           var arrLength = array.length, length = nativeMin(indexes.length, arrLength), oldArray = copyArray(array);
@@ -24015,9 +24015,9 @@ var require_lodash = __commonJS({
             return [];
           }
           var length = 0;
-          array = arrayFilter(array, function(group2) {
-            if (isArrayLikeObject(group2)) {
-              length = nativeMax(group2.length, length);
+          array = arrayFilter(array, function(group) {
+            if (isArrayLikeObject(group)) {
+              length = nativeMax(group.length, length);
               return true;
             }
           });
@@ -24033,8 +24033,8 @@ var require_lodash = __commonJS({
           if (iteratee2 == null) {
             return result2;
           }
-          return arrayMap(result2, function(group2) {
-            return apply(iteratee2, undefined2, group2);
+          return arrayMap(result2, function(group) {
+            return apply(iteratee2, undefined2, group);
           });
         }
         var without = baseRest(function(array, values2) {
@@ -24206,10 +24206,10 @@ var require_lodash = __commonJS({
           }
           return isString(collection) ? fromIndex <= length && collection.indexOf(value, fromIndex) > -1 : !!length && baseIndexOf(collection, value, fromIndex) > -1;
         }
-        var invokeMap = baseRest(function(collection, path36, args) {
-          var index = -1, isFunc = typeof path36 == "function", result2 = isArrayLike(collection) ? Array2(collection.length) : [];
+        var invokeMap = baseRest(function(collection, path35, args) {
+          var index = -1, isFunc = typeof path35 == "function", result2 = isArrayLike(collection) ? Array2(collection.length) : [];
           baseEach(collection, function(value) {
-            result2[++index] = isFunc ? apply(path36, value, args) : baseInvoke(value, path36, args);
+            result2[++index] = isFunc ? apply(path35, value, args) : baseInvoke(value, path35, args);
           });
           return result2;
         });
@@ -24861,15 +24861,15 @@ var require_lodash = __commonJS({
         function functionsIn(object) {
           return object == null ? [] : baseFunctions(object, keysIn(object));
         }
-        function get3(object, path36, defaultValue) {
-          var result2 = object == null ? undefined2 : baseGet(object, path36);
+        function get3(object, path35, defaultValue) {
+          var result2 = object == null ? undefined2 : baseGet(object, path35);
           return result2 === undefined2 ? defaultValue : result2;
         }
-        function has(object, path36) {
-          return object != null && hasPath(object, path36, baseHas);
+        function has(object, path35) {
+          return object != null && hasPath(object, path35, baseHas);
         }
-        function hasIn(object, path36) {
-          return object != null && hasPath(object, path36, baseHasIn);
+        function hasIn(object, path35) {
+          return object != null && hasPath(object, path35, baseHasIn);
         }
         var invert = createInverter(function(result2, value, key) {
           if (value != null && typeof value.toString != "function") {
@@ -24922,10 +24922,10 @@ var require_lodash = __commonJS({
             return result2;
           }
           var isDeep = false;
-          paths = arrayMap(paths, function(path36) {
-            path36 = castPath(path36, object);
-            isDeep || (isDeep = path36.length > 1);
-            return path36;
+          paths = arrayMap(paths, function(path35) {
+            path35 = castPath(path35, object);
+            isDeep || (isDeep = path35.length > 1);
+            return path35;
           });
           copyObject(object, getAllKeysIn(object), result2);
           if (isDeep) {
@@ -24951,19 +24951,19 @@ var require_lodash = __commonJS({
             return [prop];
           });
           predicate = getIteratee(predicate);
-          return basePickBy(object, props, function(value, path36) {
-            return predicate(value, path36[0]);
+          return basePickBy(object, props, function(value, path35) {
+            return predicate(value, path35[0]);
           });
         }
-        function result(object, path36, defaultValue) {
-          path36 = castPath(path36, object);
-          var index = -1, length = path36.length;
+        function result(object, path35, defaultValue) {
+          path35 = castPath(path35, object);
+          var index = -1, length = path35.length;
           if (!length) {
             length = 1;
             object = undefined2;
           }
           while (++index < length) {
-            var value = object == null ? undefined2 : object[toKey(path36[index])];
+            var value = object == null ? undefined2 : object[toKey(path35[index])];
             if (value === undefined2) {
               index = length;
               value = defaultValue;
@@ -24972,12 +24972,12 @@ var require_lodash = __commonJS({
           }
           return object;
         }
-        function set2(object, path36, value) {
-          return object == null ? object : baseSet(object, path36, value);
+        function set2(object, path35, value) {
+          return object == null ? object : baseSet(object, path35, value);
         }
-        function setWith(object, path36, value, customizer) {
+        function setWith(object, path35, value, customizer) {
           customizer = typeof customizer == "function" ? customizer : undefined2;
-          return object == null ? object : baseSet(object, path36, value, customizer);
+          return object == null ? object : baseSet(object, path35, value, customizer);
         }
         var toPairs = createToPairs(keys);
         var toPairsIn = createToPairs(keysIn);
@@ -24999,15 +24999,15 @@ var require_lodash = __commonJS({
           });
           return accumulator;
         }
-        function unset(object, path36) {
-          return object == null ? true : baseUnset(object, path36);
+        function unset(object, path35) {
+          return object == null ? true : baseUnset(object, path35);
         }
-        function update3(object, path36, updater) {
-          return object == null ? object : baseUpdate(object, path36, castFunction(updater));
+        function update3(object, path35, updater) {
+          return object == null ? object : baseUpdate(object, path35, castFunction(updater));
         }
-        function updateWith(object, path36, updater, customizer) {
+        function updateWith(object, path35, updater, customizer) {
           customizer = typeof customizer == "function" ? customizer : undefined2;
-          return object == null ? object : baseUpdate(object, path36, castFunction(updater), customizer);
+          return object == null ? object : baseUpdate(object, path35, castFunction(updater), customizer);
         }
         function values(object) {
           return object == null ? [] : baseValues(object, keys(object));
@@ -25393,17 +25393,17 @@ var require_lodash = __commonJS({
         function matches(source) {
           return baseMatches(baseClone(source, CLONE_DEEP_FLAG));
         }
-        function matchesProperty(path36, srcValue) {
-          return baseMatchesProperty(path36, baseClone(srcValue, CLONE_DEEP_FLAG));
+        function matchesProperty(path35, srcValue) {
+          return baseMatchesProperty(path35, baseClone(srcValue, CLONE_DEEP_FLAG));
         }
-        var method = baseRest(function(path36, args) {
+        var method = baseRest(function(path35, args) {
           return function(object) {
-            return baseInvoke(object, path36, args);
+            return baseInvoke(object, path35, args);
           };
         });
         var methodOf = baseRest(function(object, args) {
-          return function(path36) {
-            return baseInvoke(object, path36, args);
+          return function(path35) {
+            return baseInvoke(object, path35, args);
           };
         });
         function mixin(object, source, options) {
@@ -25450,12 +25450,12 @@ var require_lodash = __commonJS({
         var over = createOver(arrayMap);
         var overEvery = createOver(arrayEvery);
         var overSome = createOver(arraySome);
-        function property(path36) {
-          return isKey(path36) ? baseProperty(toKey(path36)) : basePropertyDeep(path36);
+        function property(path35) {
+          return isKey(path35) ? baseProperty(toKey(path35)) : basePropertyDeep(path35);
         }
         function propertyOf(object) {
-          return function(path36) {
-            return object == null ? undefined2 : baseGet(object, path36);
+          return function(path35) {
+            return object == null ? undefined2 : baseGet(object, path35);
           };
         }
         var range2 = createRange();
@@ -25908,12 +25908,12 @@ var require_lodash = __commonJS({
         LazyWrapper.prototype.findLast = function(predicate) {
           return this.reverse().find(predicate);
         };
-        LazyWrapper.prototype.invokeMap = baseRest(function(path36, args) {
-          if (typeof path36 == "function") {
+        LazyWrapper.prototype.invokeMap = baseRest(function(path35, args) {
+          if (typeof path35 == "function") {
             return new LazyWrapper(this);
           }
           return this.map(function(value) {
-            return baseInvoke(value, path36, args);
+            return baseInvoke(value, path35, args);
           });
         });
         LazyWrapper.prototype.reject = function(predicate) {
@@ -28453,7 +28453,7 @@ var require_minimatch = __commonJS({
   "node_modules/minimatch/minimatch.js"(exports2, module) {
     module.exports = minimatch2;
     minimatch2.Minimatch = Minimatch2;
-    var path36 = (function() {
+    var path35 = (function() {
       try {
         return __require("path");
       } catch (e) {
@@ -28461,7 +28461,7 @@ var require_minimatch = __commonJS({
     })() || {
       sep: "/"
     };
-    minimatch2.sep = path36.sep;
+    minimatch2.sep = path35.sep;
     var GLOBSTAR = minimatch2.GLOBSTAR = Minimatch2.GLOBSTAR = {};
     var expand = require_brace_expansion();
     var plTypes = {
@@ -28550,8 +28550,8 @@ var require_minimatch = __commonJS({
       assertValidPattern(pattern);
       if (!options) options = {};
       pattern = pattern.trim();
-      if (!options.allowWindowsEscape && path36.sep !== "/") {
-        pattern = pattern.split(path36.sep).join("/");
+      if (!options.allowWindowsEscape && path35.sep !== "/") {
+        pattern = pattern.split(path35.sep).join("/");
       }
       this.options = options;
       this.maxGlobstarRecursion = options.maxGlobstarRecursion !== void 0 ? options.maxGlobstarRecursion : 200;
@@ -28922,8 +28922,8 @@ var require_minimatch = __commonJS({
       if (this.empty) return f === "";
       if (f === "/" && partial) return true;
       var options = this.options;
-      if (path36.sep !== "/") {
-        f = f.split(path36.sep).join("/");
+      if (path35.sep !== "/") {
+        f = f.split(path35.sep).join("/");
       }
       f = f.split(slashSplit);
       this.debug(this.pattern, "split", f);
@@ -31938,15 +31938,15 @@ var require_reflection_type_check = __commonJS({
           return true;
         }
         for (const name of data.oneofs) {
-          const group2 = message[name];
-          if (!oneof_1.isOneofGroup(group2))
+          const group = message[name];
+          if (!oneof_1.isOneofGroup(group))
             return false;
-          if (group2.oneofKind === void 0)
+          if (group.oneofKind === void 0)
             continue;
-          const field = this.fields.find((f) => f.localName === group2.oneofKind);
+          const field = this.fields.find((f) => f.localName === group.oneofKind);
           if (!field)
             return false;
-          if (!this.field(group2[group2.oneofKind], field, allowExcessProperties, depth))
+          if (!this.field(group[group.oneofKind], field, allowExcessProperties, depth))
             return false;
         }
         for (const field of this.fields) {
@@ -32427,11 +32427,11 @@ var require_reflection_json_writer = __commonJS({
               json2[options.useProtoFieldName ? field.name : field.jsonName] = jsonValue2;
             continue;
           }
-          const group2 = source[field.oneof];
-          if (group2.oneofKind !== field.localName)
+          const group = source[field.oneof];
+          if (group.oneofKind !== field.localName)
             continue;
           const opt = field.kind == "scalar" || field.kind == "enum" ? Object.assign(Object.assign({}, options), { emitDefaultValues: true }) : options;
-          let jsonValue = this.field(field, group2[field.localName], opt);
+          let jsonValue = this.field(field, group[field.localName], opt);
           assert_1.assert(jsonValue !== void 0);
           json2[options.useProtoFieldName ? field.name : field.jsonName] = jsonValue;
         }
@@ -32857,10 +32857,10 @@ var require_reflection_binary_writer = __commonJS({
         for (const field of this.fields) {
           let value, emitDefault, repeated = field.repeat, localName = field.localName;
           if (field.oneof) {
-            const group2 = message[field.oneof];
-            if (group2.oneofKind !== localName)
+            const group = message[field.oneof];
+            if (group.oneofKind !== localName)
               continue;
-            value = group2[localName];
+            value = group[localName];
             emitDefault = true;
           } else {
             value = message[localName];
@@ -33096,13 +33096,13 @@ var require_reflection_merge_partial = __commonJS({
       for (let field of info2.fields) {
         let name = field.localName;
         if (field.oneof) {
-          const group2 = input[field.oneof];
-          if ((group2 === null || group2 === void 0 ? void 0 : group2.oneofKind) == void 0) {
+          const group = input[field.oneof];
+          if ((group === null || group === void 0 ? void 0 : group.oneofKind) == void 0) {
             continue;
           }
-          fieldValue = group2[name];
+          fieldValue = group[name];
           output = target[field.oneof];
-          output.oneofKind = group2.oneofKind;
+          output.oneofKind = group.oneofKind;
           if (fieldValue == void 0) {
             delete output[name];
             continue;
@@ -34061,7 +34061,7 @@ var require_rpc_output_stream = __commonJS({
 var require_unary_call = __commonJS({
   "node_modules/@protobuf-ts/runtime-rpc/build/commonjs/unary-call.js"(exports2) {
     "use strict";
-    var __awaiter23 = exports2 && exports2.__awaiter || function(thisArg, _arguments, P2, generator) {
+    var __awaiter20 = exports2 && exports2.__awaiter || function(thisArg, _arguments, P2, generator) {
       function adopt(value) {
         return value instanceof P2 ? value : new P2(function(resolve2) {
           resolve2(value);
@@ -34108,7 +34108,7 @@ var require_unary_call = __commonJS({
         return this.promiseFinished().then((value) => onfulfilled ? Promise.resolve(onfulfilled(value)) : value, (reason) => onrejected ? Promise.resolve(onrejected(reason)) : Promise.reject(reason));
       }
       promiseFinished() {
-        return __awaiter23(this, void 0, void 0, function* () {
+        return __awaiter20(this, void 0, void 0, function* () {
           let [headers, response, status, trailers] = yield Promise.all([this.headers, this.response, this.status, this.trailers]);
           return {
             method: this.method,
@@ -34130,7 +34130,7 @@ var require_unary_call = __commonJS({
 var require_server_streaming_call = __commonJS({
   "node_modules/@protobuf-ts/runtime-rpc/build/commonjs/server-streaming-call.js"(exports2) {
     "use strict";
-    var __awaiter23 = exports2 && exports2.__awaiter || function(thisArg, _arguments, P2, generator) {
+    var __awaiter20 = exports2 && exports2.__awaiter || function(thisArg, _arguments, P2, generator) {
       function adopt(value) {
         return value instanceof P2 ? value : new P2(function(resolve2) {
           resolve2(value);
@@ -34179,7 +34179,7 @@ var require_server_streaming_call = __commonJS({
         return this.promiseFinished().then((value) => onfulfilled ? Promise.resolve(onfulfilled(value)) : value, (reason) => onrejected ? Promise.resolve(onrejected(reason)) : Promise.reject(reason));
       }
       promiseFinished() {
-        return __awaiter23(this, void 0, void 0, function* () {
+        return __awaiter20(this, void 0, void 0, function* () {
           let [headers, status, trailers] = yield Promise.all([this.headers, this.status, this.trailers]);
           return {
             method: this.method,
@@ -34200,7 +34200,7 @@ var require_server_streaming_call = __commonJS({
 var require_client_streaming_call = __commonJS({
   "node_modules/@protobuf-ts/runtime-rpc/build/commonjs/client-streaming-call.js"(exports2) {
     "use strict";
-    var __awaiter23 = exports2 && exports2.__awaiter || function(thisArg, _arguments, P2, generator) {
+    var __awaiter20 = exports2 && exports2.__awaiter || function(thisArg, _arguments, P2, generator) {
       function adopt(value) {
         return value instanceof P2 ? value : new P2(function(resolve2) {
           resolve2(value);
@@ -34248,7 +34248,7 @@ var require_client_streaming_call = __commonJS({
         return this.promiseFinished().then((value) => onfulfilled ? Promise.resolve(onfulfilled(value)) : value, (reason) => onrejected ? Promise.resolve(onrejected(reason)) : Promise.reject(reason));
       }
       promiseFinished() {
-        return __awaiter23(this, void 0, void 0, function* () {
+        return __awaiter20(this, void 0, void 0, function* () {
           let [headers, response, status, trailers] = yield Promise.all([this.headers, this.response, this.status, this.trailers]);
           return {
             method: this.method,
@@ -34269,7 +34269,7 @@ var require_client_streaming_call = __commonJS({
 var require_duplex_streaming_call = __commonJS({
   "node_modules/@protobuf-ts/runtime-rpc/build/commonjs/duplex-streaming-call.js"(exports2) {
     "use strict";
-    var __awaiter23 = exports2 && exports2.__awaiter || function(thisArg, _arguments, P2, generator) {
+    var __awaiter20 = exports2 && exports2.__awaiter || function(thisArg, _arguments, P2, generator) {
       function adopt(value) {
         return value instanceof P2 ? value : new P2(function(resolve2) {
           resolve2(value);
@@ -34317,7 +34317,7 @@ var require_duplex_streaming_call = __commonJS({
         return this.promiseFinished().then((value) => onfulfilled ? Promise.resolve(onfulfilled(value)) : value, (reason) => onrejected ? Promise.resolve(onrejected(reason)) : Promise.reject(reason));
       }
       promiseFinished() {
-        return __awaiter23(this, void 0, void 0, function* () {
+        return __awaiter20(this, void 0, void 0, function* () {
           let [headers, status, trailers] = yield Promise.all([this.headers, this.status, this.trailers]);
           return {
             method: this.method,
@@ -34337,7 +34337,7 @@ var require_duplex_streaming_call = __commonJS({
 var require_test_transport = __commonJS({
   "node_modules/@protobuf-ts/runtime-rpc/build/commonjs/test-transport.js"(exports2) {
     "use strict";
-    var __awaiter23 = exports2 && exports2.__awaiter || function(thisArg, _arguments, P2, generator) {
+    var __awaiter20 = exports2 && exports2.__awaiter || function(thisArg, _arguments, P2, generator) {
       function adopt(value) {
         return value instanceof P2 ? value : new P2(function(resolve2) {
           resolve2(value);
@@ -34441,7 +34441,7 @@ var require_test_transport = __commonJS({
        * not reject. If it does, code is broken.
        */
       streamResponses(method, stream3, abort) {
-        return __awaiter23(this, void 0, void 0, function* () {
+        return __awaiter20(this, void 0, void 0, function* () {
           const messages = [];
           if (this.data.response === void 0) {
             messages.push(method.O.create());
@@ -43970,39 +43970,6 @@ var require_plist = __commonJS({
   }
 });
 
-// node_modules/@actions/core/lib/core.js
-var core_exports = {};
-__export(core_exports, {
-  ExitCode: () => ExitCode,
-  addPath: () => addPath,
-  debug: () => debug,
-  endGroup: () => endGroup,
-  error: () => error,
-  exportVariable: () => exportVariable,
-  getBooleanInput: () => getBooleanInput,
-  getIDToken: () => getIDToken,
-  getInput: () => getInput,
-  getMultilineInput: () => getMultilineInput,
-  getState: () => getState,
-  group: () => group,
-  info: () => info,
-  isDebug: () => isDebug,
-  markdownSummary: () => markdownSummary,
-  notice: () => notice,
-  platform: () => platform_exports,
-  saveState: () => saveState,
-  setCommandEcho: () => setCommandEcho,
-  setFailed: () => setFailed,
-  setOutput: () => setOutput,
-  setSecret: () => setSecret,
-  startGroup: () => startGroup,
-  summary: () => summary,
-  toPlatformPath: () => toPlatformPath,
-  toPosixPath: () => toPosixPath,
-  toWin32Path: () => toWin32Path,
-  warning: () => warning
-});
-
 // node_modules/@actions/core/lib/command.js
 import * as os from "os";
 
@@ -44107,7 +44074,7 @@ function prepareKeyValueMessage(key, value) {
 
 // node_modules/@actions/core/lib/core.js
 import * as os5 from "os";
-import * as path5 from "path";
+import * as path4 from "path";
 
 // node_modules/@actions/http-client/lib/index.js
 import * as http from "http";
@@ -44868,97 +44835,10 @@ var BearerCredentialHandler = class {
   }
 };
 
-// node_modules/@actions/core/lib/oidc-utils.js
-var __awaiter3 = function(thisArg, _arguments, P2, generator) {
-  function adopt(value) {
-    return value instanceof P2 ? value : new P2(function(resolve2) {
-      resolve2(value);
-    });
-  }
-  return new (P2 || (P2 = Promise))(function(resolve2, reject) {
-    function fulfilled(value) {
-      try {
-        step(generator.next(value));
-      } catch (e) {
-        reject(e);
-      }
-    }
-    function rejected(value) {
-      try {
-        step(generator["throw"](value));
-      } catch (e) {
-        reject(e);
-      }
-    }
-    function step(result) {
-      result.done ? resolve2(result.value) : adopt(result.value).then(fulfilled, rejected);
-    }
-    step((generator = generator.apply(thisArg, _arguments || [])).next());
-  });
-};
-var OidcClient = class _OidcClient {
-  static createHttpClient(allowRetry = true, maxRetry = 10) {
-    const requestOptions = {
-      allowRetries: allowRetry,
-      maxRetries: maxRetry
-    };
-    return new HttpClient("actions/oidc-client", [new BearerCredentialHandler(_OidcClient.getRequestToken())], requestOptions);
-  }
-  static getRequestToken() {
-    const token = process.env["ACTIONS_ID_TOKEN_REQUEST_TOKEN"];
-    if (!token) {
-      throw new Error("Unable to get ACTIONS_ID_TOKEN_REQUEST_TOKEN env variable");
-    }
-    return token;
-  }
-  static getIDTokenUrl() {
-    const runtimeUrl = process.env["ACTIONS_ID_TOKEN_REQUEST_URL"];
-    if (!runtimeUrl) {
-      throw new Error("Unable to get ACTIONS_ID_TOKEN_REQUEST_URL env variable");
-    }
-    return runtimeUrl;
-  }
-  static getCall(id_token_url) {
-    return __awaiter3(this, void 0, void 0, function* () {
-      var _a;
-      const httpclient = _OidcClient.createHttpClient();
-      const res = yield httpclient.getJson(id_token_url).catch((error2) => {
-        throw new Error(`Failed to get ID Token. 
- 
-        Error Code : ${error2.statusCode}
- 
-        Error Message: ${error2.message}`);
-      });
-      const id_token = (_a = res.result) === null || _a === void 0 ? void 0 : _a.value;
-      if (!id_token) {
-        throw new Error("Response json body do not have ID Token field");
-      }
-      return id_token;
-    });
-  }
-  static getIDToken(audience) {
-    return __awaiter3(this, void 0, void 0, function* () {
-      try {
-        let id_token_url = _OidcClient.getIDTokenUrl();
-        if (audience) {
-          const encodedAudience = encodeURIComponent(audience);
-          id_token_url = `${id_token_url}&audience=${encodedAudience}`;
-        }
-        debug(`ID token url is ${id_token_url}`);
-        const id_token = yield _OidcClient.getCall(id_token_url);
-        setSecret(id_token);
-        return id_token;
-      } catch (error2) {
-        throw new Error(`Error message: ${error2.message}`);
-      }
-    });
-  }
-};
-
 // node_modules/@actions/core/lib/summary.js
 import { EOL as EOL3 } from "os";
 import { constants, promises } from "fs";
-var __awaiter4 = function(thisArg, _arguments, P2, generator) {
+var __awaiter3 = function(thisArg, _arguments, P2, generator) {
   function adopt(value) {
     return value instanceof P2 ? value : new P2(function(resolve2) {
       resolve2(value);
@@ -44998,7 +44878,7 @@ var Summary = class {
    * @returns step summary file path
    */
   filePath() {
-    return __awaiter4(this, void 0, void 0, function* () {
+    return __awaiter3(this, void 0, void 0, function* () {
       if (this._filePath) {
         return this._filePath;
       }
@@ -45039,7 +44919,7 @@ var Summary = class {
    * @returns {Promise<Summary>} summary instance
    */
   write(options) {
-    return __awaiter4(this, void 0, void 0, function* () {
+    return __awaiter3(this, void 0, void 0, function* () {
       const overwrite = !!(options === null || options === void 0 ? void 0 : options.overwrite);
       const filePath = yield this.filePath();
       const writeFunc = overwrite ? writeFile : appendFile;
@@ -45053,7 +44933,7 @@ var Summary = class {
    * @returns {Summary} summary instance
    */
   clear() {
-    return __awaiter4(this, void 0, void 0, function* () {
+    return __awaiter3(this, void 0, void 0, function* () {
       return this.emptyBuffer().write({ overwrite: true });
     });
   }
@@ -45238,31 +45118,8 @@ var Summary = class {
   }
 };
 var _summary = new Summary();
-var markdownSummary = _summary;
-var summary = _summary;
-
-// node_modules/@actions/core/lib/path-utils.js
-import * as path from "path";
-function toPosixPath(pth) {
-  return pth.replace(/[\\]/g, "/");
-}
-function toWin32Path(pth) {
-  return pth.replace(/[/]/g, "\\");
-}
-function toPlatformPath(pth) {
-  return pth.replace(/[/\\]/g, path.sep);
-}
 
 // node_modules/@actions/core/lib/platform.js
-var platform_exports = {};
-__export(platform_exports, {
-  arch: () => arch,
-  getDetails: () => getDetails,
-  isLinux: () => isLinux,
-  isMacOS: () => isMacOS,
-  isWindows: () => isWindows,
-  platform: () => platform
-});
 import os4 from "os";
 
 // node_modules/@actions/exec/lib/exec.js
@@ -45272,16 +45129,16 @@ import { StringDecoder } from "string_decoder";
 import * as os3 from "os";
 import * as events from "events";
 import * as child from "child_process";
-import * as path4 from "path";
+import * as path3 from "path";
 
 // node_modules/@actions/io/lib/io.js
 import { ok } from "assert";
-import * as path3 from "path";
+import * as path2 from "path";
 
 // node_modules/@actions/io/lib/io-util.js
 import * as fs2 from "fs";
-import * as path2 from "path";
-var __awaiter5 = function(thisArg, _arguments, P2, generator) {
+import * as path from "path";
+var __awaiter4 = function(thisArg, _arguments, P2, generator) {
   function adopt(value) {
     return value instanceof P2 ? value : new P2(function(resolve2) {
       resolve2(value);
@@ -45311,7 +45168,7 @@ var __awaiter5 = function(thisArg, _arguments, P2, generator) {
 var { chmod, copyFile, lstat, mkdir, open, readdir, rename, rm, rmdir, stat, symlink, unlink } = fs2.promises;
 var IS_WINDOWS = process.platform === "win32";
 function readlink(fsPath) {
-  return __awaiter5(this, void 0, void 0, function* () {
+  return __awaiter4(this, void 0, void 0, function* () {
     const result = yield fs2.promises.readlink(fsPath);
     if (IS_WINDOWS && !result.endsWith("\\")) {
       return `${result}\\`;
@@ -45321,7 +45178,7 @@ function readlink(fsPath) {
 }
 var READONLY = fs2.constants.O_RDONLY;
 function exists(fsPath) {
-  return __awaiter5(this, void 0, void 0, function* () {
+  return __awaiter4(this, void 0, void 0, function* () {
     try {
       yield stat(fsPath);
     } catch (err) {
@@ -45344,7 +45201,7 @@ function isRooted(p) {
   return p.startsWith("/");
 }
 function tryGetExecutablePath(filePath, extensions) {
-  return __awaiter5(this, void 0, void 0, function* () {
+  return __awaiter4(this, void 0, void 0, function* () {
     let stats = void 0;
     try {
       stats = yield stat(filePath);
@@ -45355,7 +45212,7 @@ function tryGetExecutablePath(filePath, extensions) {
     }
     if (stats && stats.isFile()) {
       if (IS_WINDOWS) {
-        const upperExt = path2.extname(filePath).toUpperCase();
+        const upperExt = path.extname(filePath).toUpperCase();
         if (extensions.some((validExt) => validExt.toUpperCase() === upperExt)) {
           return filePath;
         }
@@ -45379,11 +45236,11 @@ function tryGetExecutablePath(filePath, extensions) {
       if (stats && stats.isFile()) {
         if (IS_WINDOWS) {
           try {
-            const directory = path2.dirname(filePath);
-            const upperName = path2.basename(filePath).toUpperCase();
+            const directory = path.dirname(filePath);
+            const upperName = path.basename(filePath).toUpperCase();
             for (const actualName of yield readdir(directory)) {
               if (upperName === actualName.toUpperCase()) {
-                filePath = path2.join(directory, actualName);
+                filePath = path.join(directory, actualName);
                 break;
               }
             }
@@ -45414,7 +45271,7 @@ function isUnixExecutable(stats) {
 }
 
 // node_modules/@actions/io/lib/io.js
-var __awaiter6 = function(thisArg, _arguments, P2, generator) {
+var __awaiter5 = function(thisArg, _arguments, P2, generator) {
   function adopt(value) {
     return value instanceof P2 ? value : new P2(function(resolve2) {
       resolve2(value);
@@ -45442,13 +45299,13 @@ var __awaiter6 = function(thisArg, _arguments, P2, generator) {
   });
 };
 function cp(source_1, dest_1) {
-  return __awaiter6(this, arguments, void 0, function* (source, dest, options = {}) {
+  return __awaiter5(this, arguments, void 0, function* (source, dest, options = {}) {
     const { force, recursive, copySourceDirectory } = readCopyOptions(options);
     const destStat = (yield exists(dest)) ? yield stat(dest) : null;
     if (destStat && destStat.isFile() && !force) {
       return;
     }
-    const newDest = destStat && destStat.isDirectory() && copySourceDirectory ? path3.join(dest, path3.basename(source)) : dest;
+    const newDest = destStat && destStat.isDirectory() && copySourceDirectory ? path2.join(dest, path2.basename(source)) : dest;
     if (!(yield exists(source))) {
       throw new Error(`no such file or directory: ${source}`);
     }
@@ -45460,7 +45317,7 @@ function cp(source_1, dest_1) {
         yield cpDirRecursive(source, newDest, 0, force);
       }
     } else {
-      if (path3.relative(source, newDest) === "") {
+      if (path2.relative(source, newDest) === "") {
         throw new Error(`'${newDest}' and '${source}' are the same file`);
       }
       yield copyFile2(source, newDest, force);
@@ -45468,7 +45325,7 @@ function cp(source_1, dest_1) {
   });
 }
 function rmRF(inputPath) {
-  return __awaiter6(this, void 0, void 0, function* () {
+  return __awaiter5(this, void 0, void 0, function* () {
     if (IS_WINDOWS) {
       if (/[*"<>|]/.test(inputPath)) {
         throw new Error('File path must not contain `*`, `"`, `<`, `>` or `|` on Windows');
@@ -45487,13 +45344,13 @@ function rmRF(inputPath) {
   });
 }
 function mkdirP(fsPath) {
-  return __awaiter6(this, void 0, void 0, function* () {
+  return __awaiter5(this, void 0, void 0, function* () {
     ok(fsPath, "a path argument must be provided");
     yield mkdir(fsPath, { recursive: true });
   });
 }
 function which(tool, check) {
-  return __awaiter6(this, void 0, void 0, function* () {
+  return __awaiter5(this, void 0, void 0, function* () {
     if (!tool) {
       throw new Error("parameter 'tool' is required");
     }
@@ -45516,13 +45373,13 @@ function which(tool, check) {
   });
 }
 function findInPath(tool) {
-  return __awaiter6(this, void 0, void 0, function* () {
+  return __awaiter5(this, void 0, void 0, function* () {
     if (!tool) {
       throw new Error("parameter 'tool' is required");
     }
     const extensions = [];
     if (IS_WINDOWS && process.env["PATHEXT"]) {
-      for (const extension of process.env["PATHEXT"].split(path3.delimiter)) {
+      for (const extension of process.env["PATHEXT"].split(path2.delimiter)) {
         if (extension) {
           extensions.push(extension);
         }
@@ -45535,12 +45392,12 @@ function findInPath(tool) {
       }
       return [];
     }
-    if (tool.includes(path3.sep)) {
+    if (tool.includes(path2.sep)) {
       return [];
     }
     const directories = [];
     if (process.env.PATH) {
-      for (const p of process.env.PATH.split(path3.delimiter)) {
+      for (const p of process.env.PATH.split(path2.delimiter)) {
         if (p) {
           directories.push(p);
         }
@@ -45548,7 +45405,7 @@ function findInPath(tool) {
     }
     const matches = [];
     for (const directory of directories) {
-      const filePath = yield tryGetExecutablePath(path3.join(directory, tool), extensions);
+      const filePath = yield tryGetExecutablePath(path2.join(directory, tool), extensions);
       if (filePath) {
         matches.push(filePath);
       }
@@ -45563,7 +45420,7 @@ function readCopyOptions(options) {
   return { force, recursive, copySourceDirectory };
 }
 function cpDirRecursive(sourceDir, destDir, currentDepth, force) {
-  return __awaiter6(this, void 0, void 0, function* () {
+  return __awaiter5(this, void 0, void 0, function* () {
     if (currentDepth >= 255)
       return;
     currentDepth++;
@@ -45583,7 +45440,7 @@ function cpDirRecursive(sourceDir, destDir, currentDepth, force) {
   });
 }
 function copyFile2(srcFile, destFile, force) {
-  return __awaiter6(this, void 0, void 0, function* () {
+  return __awaiter5(this, void 0, void 0, function* () {
     if ((yield lstat(srcFile)).isSymbolicLink()) {
       try {
         yield lstat(destFile);
@@ -45604,7 +45461,7 @@ function copyFile2(srcFile, destFile, force) {
 
 // node_modules/@actions/exec/lib/toolrunner.js
 import { setTimeout as setTimeout2 } from "timers";
-var __awaiter7 = function(thisArg, _arguments, P2, generator) {
+var __awaiter6 = function(thisArg, _arguments, P2, generator) {
   function adopt(value) {
     return value instanceof P2 ? value : new P2(function(resolve2) {
       resolve2(value);
@@ -45840,12 +45697,12 @@ var ToolRunner = class extends events.EventEmitter {
    * @returns   number
    */
   exec() {
-    return __awaiter7(this, void 0, void 0, function* () {
+    return __awaiter6(this, void 0, void 0, function* () {
       if (!isRooted(this.toolPath) && (this.toolPath.includes("/") || IS_WINDOWS2 && this.toolPath.includes("\\"))) {
-        this.toolPath = path4.resolve(process.cwd(), this.options.cwd || process.cwd(), this.toolPath);
+        this.toolPath = path3.resolve(process.cwd(), this.options.cwd || process.cwd(), this.toolPath);
       }
       this.toolPath = yield which(this.toolPath, true);
-      return new Promise((resolve2, reject) => __awaiter7(this, void 0, void 0, function* () {
+      return new Promise((resolve2, reject) => __awaiter6(this, void 0, void 0, function* () {
         this._debug(`exec tool: ${this.toolPath}`);
         this._debug("arguments:");
         for (const arg of this.args) {
@@ -46049,7 +45906,7 @@ var ExecState = class _ExecState extends events.EventEmitter {
 };
 
 // node_modules/@actions/exec/lib/exec.js
-var __awaiter8 = function(thisArg, _arguments, P2, generator) {
+var __awaiter7 = function(thisArg, _arguments, P2, generator) {
   function adopt(value) {
     return value instanceof P2 ? value : new P2(function(resolve2) {
       resolve2(value);
@@ -46077,7 +45934,7 @@ var __awaiter8 = function(thisArg, _arguments, P2, generator) {
   });
 };
 function exec(commandLine, args, options) {
-  return __awaiter8(this, void 0, void 0, function* () {
+  return __awaiter7(this, void 0, void 0, function* () {
     const commandArgs = argStringToArray(commandLine);
     if (commandArgs.length === 0) {
       throw new Error(`Parameter 'commandLine' cannot be null or empty.`);
@@ -46089,7 +45946,7 @@ function exec(commandLine, args, options) {
   });
 }
 function getExecOutput(commandLine, args, options) {
-  return __awaiter8(this, void 0, void 0, function* () {
+  return __awaiter7(this, void 0, void 0, function* () {
     var _a, _b;
     let stdout = "";
     let stderr = "";
@@ -46122,112 +45979,10 @@ function getExecOutput(commandLine, args, options) {
 }
 
 // node_modules/@actions/core/lib/platform.js
-var __awaiter9 = function(thisArg, _arguments, P2, generator) {
-  function adopt(value) {
-    return value instanceof P2 ? value : new P2(function(resolve2) {
-      resolve2(value);
-    });
-  }
-  return new (P2 || (P2 = Promise))(function(resolve2, reject) {
-    function fulfilled(value) {
-      try {
-        step(generator.next(value));
-      } catch (e) {
-        reject(e);
-      }
-    }
-    function rejected(value) {
-      try {
-        step(generator["throw"](value));
-      } catch (e) {
-        reject(e);
-      }
-    }
-    function step(result) {
-      result.done ? resolve2(result.value) : adopt(result.value).then(fulfilled, rejected);
-    }
-    step((generator = generator.apply(thisArg, _arguments || [])).next());
-  });
-};
-var getWindowsInfo = () => __awaiter9(void 0, void 0, void 0, function* () {
-  const { stdout: version3 } = yield getExecOutput('powershell -command "(Get-CimInstance -ClassName Win32_OperatingSystem).Version"', void 0, {
-    silent: true
-  });
-  const { stdout: name } = yield getExecOutput('powershell -command "(Get-CimInstance -ClassName Win32_OperatingSystem).Caption"', void 0, {
-    silent: true
-  });
-  return {
-    name: name.trim(),
-    version: version3.trim()
-  };
-});
-var getMacOsInfo = () => __awaiter9(void 0, void 0, void 0, function* () {
-  var _a, _b, _c, _d;
-  const { stdout } = yield getExecOutput("sw_vers", void 0, {
-    silent: true
-  });
-  const version3 = (_b = (_a = stdout.match(/ProductVersion:\s*(.+)/)) === null || _a === void 0 ? void 0 : _a[1]) !== null && _b !== void 0 ? _b : "";
-  const name = (_d = (_c = stdout.match(/ProductName:\s*(.+)/)) === null || _c === void 0 ? void 0 : _c[1]) !== null && _d !== void 0 ? _d : "";
-  return {
-    name,
-    version: version3
-  };
-});
-var getLinuxInfo = () => __awaiter9(void 0, void 0, void 0, function* () {
-  const { stdout } = yield getExecOutput("lsb_release", ["-i", "-r", "-s"], {
-    silent: true
-  });
-  const [name, version3] = stdout.trim().split("\n");
-  return {
-    name,
-    version: version3
-  };
-});
 var platform = os4.platform();
 var arch = os4.arch();
-var isWindows = platform === "win32";
-var isMacOS = platform === "darwin";
-var isLinux = platform === "linux";
-function getDetails() {
-  return __awaiter9(this, void 0, void 0, function* () {
-    return Object.assign(Object.assign({}, yield isWindows ? getWindowsInfo() : isMacOS ? getMacOsInfo() : getLinuxInfo()), {
-      platform,
-      arch,
-      isWindows,
-      isMacOS,
-      isLinux
-    });
-  });
-}
 
 // node_modules/@actions/core/lib/core.js
-var __awaiter10 = function(thisArg, _arguments, P2, generator) {
-  function adopt(value) {
-    return value instanceof P2 ? value : new P2(function(resolve2) {
-      resolve2(value);
-    });
-  }
-  return new (P2 || (P2 = Promise))(function(resolve2, reject) {
-    function fulfilled(value) {
-      try {
-        step(generator.next(value));
-      } catch (e) {
-        reject(e);
-      }
-    }
-    function rejected(value) {
-      try {
-        step(generator["throw"](value));
-      } catch (e) {
-        reject(e);
-      }
-    }
-    function step(result) {
-      result.done ? resolve2(result.value) : adopt(result.value).then(fulfilled, rejected);
-    }
-    step((generator = generator.apply(thisArg, _arguments || [])).next());
-  });
-};
 var ExitCode;
 (function(ExitCode2) {
   ExitCode2[ExitCode2["Success"] = 0] = "Success";
@@ -46252,7 +46007,7 @@ function addPath(inputPath) {
   } else {
     issueCommand("add-path", {}, inputPath);
   }
-  process.env["PATH"] = `${inputPath}${path5.delimiter}${process.env["PATH"]}`;
+  process.env["PATH"] = `${inputPath}${path4.delimiter}${process.env["PATH"]}`;
 }
 function getInput(name, options) {
   const val = process.env[`INPUT_${name.replace(/ /g, "_").toUpperCase()}`] || "";
@@ -46263,13 +46018,6 @@ function getInput(name, options) {
     return val;
   }
   return val.trim();
-}
-function getMultilineInput(name, options) {
-  const inputs = getInput(name, options).split("\n").filter((x2) => x2 !== "");
-  if (options && options.trimWhitespace === false) {
-    return inputs;
-  }
-  return inputs.map((input) => input.trim());
 }
 function getBooleanInput(name, options) {
   const trueValue = ["true", "True", "TRUE"];
@@ -46290,9 +46038,6 @@ function setOutput(name, value) {
   process.stdout.write(os5.EOL);
   issueCommand("set-output", { name }, toCommandValue(value));
 }
-function setCommandEcho(enabled2) {
-  issue("echo", enabled2 ? "on" : "off");
-}
 function setFailed(message) {
   process.exitCode = ExitCode.Failure;
   error(message);
@@ -46309,9 +46054,6 @@ function error(message, properties = {}) {
 function warning(message, properties = {}) {
   issueCommand("warning", toCommandProperties(properties), message instanceof Error ? message.toString() : message);
 }
-function notice(message, properties = {}) {
-  issueCommand("notice", toCommandProperties(properties), message instanceof Error ? message.toString() : message);
-}
 function info(message) {
   process.stdout.write(message + os5.EOL);
 }
@@ -46321,40 +46063,13 @@ function startGroup(name) {
 function endGroup() {
   issue("endgroup");
 }
-function group(name, fn) {
-  return __awaiter10(this, void 0, void 0, function* () {
-    startGroup(name);
-    let result;
-    try {
-      result = yield fn();
-    } finally {
-      endGroup();
-    }
-    return result;
-  });
-}
-function saveState(name, value) {
-  const filePath = process.env["GITHUB_STATE"] || "";
-  if (filePath) {
-    return issueFileCommand("STATE", prepareKeyValueMessage(name, value));
-  }
-  issueCommand("save-state", { name }, toCommandValue(value));
-}
-function getState(name) {
-  return process.env[`STATE_${name}`] || "";
-}
-function getIDToken(aud) {
-  return __awaiter10(this, void 0, void 0, function* () {
-    return yield OidcClient.getIDToken(aud);
-  });
-}
 
 // lib/version/index.js
 import { URL as URL3 } from "url";
 var import_semver2 = __toESM(require_semver2(), 1);
 
 // lib/version/base.js
-import * as path7 from "path";
+import * as path6 from "path";
 
 // node_modules/glob/dist/esm/index.min.js
 import { fileURLToPath as Wi } from "node:url";
@@ -49341,8 +49056,8 @@ var Ze = Object.assign(Je, { glob: Je, globSync: ts, sync: Ui, globStream: Qe, s
 Ze.glob = Ze;
 
 // lib/const.js
-import * as path6 from "path";
-var MODULE_DIR = path6.dirname(__dirname);
+import * as path5 from "path";
+var MODULE_DIR = path5.dirname(__dirname);
 var SWIFTORG = "swiftorg";
 var SWIFTORG_ORIGIN = "https://github.com/apple/swift-org-website.git";
 var SWIFTORG_METADATA = "https://swiftylab.github.io/setup-swift/metadata.json";
@@ -49361,8 +49076,8 @@ var OUTPUT_TOOLCHAIN = "toolchain";
 var OUTPUT_SDKS = "sdks";
 
 // lib/version/base.js
-var SWIFT_BUILDS_DIR = path7.join(MODULE_DIR, SWIFTORG, "_data", "builds");
-var SWIFT_RELEASE_FILE = path7.join(SWIFT_BUILDS_DIR, "swift_releases.yml");
+var SWIFT_BUILDS_DIR = path6.join(MODULE_DIR, SWIFTORG, "_data", "builds");
+var SWIFT_RELEASE_FILE = path6.join(SWIFT_BUILDS_DIR, "swift_releases.yml");
 var SWIFT_RELEASE_REGEX = /swift-(.*)-release/;
 var ToolchainVersion = class {
   dev;
@@ -49377,13 +49092,13 @@ var ToolchainVersion = class {
     return void 0;
   }
   async toolFiles(fileGlob) {
-    const pattern = path7.posix.join(SWIFT_BUILDS_DIR, this.dirGlob, `${fileGlob}.yml`);
+    const pattern = path6.posix.join(SWIFT_BUILDS_DIR, this.dirGlob, `${fileGlob}.yml`);
     debug(`Searching for glob "${pattern}"`);
     let files = await Ze(pattern, { absolute: true, cwd: MODULE_DIR });
     debug(`Retrieved files "${files}" for glob "${pattern}"`);
     if (!this.dev) {
       const stableFiles = files.filter((file) => {
-        return SWIFT_RELEASE_REGEX.exec(path7.basename(path7.dirname(file)));
+        return SWIFT_RELEASE_REGEX.exec(path6.basename(path6.dirname(file)));
       });
       if (stableFiles.length) {
         files = stableFiles;
@@ -49530,7 +49245,7 @@ var ToolchainSnapshotLocation = class extends ToolchainVersion {
 };
 
 // lib/version/sdk/index.js
-import * as path10 from "path";
+import * as path9 from "path";
 import { promises as fs6 } from "fs";
 
 // node_modules/js-yaml/dist/js-yaml.mjs
@@ -52121,7 +51836,7 @@ var safeDump = renamed("safeDump", "dump");
 
 // lib/version/sdk/requirement/base.js
 import * as os8 from "os";
-import * as path9 from "path";
+import * as path8 from "path";
 import { promises as fs5 } from "fs";
 
 // node_modules/@actions/tool-cache/lib/tool-cache.js
@@ -52133,14 +51848,14 @@ var semver = __toESM(require_semver2(), 1);
 
 // node_modules/@actions/tool-cache/lib/tool-cache.js
 import * as os7 from "os";
-import * as path8 from "path";
+import * as path7 from "path";
 var semver2 = __toESM(require_semver2(), 1);
 import * as stream from "stream";
 import * as util from "util";
 import { ok as ok2 } from "assert";
 
 // node_modules/@actions/tool-cache/lib/retry-helper.js
-var __awaiter11 = function(thisArg, _arguments, P2, generator) {
+var __awaiter8 = function(thisArg, _arguments, P2, generator) {
   function adopt(value) {
     return value instanceof P2 ? value : new P2(function(resolve2) {
       resolve2(value);
@@ -52180,7 +51895,7 @@ var RetryHelper = class {
     }
   }
   execute(action5, isRetryable) {
-    return __awaiter11(this, void 0, void 0, function* () {
+    return __awaiter8(this, void 0, void 0, function* () {
       let attempt = 1;
       while (attempt < this.maxAttempts) {
         try {
@@ -52203,14 +51918,14 @@ var RetryHelper = class {
     return Math.floor(Math.random() * (this.maxSeconds - this.minSeconds + 1)) + this.minSeconds;
   }
   sleep(seconds) {
-    return __awaiter11(this, void 0, void 0, function* () {
+    return __awaiter8(this, void 0, void 0, function* () {
       return new Promise((resolve2) => setTimeout(resolve2, seconds * 1e3));
     });
   }
 };
 
 // node_modules/@actions/tool-cache/lib/tool-cache.js
-var __awaiter12 = function(thisArg, _arguments, P2, generator) {
+var __awaiter9 = function(thisArg, _arguments, P2, generator) {
   function adopt(value) {
     return value instanceof P2 ? value : new P2(function(resolve2) {
       resolve2(value);
@@ -52248,16 +51963,16 @@ var IS_WINDOWS3 = process.platform === "win32";
 var IS_MAC = process.platform === "darwin";
 var userAgent = "actions/tool-cache";
 function downloadTool(url2, dest, auth, headers) {
-  return __awaiter12(this, void 0, void 0, function* () {
-    dest = dest || path8.join(_getTempDirectory(), crypto3.randomUUID());
-    yield mkdirP(path8.dirname(dest));
+  return __awaiter9(this, void 0, void 0, function* () {
+    dest = dest || path7.join(_getTempDirectory(), crypto3.randomUUID());
+    yield mkdirP(path7.dirname(dest));
     debug(`Downloading ${url2}`);
     debug(`Destination ${dest}`);
     const maxAttempts = 3;
     const minSeconds = _getGlobal("TEST_DOWNLOAD_TOOL_RETRY_MIN_SECONDS", 10);
     const maxSeconds = _getGlobal("TEST_DOWNLOAD_TOOL_RETRY_MAX_SECONDS", 20);
     const retryHelper = new RetryHelper(maxAttempts, minSeconds, maxSeconds);
-    return yield retryHelper.execute(() => __awaiter12(this, void 0, void 0, function* () {
+    return yield retryHelper.execute(() => __awaiter9(this, void 0, void 0, function* () {
       return yield downloadToolAttempt(url2, dest || "", auth, headers);
     }), (err) => {
       if (err instanceof HTTPError && err.httpStatusCode) {
@@ -52270,7 +51985,7 @@ function downloadTool(url2, dest, auth, headers) {
   });
 }
 function downloadToolAttempt(url2, dest, auth, headers) {
-  return __awaiter12(this, void 0, void 0, function* () {
+  return __awaiter9(this, void 0, void 0, function* () {
     if (fs4.existsSync(dest)) {
       throw new Error(`Destination file path ${dest} already exists`);
     }
@@ -52312,7 +52027,7 @@ function downloadToolAttempt(url2, dest, auth, headers) {
   });
 }
 function extractTar(file_1, dest_1) {
-  return __awaiter12(this, arguments, void 0, function* (file, dest, flags = "xz") {
+  return __awaiter9(this, arguments, void 0, function* (file, dest, flags = "xz") {
     if (!file) {
       throw new Error("parameter 'file' is required");
     }
@@ -52355,7 +52070,7 @@ function extractTar(file_1, dest_1) {
   });
 }
 function extractXar(file_1, dest_1) {
-  return __awaiter12(this, arguments, void 0, function* (file, dest, flags = []) {
+  return __awaiter9(this, arguments, void 0, function* (file, dest, flags = []) {
     ok2(IS_MAC, "extractXar() not supported on current OS");
     ok2(file, 'parameter "file" is required');
     dest = yield _createExtractFolder(dest);
@@ -52375,7 +52090,7 @@ function extractXar(file_1, dest_1) {
   });
 }
 function extractZip(file, dest) {
-  return __awaiter12(this, void 0, void 0, function* () {
+  return __awaiter9(this, void 0, void 0, function* () {
     if (!file) {
       throw new Error("parameter 'file' is required");
     }
@@ -52389,7 +52104,7 @@ function extractZip(file, dest) {
   });
 }
 function extractZipWin(file, dest) {
-  return __awaiter12(this, void 0, void 0, function* () {
+  return __awaiter9(this, void 0, void 0, function* () {
     const escapedFile = file.replace(/'/g, "''").replace(/"|\n|\r/g, "");
     const escapedDest = dest.replace(/'/g, "''").replace(/"|\n|\r/g, "");
     const pwshPath = yield which("pwsh", false);
@@ -52435,7 +52150,7 @@ function extractZipWin(file, dest) {
   });
 }
 function extractZipNix(file, dest) {
-  return __awaiter12(this, void 0, void 0, function* () {
+  return __awaiter9(this, void 0, void 0, function* () {
     const unzipPath = yield which("unzip", true);
     const args = [file];
     if (!isDebug()) {
@@ -52446,7 +52161,7 @@ function extractZipNix(file, dest) {
   });
 }
 function cacheDir(sourceDir, tool, version3, arch5) {
-  return __awaiter12(this, void 0, void 0, function* () {
+  return __awaiter9(this, void 0, void 0, function* () {
     version3 = semver2.clean(version3) || version3;
     arch5 = arch5 || os7.arch();
     debug(`Caching tool ${tool} ${version3} ${arch5}`);
@@ -52456,7 +52171,7 @@ function cacheDir(sourceDir, tool, version3, arch5) {
     }
     const destPath = yield _createToolPath(tool, version3, arch5);
     for (const itemName of fs4.readdirSync(sourceDir)) {
-      const s = path8.join(sourceDir, itemName);
+      const s = path7.join(sourceDir, itemName);
       yield cp(s, destPath, { recursive: true });
     }
     _completeToolPath(tool, version3, arch5);
@@ -52479,7 +52194,7 @@ function find(toolName, versionSpec, arch5) {
   let toolPath = "";
   if (versionSpec) {
     versionSpec = semver2.clean(versionSpec) || "";
-    const cachePath = path8.join(_getCacheDirectory(), toolName, versionSpec, arch5);
+    const cachePath = path7.join(_getCacheDirectory(), toolName, versionSpec, arch5);
     debug(`checking cache: ${cachePath}`);
     if (fs4.existsSync(cachePath) && fs4.existsSync(`${cachePath}.complete`)) {
       debug(`Found tool in cache ${toolName} ${versionSpec} ${arch5}`);
@@ -52493,12 +52208,12 @@ function find(toolName, versionSpec, arch5) {
 function findAllVersions(toolName, arch5) {
   const versions = [];
   arch5 = arch5 || os7.arch();
-  const toolPath = path8.join(_getCacheDirectory(), toolName);
+  const toolPath = path7.join(_getCacheDirectory(), toolName);
   if (fs4.existsSync(toolPath)) {
     const children2 = fs4.readdirSync(toolPath);
     for (const child2 of children2) {
       if (isExplicitVersion(child2)) {
-        const fullPath = path8.join(toolPath, child2, arch5 || "");
+        const fullPath = path7.join(toolPath, child2, arch5 || "");
         if (fs4.existsSync(fullPath) && fs4.existsSync(`${fullPath}.complete`)) {
           versions.push(child2);
         }
@@ -52508,17 +52223,17 @@ function findAllVersions(toolName, arch5) {
   return versions;
 }
 function _createExtractFolder(dest) {
-  return __awaiter12(this, void 0, void 0, function* () {
+  return __awaiter9(this, void 0, void 0, function* () {
     if (!dest) {
-      dest = path8.join(_getTempDirectory(), crypto3.randomUUID());
+      dest = path7.join(_getTempDirectory(), crypto3.randomUUID());
     }
     yield mkdirP(dest);
     return dest;
   });
 }
 function _createToolPath(tool, version3, arch5) {
-  return __awaiter12(this, void 0, void 0, function* () {
-    const folderPath = path8.join(_getCacheDirectory(), tool, semver2.clean(version3) || version3, arch5 || "");
+  return __awaiter9(this, void 0, void 0, function* () {
+    const folderPath = path7.join(_getCacheDirectory(), tool, semver2.clean(version3) || version3, arch5 || "");
     debug(`destination ${folderPath}`);
     const markerPath = `${folderPath}.complete`;
     yield rmRF(folderPath);
@@ -52528,7 +52243,7 @@ function _createToolPath(tool, version3, arch5) {
   });
 }
 function _completeToolPath(tool, version3, arch5) {
-  const folderPath = path8.join(_getCacheDirectory(), tool, semver2.clean(version3) || version3, arch5 || "");
+  const folderPath = path7.join(_getCacheDirectory(), tool, semver2.clean(version3) || version3, arch5 || "");
   const markerPath = `${folderPath}.complete`;
   fs4.writeFileSync(markerPath, "");
   debug("finished caching tool");
@@ -52632,9 +52347,9 @@ var Android = class extends SdkRequirement {
   async setup(snapshot2) {
     const homeDir = os8.homedir();
     const swiftpmDirs = [
-      path9.join(homeDir, "Library", "org.swift.swiftpm"),
-      path9.join(homeDir, ".swiftpm"),
-      path9.join(homeDir, ".config", "swiftpm")
+      path8.join(homeDir, "Library", "org.swift.swiftpm"),
+      path8.join(homeDir, ".swiftpm"),
+      path8.join(homeDir, ".config", "swiftpm")
     ];
     let targetDir = "";
     for (const [index, dir] of swiftpmDirs.entries()) {
@@ -52650,16 +52365,16 @@ var Android = class extends SdkRequirement {
       }
     }
     info(`Using SwiftPM directory: ${targetDir}`);
-    const sdksDir = path9.join(targetDir, "swift-sdks");
-    const bundle = path9.basename(snapshot2.download, ".tar.gz");
-    const androidDir = path9.join(sdksDir, bundle, "swift-android");
-    const scriptPath = path9.join(androidDir, "scripts", "setup-android-sdk.sh");
+    const sdksDir = path8.join(targetDir, "swift-sdks");
+    const bundle = path8.basename(snapshot2.download, ".tar.gz");
+    const androidDir = path8.join(sdksDir, bundle, "swift-android");
+    const scriptPath = path8.join(androidDir, "scripts", "setup-android-sdk.sh");
     await fs5.access(scriptPath);
     const ndkUrl = `https://dl.google.com/android/repository/android-ndk-r27d-${os8.type()}.zip`;
     info(`Downloading Android NDK from ${ndkUrl}`);
     const ndkZip = await downloadTool(ndkUrl);
     await extractZip(ndkZip, androidDir);
-    const ndkHome = path9.join(androidDir, "android-ndk-r27d");
+    const ndkHome = path8.join(androidDir, "android-ndk-r27d");
     exportVariable("ANDROID_NDK_HOME", ndkHome);
     info(`Set ANDROID_NDK_HOME=${ndkHome}`);
     info(`Executing setup script: ${scriptPath}`);
@@ -52711,14 +52426,14 @@ var SdkSupportedVersion = class extends ToolchainVersion {
     const baseFiles = await this.baseVersion.toolFiles(fileGlob);
     const baseFilesPromises = baseFiles.map(async (file) => {
       const requestedSdksPromises = this.requestedSdks.map(async (requestedSdk) => {
-        const dir = path10.dirname(file);
+        const dir = path9.dirname(file);
         try {
           try {
-            const sdkPath = path10.join(dir, requestedSdk.file);
+            const sdkPath = path9.join(dir, requestedSdk.file);
             await fs6.access(sdkPath);
           } catch {
             debug(`Retryng to find sdk config by replacing "-" with "_"`);
-            const sdkPath = path10.join(dir, requestedSdk.file.replaceAll("-", "_"));
+            const sdkPath = path9.join(dir, requestedSdk.file.replaceAll("-", "_"));
             await fs6.access(sdkPath);
           }
           return true;
@@ -52749,11 +52464,11 @@ var SdkSupportedVersion = class extends ToolchainVersion {
     return await Promise.all(this.requestedSdks.map(async (requestedSdk) => {
       let data;
       try {
-        const yml = path10.join(SWIFT_BUILDS_DIR, toolchain.branch.replaceAll(".", "_"), requestedSdk.file);
+        const yml = path9.join(SWIFT_BUILDS_DIR, toolchain.branch.replaceAll(".", "_"), requestedSdk.file);
         data = await fs6.readFile(yml, "utf-8");
       } catch {
         debug(`Retryng to find sdk config data by replacing "-" with "_"`);
-        const yml = path10.join(SWIFT_BUILDS_DIR, toolchain.branch.replaceAll(".", "_"), requestedSdk.file.replaceAll("-", "_"));
+        const yml = path9.join(SWIFT_BUILDS_DIR, toolchain.branch.replaceAll(".", "_"), requestedSdk.file.replaceAll("-", "_"));
         data = await fs6.readFile(yml, "utf-8");
       }
       let snapshots = load(data);
@@ -52847,16 +52562,16 @@ ToolchainVersion.create = (requested, dev = false, sdks) => {
 };
 
 // lib/swiftorg.js
-import * as path11 from "path";
+import * as path10 from "path";
 import * as fs7 from "fs/promises";
 import * as https2 from "https";
-var swiftorgContractVersion;
+var swiftorgContractVersion = void 0;
 async function getSwiftorgContractVersion() {
-  if (swiftorgContractVersion) {
+  if (swiftorgContractVersion !== void 0) {
     return await swiftorgContractVersion;
   }
   swiftorgContractVersion = (async () => {
-    const data = await fs7.readFile(path11.join(MODULE_DIR, "package.json"), "utf8");
+    const data = await fs7.readFile(path10.join(MODULE_DIR, "package.json"), "utf8");
     const packageJson = JSON.parse(data);
     return packageJson["swiftorg-contract-version"];
   })();
@@ -52942,7 +52657,7 @@ var Swiftorg = class _Swiftorg {
       const swiftorgMetadata = await this.swiftorgMetadata();
       ref = swiftorgMetadata.commit ?? "HEAD";
     }
-    const swiftorg = path11.join(MODULE_DIR, SWIFTORG);
+    const swiftorg = path10.join(MODULE_DIR, SWIFTORG);
     const origin = SWIFTORG_ORIGIN;
     debug(`Adding submodule at "${swiftorg}" directory`);
     const cwd = { cwd: swiftorg };
@@ -52957,7 +52672,7 @@ import * as os15 from "os";
 var import_getos = __toESM(require_getos(), 1);
 
 // lib/platform/base.js
-import * as path12 from "path";
+import * as path11 from "path";
 import { promises as fs8 } from "fs";
 var import_semver4 = __toESM(require_semver2(), 1);
 var Platform = class {
@@ -52999,9 +52714,9 @@ var Platform = class {
     const files = await this.toolFiles(version3);
     debug(`Using files "${files}" to get toolchains snapshot data`);
     const snapshotsCollection = await Promise.all(files.map(async (file) => {
-      const ext = path12.extname(file);
-      const platform2 = path12.basename(file, ext);
-      const branch = path12.basename(path12.dirname(file)).replaceAll("_", ".");
+      const ext = path11.extname(file);
+      const platform2 = path11.basename(file, ext);
+      const branch = path11.basename(path11.dirname(file)).replaceAll("_", ".");
       const data = await fs8.readFile(file, "utf-8");
       return {
         data: load(data),
@@ -53028,16 +52743,16 @@ var Platform = class {
 };
 
 // lib/platform/xcode.js
-import * as path33 from "path";
+import * as path32 from "path";
 
 // lib/installer/base.js
 import * as os11 from "os";
-import * as path20 from "path";
+import * as path19 from "path";
 import { promises as fs14 } from "fs";
 import { URL as URL5 } from "url";
 
 // node_modules/@actions/cache/lib/cache.js
-import * as path19 from "path";
+import * as path18 from "path";
 
 // node_modules/@actions/glob/lib/internal-globber.js
 import * as fs9 from "fs";
@@ -53077,10 +52792,10 @@ function getOptions(copy) {
 }
 
 // node_modules/@actions/glob/lib/internal-globber.js
-import * as path16 from "path";
+import * as path15 from "path";
 
 // node_modules/@actions/glob/lib/internal-path-helper.js
-import * as path13 from "path";
+import * as path12 from "path";
 import assert from "assert";
 var IS_WINDOWS4 = process.platform === "win32";
 function dirname9(p) {
@@ -53088,7 +52803,7 @@ function dirname9(p) {
   if (IS_WINDOWS4 && /^\\\\[^\\]+(\\[^\\]+)?$/.test(p)) {
     return p;
   }
-  let result = path13.dirname(p);
+  let result = path12.dirname(p);
   if (IS_WINDOWS4 && /^\\\\[^\\]+\\[^\\]+\\$/.test(result)) {
     result = safeTrimTrailingSeparator(result);
   }
@@ -53125,7 +52840,7 @@ function ensureAbsoluteRoot(root, itemPath) {
   assert(hasAbsoluteRoot(root), `ensureAbsoluteRoot parameter 'root' must have an absolute root`);
   if (root.endsWith("/") || IS_WINDOWS4 && root.endsWith("\\")) {
   } else {
-    root += path13.sep;
+    root += path12.sep;
   }
   return root + itemPath;
 }
@@ -53159,10 +52874,10 @@ function safeTrimTrailingSeparator(p) {
     return "";
   }
   p = normalizeSeparators2(p);
-  if (!p.endsWith(path13.sep)) {
+  if (!p.endsWith(path12.sep)) {
     return p;
   }
-  if (p === path13.sep) {
+  if (p === path12.sep) {
     return p;
   }
   if (IS_WINDOWS4 && /^[A-Z]:\\$/i.test(p)) {
@@ -53230,12 +52945,12 @@ function partialMatch(patterns, itemPath) {
 
 // node_modules/@actions/glob/lib/internal-pattern.js
 import * as os9 from "os";
-import * as path15 from "path";
+import * as path14 from "path";
 var import_minimatch = __toESM(require_minimatch(), 1);
 import assert3 from "assert";
 
 // node_modules/@actions/glob/lib/internal-path.js
-import * as path14 from "path";
+import * as path13 from "path";
 import assert2 from "assert";
 var IS_WINDOWS6 = process.platform === "win32";
 var Path = class {
@@ -53249,12 +52964,12 @@ var Path = class {
       assert2(itemPath, `Parameter 'itemPath' must not be empty`);
       itemPath = safeTrimTrailingSeparator(itemPath);
       if (!hasRoot(itemPath)) {
-        this.segments = itemPath.split(path14.sep);
+        this.segments = itemPath.split(path13.sep);
       } else {
         let remaining = itemPath;
         let dir = dirname9(remaining);
         while (dir !== remaining) {
-          const basename12 = path14.basename(remaining);
+          const basename12 = path13.basename(remaining);
           this.segments.unshift(basename12);
           remaining = dir;
           dir = dirname9(remaining);
@@ -53272,7 +52987,7 @@ var Path = class {
           assert2(segment === dirname9(segment), `Parameter 'itemPath' root segment contains information for multiple segments`);
           this.segments.push(segment);
         } else {
-          assert2(!segment.includes(path14.sep), `Parameter 'itemPath' contains unexpected path separators`);
+          assert2(!segment.includes(path13.sep), `Parameter 'itemPath' contains unexpected path separators`);
           this.segments.push(segment);
         }
       }
@@ -53283,12 +52998,12 @@ var Path = class {
    */
   toString() {
     let result = this.segments[0];
-    let skipSlash = result.endsWith(path14.sep) || IS_WINDOWS6 && /^[A-Z]:$/i.test(result);
+    let skipSlash = result.endsWith(path13.sep) || IS_WINDOWS6 && /^[A-Z]:$/i.test(result);
     for (let i = 1; i < this.segments.length; i++) {
       if (skipSlash) {
         skipSlash = false;
       } else {
-        result += path14.sep;
+        result += path13.sep;
       }
       result += this.segments[i];
     }
@@ -53321,7 +53036,7 @@ var Pattern = class _Pattern {
     }
     pattern = _Pattern.fixupPattern(pattern, homedir3);
     this.segments = new Path(pattern).segments;
-    this.trailingSeparator = normalizeSeparators2(pattern).endsWith(path15.sep);
+    this.trailingSeparator = normalizeSeparators2(pattern).endsWith(path14.sep);
     pattern = safeTrimTrailingSeparator(pattern);
     let foundGlob = false;
     const searchSegments = this.segments.map((x2) => _Pattern.getLiteral(x2)).filter((x2) => !foundGlob && !(foundGlob = x2 === ""));
@@ -53345,8 +53060,8 @@ var Pattern = class _Pattern {
   match(itemPath) {
     if (this.segments[this.segments.length - 1] === "**") {
       itemPath = normalizeSeparators2(itemPath);
-      if (!itemPath.endsWith(path15.sep) && this.isImplicitPattern === false) {
-        itemPath = `${itemPath}${path15.sep}`;
+      if (!itemPath.endsWith(path14.sep) && this.isImplicitPattern === false) {
+        itemPath = `${itemPath}${path14.sep}`;
       }
     } else {
       itemPath = safeTrimTrailingSeparator(itemPath);
@@ -53381,9 +53096,9 @@ var Pattern = class _Pattern {
     assert3(literalSegments.every((x2, i) => (x2 !== "." || i === 0) && x2 !== ".."), `Invalid pattern '${pattern}'. Relative pathing '.' and '..' is not allowed.`);
     assert3(!hasRoot(pattern) || literalSegments[0], `Invalid pattern '${pattern}'. Root segment must not contain globs.`);
     pattern = normalizeSeparators2(pattern);
-    if (pattern === "." || pattern.startsWith(`.${path15.sep}`)) {
+    if (pattern === "." || pattern.startsWith(`.${path14.sep}`)) {
       pattern = _Pattern.globEscape(process.cwd()) + pattern.substr(1);
-    } else if (pattern === "~" || pattern.startsWith(`~${path15.sep}`)) {
+    } else if (pattern === "~" || pattern.startsWith(`~${path14.sep}`)) {
       homedir3 = homedir3 || os9.homedir();
       assert3(homedir3, "Unable to determine HOME directory");
       assert3(hasAbsoluteRoot(homedir3), `Expected HOME directory to be a rooted path. Actual '${homedir3}'`);
@@ -53459,14 +53174,14 @@ var Pattern = class _Pattern {
 
 // node_modules/@actions/glob/lib/internal-search-state.js
 var SearchState = class {
-  constructor(path36, level) {
-    this.path = path36;
+  constructor(path35, level) {
+    this.path = path35;
     this.level = level;
   }
 };
 
 // node_modules/@actions/glob/lib/internal-globber.js
-var __awaiter13 = function(thisArg, _arguments, P2, generator) {
+var __awaiter10 = function(thisArg, _arguments, P2, generator) {
   function adopt(value) {
     return value instanceof P2 ? value : new P2(function(resolve2) {
       resolve2(value);
@@ -53567,7 +53282,7 @@ var DefaultGlobber = class _DefaultGlobber {
     return this.searchPaths.slice();
   }
   glob() {
-    return __awaiter13(this, void 0, void 0, function* () {
+    return __awaiter10(this, void 0, void 0, function* () {
       var _a, e_1, _b, _c;
       const result = [];
       try {
@@ -53627,7 +53342,7 @@ var DefaultGlobber = class _DefaultGlobber {
         if (!stats) {
           continue;
         }
-        if (options.excludeHiddenFiles && path16.basename(item.path).match(/^\./)) {
+        if (options.excludeHiddenFiles && path15.basename(item.path).match(/^\./)) {
           continue;
         }
         if (stats.isDirectory()) {
@@ -53637,7 +53352,7 @@ var DefaultGlobber = class _DefaultGlobber {
             continue;
           }
           const childLevel = item.level + 1;
-          const childItems = (yield __await(fs9.promises.readdir(item.path))).map((x2) => new SearchState(path16.join(item.path, x2), childLevel));
+          const childItems = (yield __await(fs9.promises.readdir(item.path))).map((x2) => new SearchState(path15.join(item.path, x2), childLevel));
           stack.push(...childItems.reverse());
         } else if (match2 & MatchKind.File) {
           yield yield __await(item.path);
@@ -53649,7 +53364,7 @@ var DefaultGlobber = class _DefaultGlobber {
    * Constructs a DefaultGlobber
    */
   static create(patterns, options) {
-    return __awaiter13(this, void 0, void 0, function* () {
+    return __awaiter10(this, void 0, void 0, function* () {
       const result = new _DefaultGlobber(options);
       if (IS_WINDOWS8) {
         patterns = patterns.replace(/\r\n/g, "\n");
@@ -53668,7 +53383,7 @@ var DefaultGlobber = class _DefaultGlobber {
     });
   }
   static stat(item, options, traversalChain) {
-    return __awaiter13(this, void 0, void 0, function* () {
+    return __awaiter10(this, void 0, void 0, function* () {
       let stats;
       if (options.followSymbolicLinks) {
         try {
@@ -53703,7 +53418,7 @@ var DefaultGlobber = class _DefaultGlobber {
 };
 
 // node_modules/@actions/glob/lib/glob.js
-var __awaiter14 = function(thisArg, _arguments, P2, generator) {
+var __awaiter11 = function(thisArg, _arguments, P2, generator) {
   function adopt(value) {
     return value instanceof P2 ? value : new P2(function(resolve2) {
       resolve2(value);
@@ -53731,7 +53446,7 @@ var __awaiter14 = function(thisArg, _arguments, P2, generator) {
   });
 };
 function create(patterns, options) {
-  return __awaiter14(this, void 0, void 0, function* () {
+  return __awaiter11(this, void 0, void 0, function* () {
     return yield DefaultGlobber.create(patterns, options);
   });
 }
@@ -53740,7 +53455,7 @@ function create(patterns, options) {
 var semver4 = __toESM(require_semver2(), 1);
 import * as crypto4 from "crypto";
 import * as fs10 from "fs";
-import * as path17 from "path";
+import * as path16 from "path";
 import * as util2 from "util";
 
 // node_modules/@actions/cache/lib/internal/constants.js
@@ -53770,7 +53485,7 @@ var ManifestFilename = "manifest.txt";
 var CacheFileSizeLimit = 10 * Math.pow(1024, 3);
 
 // node_modules/@actions/cache/lib/internal/cacheUtils.js
-var __awaiter15 = function(thisArg, _arguments, P2, generator) {
+var __awaiter12 = function(thisArg, _arguments, P2, generator) {
   function adopt(value) {
     return value instanceof P2 ? value : new P2(function(resolve2) {
       resolve2(value);
@@ -53818,7 +53533,7 @@ var __asyncValues2 = function(o) {
 };
 var versionSalt = "1.0";
 function createTempDirectory() {
-  return __awaiter15(this, void 0, void 0, function* () {
+  return __awaiter12(this, void 0, void 0, function* () {
     const IS_WINDOWS10 = process.platform === "win32";
     let tempDirectory = process.env["RUNNER_TEMP"] || "";
     if (!tempDirectory) {
@@ -53832,9 +53547,9 @@ function createTempDirectory() {
           baseLocation = "/home";
         }
       }
-      tempDirectory = path17.join(baseLocation, "actions", "temp");
+      tempDirectory = path16.join(baseLocation, "actions", "temp");
     }
-    const dest = path17.join(tempDirectory, crypto4.randomUUID());
+    const dest = path16.join(tempDirectory, crypto4.randomUUID());
     yield mkdirP(dest);
     return dest;
   });
@@ -53843,7 +53558,7 @@ function getArchiveFileSizeInBytes(filePath) {
   return fs10.statSync(filePath).size;
 }
 function resolvePaths(patterns) {
-  return __awaiter15(this, void 0, void 0, function* () {
+  return __awaiter12(this, void 0, void 0, function* () {
     var _a, e_1, _b, _c;
     var _d;
     const paths = [];
@@ -53856,7 +53571,7 @@ function resolvePaths(patterns) {
         _c = _g.value;
         _e2 = false;
         const file = _c;
-        const relativeFile = path17.relative(workspace, file).replace(new RegExp(`\\${path17.sep}`, "g"), "/");
+        const relativeFile = path16.relative(workspace, file).replace(new RegExp(`\\${path16.sep}`, "g"), "/");
         debug(`Matched: ${relativeFile}`);
         if (relativeFile === "") {
           paths.push(".");
@@ -53877,12 +53592,12 @@ function resolvePaths(patterns) {
   });
 }
 function unlinkFile(filePath) {
-  return __awaiter15(this, void 0, void 0, function* () {
+  return __awaiter12(this, void 0, void 0, function* () {
     return util2.promisify(fs10.unlink)(filePath);
   });
 }
 function getVersion(app_1) {
-  return __awaiter15(this, arguments, void 0, function* (app, additionalArgs = []) {
+  return __awaiter12(this, arguments, void 0, function* (app, additionalArgs = []) {
     let versionOutput = "";
     additionalArgs.push("--version");
     debug(`Checking ${app} ${additionalArgs.join(" ")}`);
@@ -53904,7 +53619,7 @@ function getVersion(app_1) {
   });
 }
 function getCompressionMethod() {
-  return __awaiter15(this, void 0, void 0, function* () {
+  return __awaiter12(this, void 0, void 0, function* () {
     const versionOutput = yield getVersion("zstd", ["--quiet"]);
     const version3 = semver4.clean(versionOutput);
     debug(`zstd version: ${version3}`);
@@ -53919,7 +53634,7 @@ function getCacheFileName(compressionMethod) {
   return compressionMethod === CompressionMethod.Gzip ? CacheFilename.Gzip : CacheFilename.Zstd;
 }
 function getGnuTarPathOnWindows() {
-  return __awaiter15(this, void 0, void 0, function* () {
+  return __awaiter12(this, void 0, void 0, function* () {
     if (fs10.existsSync(GnuTarPathOnWindows)) {
       return GnuTarPathOnWindows;
     }
@@ -57965,15 +57680,15 @@ function getRequestUrl(baseUri, operationSpec, operationArguments, fallbackObjec
   let isAbsolutePath = false;
   let requestUrl = replaceAll(baseUri, urlReplacements);
   if (operationSpec.path) {
-    let path36 = replaceAll(operationSpec.path, urlReplacements);
-    if (operationSpec.path === "/{nextLink}" && path36.startsWith("/")) {
-      path36 = path36.substring(1);
+    let path35 = replaceAll(operationSpec.path, urlReplacements);
+    if (operationSpec.path === "/{nextLink}" && path35.startsWith("/")) {
+      path35 = path35.substring(1);
     }
-    if (isAbsoluteUrl(path36)) {
-      requestUrl = path36;
+    if (isAbsoluteUrl(path35)) {
+      requestUrl = path35;
       isAbsolutePath = true;
     } else {
-      requestUrl = appendPath(requestUrl, path36);
+      requestUrl = appendPath(requestUrl, path35);
     }
   }
   const { queryParams, sequenceParams } = calculateQueryParameters(operationSpec, operationArguments, fallbackObject);
@@ -58019,9 +57734,9 @@ function appendPath(url2, pathToAppend) {
   }
   const searchStart = pathToAppend.indexOf("?");
   if (searchStart !== -1) {
-    const path36 = pathToAppend.substring(0, searchStart);
+    const path35 = pathToAppend.substring(0, searchStart);
     const search = pathToAppend.substring(searchStart + 1);
-    newPath = newPath + path36;
+    newPath = newPath + path35;
     if (search) {
       parsedUrl.search = parsedUrl.search ? `${parsedUrl.search}&${search}` : search;
     }
@@ -61497,16 +61212,16 @@ var MatcherView = class {
    * @returns {string|undefined}
    */
   getCurrentTag() {
-    const path36 = this._matcher.path;
-    return path36.length > 0 ? path36[path36.length - 1].tag : void 0;
+    const path35 = this._matcher.path;
+    return path35.length > 0 ? path35[path35.length - 1].tag : void 0;
   }
   /**
    * Get current namespace.
    * @returns {string|undefined}
    */
   getCurrentNamespace() {
-    const path36 = this._matcher.path;
-    return path36.length > 0 ? path36[path36.length - 1].namespace : void 0;
+    const path35 = this._matcher.path;
+    return path35.length > 0 ? path35[path35.length - 1].namespace : void 0;
   }
   /**
    * Get current node's attribute value.
@@ -61514,9 +61229,9 @@ var MatcherView = class {
    * @returns {*}
    */
   getAttrValue(attrName) {
-    const path36 = this._matcher.path;
-    if (path36.length === 0) return void 0;
-    return path36[path36.length - 1].values?.[attrName];
+    const path35 = this._matcher.path;
+    if (path35.length === 0) return void 0;
+    return path35[path35.length - 1].values?.[attrName];
   }
   /**
    * Check if current node has an attribute.
@@ -61524,9 +61239,9 @@ var MatcherView = class {
    * @returns {boolean}
    */
   hasAttr(attrName) {
-    const path36 = this._matcher.path;
-    if (path36.length === 0) return false;
-    const current = path36[path36.length - 1];
+    const path35 = this._matcher.path;
+    if (path35.length === 0) return false;
+    const current = path35[path35.length - 1];
     return current.values !== void 0 && attrName in current.values;
   }
   /**
@@ -61534,18 +61249,18 @@ var MatcherView = class {
    * @returns {number}
    */
   getPosition() {
-    const path36 = this._matcher.path;
-    if (path36.length === 0) return -1;
-    return path36[path36.length - 1].position ?? 0;
+    const path35 = this._matcher.path;
+    if (path35.length === 0) return -1;
+    return path35[path35.length - 1].position ?? 0;
   }
   /**
    * Get current node's repeat counter (occurrence count of this tag name).
    * @returns {number}
    */
   getCounter() {
-    const path36 = this._matcher.path;
-    if (path36.length === 0) return -1;
-    return path36[path36.length - 1].counter ?? 0;
+    const path35 = this._matcher.path;
+    if (path35.length === 0) return -1;
+    return path35[path35.length - 1].counter ?? 0;
   }
   /**
    * Get current node's sibling index (alias for getPosition).
@@ -61741,21 +61456,21 @@ var Matcher = class {
    * @returns {string}
    */
   toString(separator, includeNamespace = true) {
-    const sep8 = separator || this.separator;
-    const isDefault = sep8 === this.separator && includeNamespace === true;
+    const sep7 = separator || this.separator;
+    const isDefault = sep7 === this.separator && includeNamespace === true;
     if (isDefault) {
       if (this._pathStringCache !== null) {
         return this._pathStringCache;
       }
       const result = this.path.map(
         (n7) => n7.namespace ? `${n7.namespace}:${n7.tag}` : n7.tag
-      ).join(sep8);
+      ).join(sep7);
       this._pathStringCache = result;
       return result;
     }
     return this.path.map(
       (n7) => includeNamespace && n7.namespace ? `${n7.namespace}:${n7.tag}` : n7.tag
-    ).join(sep8);
+    ).join(sep7);
   }
   /**
    * Get path as array of tag names.
@@ -64590,9 +64305,9 @@ var StorageSharedKeyCredentialPolicy = class extends CredentialPolicy {
    * @param request -
    */
   getCanonicalizedResourceString(request) {
-    const path36 = getURLPath(request.url) || "/";
+    const path35 = getURLPath(request.url) || "/";
     let canonicalizedResourceString = "";
-    canonicalizedResourceString += `/${this.factory.accountName}${path36}`;
+    canonicalizedResourceString += `/${this.factory.accountName}${path35}`;
     const queries = getURLQueries(request.url);
     const lowercaseQueries = {};
     if (queries) {
@@ -65082,9 +64797,9 @@ function storageSharedKeyCredentialPolicy(options) {
     return canonicalizedHeadersStringToSign;
   }
   function getCanonicalizedResourceString(request) {
-    const path36 = getURLPath(request.url) || "/";
+    const path35 = getURLPath(request.url) || "/";
     let canonicalizedResourceString = "";
-    canonicalizedResourceString += `/${options.accountName}${path36}`;
+    canonicalizedResourceString += `/${options.accountName}${path35}`;
     const queries = getURLQueries(request.url);
     const lowercaseQueries = {};
     if (queries) {
@@ -79025,10 +78740,10 @@ var StorageContextClient = class extends StorageClient {
 // node_modules/@azure/storage-blob/dist/esm/utils/utils.common.js
 function escapeURLPath(url2) {
   const urlParsed = new URL(url2);
-  let path36 = urlParsed.pathname;
-  path36 = path36 || "/";
-  path36 = escape(path36);
-  urlParsed.pathname = path36;
+  let path35 = urlParsed.pathname;
+  path35 = path35 || "/";
+  path35 = escape(path35);
+  urlParsed.pathname = path35;
   return urlParsed.toString();
 }
 function getProxyUriFromDevConnString(connectionString) {
@@ -79113,9 +78828,9 @@ function escape(text) {
 }
 function appendToURLPath(url2, name) {
   const urlParsed = new URL(url2);
-  let path36 = urlParsed.pathname;
-  path36 = path36 ? path36.endsWith("/") ? `${path36}${name}` : `${path36}/${name}` : name;
-  urlParsed.pathname = path36;
+  let path35 = urlParsed.pathname;
+  path35 = path35 ? path35.endsWith("/") ? `${path35}${name}` : `${path35}/${name}` : name;
+  urlParsed.pathname = path35;
   return urlParsed.toString();
 }
 function setURLParameter2(url2, name, value) {
@@ -85720,7 +85435,7 @@ var RateLimitError = class extends Error {
 };
 
 // node_modules/@actions/cache/lib/internal/uploadUtils.js
-var __awaiter16 = function(thisArg, _arguments, P2, generator) {
+var __awaiter13 = function(thisArg, _arguments, P2, generator) {
   function adopt(value) {
     return value instanceof P2 ? value : new P2(function(resolve2) {
       resolve2(value);
@@ -85827,7 +85542,7 @@ var UploadProgress = class {
   }
 };
 function uploadCacheArchiveSDK(signedUploadURL, archivePath, options) {
-  return __awaiter16(this, void 0, void 0, function* () {
+  return __awaiter13(this, void 0, void 0, function* () {
     var _a;
     const blobClient = new BlobClient(signedUploadURL);
     const blockBlobClient = blobClient.getBlockBlobClient();
@@ -85864,7 +85579,7 @@ import * as stream2 from "stream";
 import * as util5 from "util";
 
 // node_modules/@actions/cache/lib/internal/requestUtils.js
-var __awaiter17 = function(thisArg, _arguments, P2, generator) {
+var __awaiter14 = function(thisArg, _arguments, P2, generator) {
   function adopt(value) {
     return value instanceof P2 ? value : new P2(function(resolve2) {
       resolve2(value);
@@ -85915,12 +85630,12 @@ function isRetryableStatusCode(statusCode) {
   return retryableStatusCodes.includes(statusCode);
 }
 function sleep(milliseconds) {
-  return __awaiter17(this, void 0, void 0, function* () {
+  return __awaiter14(this, void 0, void 0, function* () {
     return new Promise((resolve2) => setTimeout(resolve2, milliseconds));
   });
 }
 function retry(name_1, method_1, getStatusCode_1) {
-  return __awaiter17(this, arguments, void 0, function* (name, method, getStatusCode, maxAttempts = DefaultRetryAttempts, delay4 = DefaultRetryDelay, onError = void 0) {
+  return __awaiter14(this, arguments, void 0, function* (name, method, getStatusCode, maxAttempts = DefaultRetryAttempts, delay4 = DefaultRetryDelay, onError = void 0) {
     let errorMessage = "";
     let attempt = 1;
     while (attempt <= maxAttempts) {
@@ -85958,7 +85673,7 @@ function retry(name_1, method_1, getStatusCode_1) {
   });
 }
 function retryTypedResponse(name_1, method_1) {
-  return __awaiter17(this, arguments, void 0, function* (name, method, maxAttempts = DefaultRetryAttempts, delay4 = DefaultRetryDelay) {
+  return __awaiter14(this, arguments, void 0, function* (name, method, maxAttempts = DefaultRetryAttempts, delay4 = DefaultRetryDelay) {
     return yield retry(
       name,
       method,
@@ -85983,13 +85698,13 @@ function retryTypedResponse(name_1, method_1) {
   });
 }
 function retryHttpClientResponse(name_1, method_1) {
-  return __awaiter17(this, arguments, void 0, function* (name, method, maxAttempts = DefaultRetryAttempts, delay4 = DefaultRetryDelay) {
+  return __awaiter14(this, arguments, void 0, function* (name, method, maxAttempts = DefaultRetryAttempts, delay4 = DefaultRetryDelay) {
     return yield retry(name, method, (response) => response.message.statusCode, maxAttempts, delay4);
   });
 }
 
 // node_modules/@actions/cache/lib/internal/downloadUtils.js
-var __awaiter18 = function(thisArg, _arguments, P2, generator) {
+var __awaiter15 = function(thisArg, _arguments, P2, generator) {
   function adopt(value) {
     return value instanceof P2 ? value : new P2(function(resolve2) {
       resolve2(value);
@@ -86017,7 +85732,7 @@ var __awaiter18 = function(thisArg, _arguments, P2, generator) {
   });
 };
 function pipeResponseToStream(response, output) {
-  return __awaiter18(this, void 0, void 0, function* () {
+  return __awaiter15(this, void 0, void 0, function* () {
     const pipeline3 = util5.promisify(stream2.pipeline);
     yield pipeline3(response.message, output);
   });
@@ -86118,10 +85833,10 @@ var DownloadProgress = class {
   }
 };
 function downloadCacheHttpClient(archiveLocation, archivePath) {
-  return __awaiter18(this, void 0, void 0, function* () {
+  return __awaiter15(this, void 0, void 0, function* () {
     const writeStream = fs12.createWriteStream(archivePath);
     const httpClient = new HttpClient("actions/cache");
-    const downloadResponse = yield retryHttpClientResponse("downloadCache", () => __awaiter18(this, void 0, void 0, function* () {
+    const downloadResponse = yield retryHttpClientResponse("downloadCache", () => __awaiter15(this, void 0, void 0, function* () {
       return httpClient.get(archiveLocation);
     }));
     downloadResponse.message.socket.setTimeout(SocketTimeout, () => {
@@ -86142,7 +85857,7 @@ function downloadCacheHttpClient(archiveLocation, archivePath) {
   });
 }
 function downloadCacheHttpClientConcurrent(archiveLocation, archivePath, options) {
-  return __awaiter18(this, void 0, void 0, function* () {
+  return __awaiter15(this, void 0, void 0, function* () {
     var _a;
     const archiveDescriptor = yield fs12.promises.open(archivePath, "w");
     const httpClient = new HttpClient("actions/cache", void 0, {
@@ -86150,7 +85865,7 @@ function downloadCacheHttpClientConcurrent(archiveLocation, archivePath, options
       keepAlive: true
     });
     try {
-      const res = yield retryHttpClientResponse("downloadCacheMetadata", () => __awaiter18(this, void 0, void 0, function* () {
+      const res = yield retryHttpClientResponse("downloadCacheMetadata", () => __awaiter15(this, void 0, void 0, function* () {
         return yield httpClient.request("HEAD", archiveLocation, null, {});
       }));
       const lengthHeader = res.message.headers["content-length"];
@@ -86167,7 +85882,7 @@ function downloadCacheHttpClientConcurrent(archiveLocation, archivePath, options
         const count = Math.min(blockSize, length - offset);
         downloads.push({
           offset,
-          promiseGetter: () => __awaiter18(this, void 0, void 0, function* () {
+          promiseGetter: () => __awaiter15(this, void 0, void 0, function* () {
             return yield downloadSegmentRetry(httpClient, archiveLocation, offset, count);
           })
         });
@@ -86180,7 +85895,7 @@ function downloadCacheHttpClientConcurrent(archiveLocation, archivePath, options
       const progressFn = progress.onProgress();
       const activeDownloads = [];
       let nextDownload;
-      const waitAndWrite = () => __awaiter18(this, void 0, void 0, function* () {
+      const waitAndWrite = () => __awaiter15(this, void 0, void 0, function* () {
         const segment = yield Promise.race(Object.values(activeDownloads));
         yield archiveDescriptor.write(segment.buffer, 0, segment.count, segment.offset);
         actives--;
@@ -86205,7 +85920,7 @@ function downloadCacheHttpClientConcurrent(archiveLocation, archivePath, options
   });
 }
 function downloadSegmentRetry(httpClient, archiveLocation, offset, count) {
-  return __awaiter18(this, void 0, void 0, function* () {
+  return __awaiter15(this, void 0, void 0, function* () {
     const retries = 5;
     let failures = 0;
     while (true) {
@@ -86226,8 +85941,8 @@ function downloadSegmentRetry(httpClient, archiveLocation, offset, count) {
   });
 }
 function downloadSegment(httpClient, archiveLocation, offset, count) {
-  return __awaiter18(this, void 0, void 0, function* () {
-    const partRes = yield retryHttpClientResponse("downloadCachePart", () => __awaiter18(this, void 0, void 0, function* () {
+  return __awaiter15(this, void 0, void 0, function* () {
+    const partRes = yield retryHttpClientResponse("downloadCachePart", () => __awaiter15(this, void 0, void 0, function* () {
       return yield httpClient.get(archiveLocation, {
         Range: `bytes=${offset}-${offset + count - 1}`
       });
@@ -86243,7 +85958,7 @@ function downloadSegment(httpClient, archiveLocation, offset, count) {
   });
 }
 function downloadCacheStorageSDK(archiveLocation, archivePath, options) {
-  return __awaiter18(this, void 0, void 0, function* () {
+  return __awaiter15(this, void 0, void 0, function* () {
     var _a;
     const client = new BlockBlobClient(archiveLocation, void 0, {
       retryOptions: {
@@ -86288,7 +86003,7 @@ function downloadCacheStorageSDK(archiveLocation, archivePath, options) {
     }
   });
 }
-var promiseWithTimeout = (timeoutMs, promise) => __awaiter18(void 0, void 0, void 0, function* () {
+var promiseWithTimeout = (timeoutMs, promise) => __awaiter15(void 0, void 0, void 0, function* () {
   let timeoutHandle;
   const timeoutPromise = new Promise((resolve2) => {
     timeoutHandle = setTimeout(() => resolve2("timeout"), timeoutMs);
@@ -86399,7 +86114,7 @@ function getUserAgentString2() {
 }
 
 // node_modules/@actions/cache/lib/internal/cacheHttpClient.js
-var __awaiter19 = function(thisArg, _arguments, P2, generator) {
+var __awaiter16 = function(thisArg, _arguments, P2, generator) {
   function adopt(value) {
     return value instanceof P2 ? value : new P2(function(resolve2) {
       resolve2(value);
@@ -86452,11 +86167,11 @@ function createHttpClient() {
   return new HttpClient(getUserAgentString2(), [bearerCredentialHandler], getRequestOptions());
 }
 function getCacheEntry(keys, paths, options) {
-  return __awaiter19(this, void 0, void 0, function* () {
+  return __awaiter16(this, void 0, void 0, function* () {
     const httpClient = createHttpClient();
     const version3 = getCacheVersion(paths, options === null || options === void 0 ? void 0 : options.compressionMethod, options === null || options === void 0 ? void 0 : options.enableCrossOsArchive);
     const resource = `cache?keys=${encodeURIComponent(keys.join(","))}&version=${version3}`;
-    const response = yield retryTypedResponse("getCacheEntry", () => __awaiter19(this, void 0, void 0, function* () {
+    const response = yield retryTypedResponse("getCacheEntry", () => __awaiter16(this, void 0, void 0, function* () {
       return httpClient.getJson(getCacheApiUrl(resource));
     }));
     if (response.statusCode === 204) {
@@ -86480,9 +86195,9 @@ function getCacheEntry(keys, paths, options) {
   });
 }
 function printCachesListForDiagnostics(key, httpClient, version3) {
-  return __awaiter19(this, void 0, void 0, function* () {
+  return __awaiter16(this, void 0, void 0, function* () {
     const resource = `caches?key=${encodeURIComponent(key)}`;
-    const response = yield retryTypedResponse("listCache", () => __awaiter19(this, void 0, void 0, function* () {
+    const response = yield retryTypedResponse("listCache", () => __awaiter16(this, void 0, void 0, function* () {
       return httpClient.getJson(getCacheApiUrl(resource));
     }));
     if (response.statusCode === 200) {
@@ -86499,7 +86214,7 @@ Other caches with similar key:`);
   });
 }
 function downloadCache(archiveLocation, archivePath, options) {
-  return __awaiter19(this, void 0, void 0, function* () {
+  return __awaiter16(this, void 0, void 0, function* () {
     const archiveUrl = new URL4(archiveLocation);
     const downloadOptions = getDownloadOptions(options);
     if (archiveUrl.hostname.endsWith(".blob.core.windows.net")) {
@@ -86516,7 +86231,7 @@ function downloadCache(archiveLocation, archivePath, options) {
   });
 }
 function reserveCache(key, paths, options) {
-  return __awaiter19(this, void 0, void 0, function* () {
+  return __awaiter16(this, void 0, void 0, function* () {
     const httpClient = createHttpClient();
     const version3 = getCacheVersion(paths, options === null || options === void 0 ? void 0 : options.compressionMethod, options === null || options === void 0 ? void 0 : options.enableCrossOsArchive);
     const reserveCacheRequest = {
@@ -86524,7 +86239,7 @@ function reserveCache(key, paths, options) {
       version: version3,
       cacheSize: options === null || options === void 0 ? void 0 : options.cacheSize
     };
-    const response = yield retryTypedResponse("reserveCache", () => __awaiter19(this, void 0, void 0, function* () {
+    const response = yield retryTypedResponse("reserveCache", () => __awaiter16(this, void 0, void 0, function* () {
       return httpClient.postJson(getCacheApiUrl("caches"), reserveCacheRequest);
     }));
     return response;
@@ -86534,13 +86249,13 @@ function getContentRange(start, end) {
   return `bytes ${start}-${end}/*`;
 }
 function uploadChunk(httpClient, resourceUrl, openStream, start, end) {
-  return __awaiter19(this, void 0, void 0, function* () {
+  return __awaiter16(this, void 0, void 0, function* () {
     debug(`Uploading chunk of size ${end - start + 1} bytes at offset ${start} with content range: ${getContentRange(start, end)}`);
     const additionalHeaders = {
       "Content-Type": "application/octet-stream",
       "Content-Range": getContentRange(start, end)
     };
-    const uploadChunkResponse = yield retryHttpClientResponse(`uploadChunk (start: ${start}, end: ${end})`, () => __awaiter19(this, void 0, void 0, function* () {
+    const uploadChunkResponse = yield retryHttpClientResponse(`uploadChunk (start: ${start}, end: ${end})`, () => __awaiter16(this, void 0, void 0, function* () {
       return httpClient.sendStream("PATCH", resourceUrl, openStream(), additionalHeaders);
     }));
     if (!isSuccessStatusCode(uploadChunkResponse.message.statusCode)) {
@@ -86549,7 +86264,7 @@ function uploadChunk(httpClient, resourceUrl, openStream, start, end) {
   });
 }
 function uploadFile(httpClient, cacheId, archivePath, options) {
-  return __awaiter19(this, void 0, void 0, function* () {
+  return __awaiter16(this, void 0, void 0, function* () {
     const fileSize = getArchiveFileSizeInBytes(archivePath);
     const resourceUrl = getCacheApiUrl(`caches/${cacheId.toString()}`);
     const fd = fs13.openSync(archivePath, "r");
@@ -86560,7 +86275,7 @@ function uploadFile(httpClient, cacheId, archivePath, options) {
     debug("Awaiting all uploads");
     let offset = 0;
     try {
-      yield Promise.all(parallelUploads.map(() => __awaiter19(this, void 0, void 0, function* () {
+      yield Promise.all(parallelUploads.map(() => __awaiter16(this, void 0, void 0, function* () {
         while (offset < fileSize) {
           const chunkSize = Math.min(fileSize - offset, maxChunkSize);
           const start = offset;
@@ -86583,15 +86298,15 @@ function uploadFile(httpClient, cacheId, archivePath, options) {
   });
 }
 function commitCache(httpClient, cacheId, filesize) {
-  return __awaiter19(this, void 0, void 0, function* () {
+  return __awaiter16(this, void 0, void 0, function* () {
     const commitCacheRequest = { size: filesize };
-    return yield retryTypedResponse("commitCache", () => __awaiter19(this, void 0, void 0, function* () {
+    return yield retryTypedResponse("commitCache", () => __awaiter16(this, void 0, void 0, function* () {
       return httpClient.postJson(getCacheApiUrl(`caches/${cacheId.toString()}`), commitCacheRequest);
     }));
   });
 }
 function saveCache(cacheId, archivePath, signedUploadURL, options) {
-  return __awaiter19(this, void 0, void 0, function* () {
+  return __awaiter16(this, void 0, void 0, function* () {
     const uploadOptions = getUploadOptions(options);
     if (uploadOptions.useAzureSdk) {
       if (!signedUploadURL) {
@@ -87291,7 +87006,7 @@ function maskSecretUrls(body2) {
 }
 
 // node_modules/@actions/cache/lib/internal/shared/cacheTwirpClient.js
-var __awaiter20 = function(thisArg, _arguments, P2, generator) {
+var __awaiter17 = function(thisArg, _arguments, P2, generator) {
   function adopt(value) {
     return value instanceof P2 ? value : new P2(function(resolve2) {
       resolve2(value);
@@ -87341,14 +87056,14 @@ var CacheServiceClient = class {
   // This function satisfies the Rpc interface. It is compatible with the JSON
   // JSON generated client.
   request(service, method, contentType2, data) {
-    return __awaiter20(this, void 0, void 0, function* () {
+    return __awaiter17(this, void 0, void 0, function* () {
       const url2 = new URL(`/twirp/${service}/${method}`, this.baseUrl).href;
       debug(`[Request] ${method} ${url2}`);
       const headers = {
         "Content-Type": contentType2
       };
       try {
-        const { body: body2 } = yield this.retryableRequest(() => __awaiter20(this, void 0, void 0, function* () {
+        const { body: body2 } = yield this.retryableRequest(() => __awaiter17(this, void 0, void 0, function* () {
           return this.httpClient.post(url2, JSON.stringify(data), headers);
         }));
         return body2;
@@ -87358,7 +87073,7 @@ var CacheServiceClient = class {
     });
   }
   retryableRequest(operation) {
-    return __awaiter20(this, void 0, void 0, function* () {
+    return __awaiter17(this, void 0, void 0, function* () {
       let attempt = 0;
       let errorMessage = "";
       let rawBody = "";
@@ -87441,7 +87156,7 @@ var CacheServiceClient = class {
     return retryableStatusCodes.includes(statusCode);
   }
   sleep(milliseconds) {
-    return __awaiter20(this, void 0, void 0, function* () {
+    return __awaiter17(this, void 0, void 0, function* () {
       return new Promise((resolve2) => setTimeout(resolve2, milliseconds));
     });
   }
@@ -87464,8 +87179,8 @@ function internalCacheTwirpClient(options) {
 
 // node_modules/@actions/cache/lib/internal/tar.js
 import { existsSync as existsSync4, writeFileSync as writeFileSync3 } from "fs";
-import * as path18 from "path";
-var __awaiter21 = function(thisArg, _arguments, P2, generator) {
+import * as path17 from "path";
+var __awaiter18 = function(thisArg, _arguments, P2, generator) {
   function adopt(value) {
     return value instanceof P2 ? value : new P2(function(resolve2) {
       resolve2(value);
@@ -87494,7 +87209,7 @@ var __awaiter21 = function(thisArg, _arguments, P2, generator) {
 };
 var IS_WINDOWS9 = process.platform === "win32";
 function getTarPath() {
-  return __awaiter21(this, void 0, void 0, function* () {
+  return __awaiter18(this, void 0, void 0, function* () {
     switch (process.platform) {
       case "win32": {
         const gnuTar = yield getGnuTarPathOnWindows();
@@ -87527,7 +87242,7 @@ function getTarPath() {
   });
 }
 function getTarArgs(tarPath_1, compressionMethod_1, type_1) {
-  return __awaiter21(this, arguments, void 0, function* (tarPath, compressionMethod, type3, archivePath = "") {
+  return __awaiter18(this, arguments, void 0, function* (tarPath, compressionMethod, type3, archivePath = "") {
     const args = [`"${tarPath.path}"`];
     const cacheFileName = getCacheFileName(compressionMethod);
     const tarFile = "cache.tar";
@@ -87535,13 +87250,13 @@ function getTarArgs(tarPath_1, compressionMethod_1, type_1) {
     const BSD_TAR_ZSTD = tarPath.type === ArchiveToolType.BSD && compressionMethod !== CompressionMethod.Gzip && IS_WINDOWS9;
     switch (type3) {
       case "create":
-        args.push("--posix", "-cf", BSD_TAR_ZSTD ? tarFile : cacheFileName.replace(new RegExp(`\\${path18.sep}`, "g"), "/"), "--exclude", BSD_TAR_ZSTD ? tarFile : cacheFileName.replace(new RegExp(`\\${path18.sep}`, "g"), "/"), "-P", "-C", workingDirectory.replace(new RegExp(`\\${path18.sep}`, "g"), "/"), "--files-from", ManifestFilename);
+        args.push("--posix", "-cf", BSD_TAR_ZSTD ? tarFile : cacheFileName.replace(new RegExp(`\\${path17.sep}`, "g"), "/"), "--exclude", BSD_TAR_ZSTD ? tarFile : cacheFileName.replace(new RegExp(`\\${path17.sep}`, "g"), "/"), "-P", "-C", workingDirectory.replace(new RegExp(`\\${path17.sep}`, "g"), "/"), "--files-from", ManifestFilename);
         break;
       case "extract":
-        args.push("-xf", BSD_TAR_ZSTD ? tarFile : archivePath.replace(new RegExp(`\\${path18.sep}`, "g"), "/"), "-P", "-C", workingDirectory.replace(new RegExp(`\\${path18.sep}`, "g"), "/"));
+        args.push("-xf", BSD_TAR_ZSTD ? tarFile : archivePath.replace(new RegExp(`\\${path17.sep}`, "g"), "/"), "-P", "-C", workingDirectory.replace(new RegExp(`\\${path17.sep}`, "g"), "/"));
         break;
       case "list":
-        args.push("-tf", BSD_TAR_ZSTD ? tarFile : archivePath.replace(new RegExp(`\\${path18.sep}`, "g"), "/"), "-P");
+        args.push("-tf", BSD_TAR_ZSTD ? tarFile : archivePath.replace(new RegExp(`\\${path17.sep}`, "g"), "/"), "-P");
         break;
     }
     if (tarPath.type === ArchiveToolType.GNU) {
@@ -87558,7 +87273,7 @@ function getTarArgs(tarPath_1, compressionMethod_1, type_1) {
   });
 }
 function getCommands(compressionMethod_1, type_1) {
-  return __awaiter21(this, arguments, void 0, function* (compressionMethod, type3, archivePath = "") {
+  return __awaiter18(this, arguments, void 0, function* (compressionMethod, type3, archivePath = "") {
     let args;
     const tarPath = yield getTarPath();
     const tarArgs = yield getTarArgs(tarPath, compressionMethod, type3, archivePath);
@@ -87580,14 +87295,14 @@ function getWorkingDirectory() {
   return (_a = process.env["GITHUB_WORKSPACE"]) !== null && _a !== void 0 ? _a : process.cwd();
 }
 function getDecompressionProgram(tarPath, compressionMethod, archivePath) {
-  return __awaiter21(this, void 0, void 0, function* () {
+  return __awaiter18(this, void 0, void 0, function* () {
     const BSD_TAR_ZSTD = tarPath.type === ArchiveToolType.BSD && compressionMethod !== CompressionMethod.Gzip && IS_WINDOWS9;
     switch (compressionMethod) {
       case CompressionMethod.Zstd:
         return BSD_TAR_ZSTD ? [
           "zstd -d --long=30 --force -o",
           TarFilename,
-          archivePath.replace(new RegExp(`\\${path18.sep}`, "g"), "/")
+          archivePath.replace(new RegExp(`\\${path17.sep}`, "g"), "/")
         ] : [
           "--use-compress-program",
           IS_WINDOWS9 ? '"zstd -d --long=30"' : "unzstd --long=30"
@@ -87596,7 +87311,7 @@ function getDecompressionProgram(tarPath, compressionMethod, archivePath) {
         return BSD_TAR_ZSTD ? [
           "zstd -d --force -o",
           TarFilename,
-          archivePath.replace(new RegExp(`\\${path18.sep}`, "g"), "/")
+          archivePath.replace(new RegExp(`\\${path17.sep}`, "g"), "/")
         ] : ["--use-compress-program", IS_WINDOWS9 ? '"zstd -d"' : "unzstd"];
       default:
         return ["-z"];
@@ -87604,14 +87319,14 @@ function getDecompressionProgram(tarPath, compressionMethod, archivePath) {
   });
 }
 function getCompressionProgram(tarPath, compressionMethod) {
-  return __awaiter21(this, void 0, void 0, function* () {
+  return __awaiter18(this, void 0, void 0, function* () {
     const cacheFileName = getCacheFileName(compressionMethod);
     const BSD_TAR_ZSTD = tarPath.type === ArchiveToolType.BSD && compressionMethod !== CompressionMethod.Gzip && IS_WINDOWS9;
     switch (compressionMethod) {
       case CompressionMethod.Zstd:
         return BSD_TAR_ZSTD ? [
           "zstd -T0 --long=30 --force -o",
-          cacheFileName.replace(new RegExp(`\\${path18.sep}`, "g"), "/"),
+          cacheFileName.replace(new RegExp(`\\${path17.sep}`, "g"), "/"),
           TarFilename
         ] : [
           "--use-compress-program",
@@ -87620,7 +87335,7 @@ function getCompressionProgram(tarPath, compressionMethod) {
       case CompressionMethod.ZstdWithoutLong:
         return BSD_TAR_ZSTD ? [
           "zstd -T0 --force -o",
-          cacheFileName.replace(new RegExp(`\\${path18.sep}`, "g"), "/"),
+          cacheFileName.replace(new RegExp(`\\${path17.sep}`, "g"), "/"),
           TarFilename
         ] : ["--use-compress-program", IS_WINDOWS9 ? '"zstd -T0"' : "zstdmt"];
       default:
@@ -87629,7 +87344,7 @@ function getCompressionProgram(tarPath, compressionMethod) {
   });
 }
 function execCommands(commands, cwd) {
-  return __awaiter21(this, void 0, void 0, function* () {
+  return __awaiter18(this, void 0, void 0, function* () {
     for (const command of commands) {
       try {
         yield exec(command, void 0, {
@@ -87643,13 +87358,13 @@ function execCommands(commands, cwd) {
   });
 }
 function listTar(archivePath, compressionMethod) {
-  return __awaiter21(this, void 0, void 0, function* () {
+  return __awaiter18(this, void 0, void 0, function* () {
     const commands = yield getCommands(compressionMethod, "list", archivePath);
     yield execCommands(commands);
   });
 }
 function extractTar2(archivePath, compressionMethod) {
-  return __awaiter21(this, void 0, void 0, function* () {
+  return __awaiter18(this, void 0, void 0, function* () {
     const workingDirectory = getWorkingDirectory();
     yield mkdirP(workingDirectory);
     const commands = yield getCommands(compressionMethod, "extract", archivePath);
@@ -87657,15 +87372,15 @@ function extractTar2(archivePath, compressionMethod) {
   });
 }
 function createTar(archiveFolder, sourceDirectories, compressionMethod) {
-  return __awaiter21(this, void 0, void 0, function* () {
-    writeFileSync3(path18.join(archiveFolder, ManifestFilename), sourceDirectories.join("\n"));
+  return __awaiter18(this, void 0, void 0, function* () {
+    writeFileSync3(path17.join(archiveFolder, ManifestFilename), sourceDirectories.join("\n"));
     const commands = yield getCommands(compressionMethod, "create");
     yield execCommands(commands, archiveFolder);
   });
 }
 
 // node_modules/@actions/cache/lib/cache.js
-var __awaiter22 = function(thisArg, _arguments, P2, generator) {
+var __awaiter19 = function(thisArg, _arguments, P2, generator) {
   function adopt(value) {
     return value instanceof P2 ? value : new P2(function(resolve2) {
       resolve2(value);
@@ -87728,7 +87443,7 @@ function checkKey(key) {
   }
 }
 function restoreCache(paths_1, primaryKey_1, restoreKeys_1, options_1) {
-  return __awaiter22(this, arguments, void 0, function* (paths, primaryKey, restoreKeys, options, enableCrossOsArchive = false) {
+  return __awaiter19(this, arguments, void 0, function* (paths, primaryKey, restoreKeys, options, enableCrossOsArchive = false) {
     const cacheServiceVersion = getCacheServiceVersion();
     debug(`Cache service version: ${cacheServiceVersion}`);
     checkPaths(paths);
@@ -87742,7 +87457,7 @@ function restoreCache(paths_1, primaryKey_1, restoreKeys_1, options_1) {
   });
 }
 function restoreCacheV1(paths_1, primaryKey_1, restoreKeys_1, options_1) {
-  return __awaiter22(this, arguments, void 0, function* (paths, primaryKey, restoreKeys, options, enableCrossOsArchive = false) {
+  return __awaiter19(this, arguments, void 0, function* (paths, primaryKey, restoreKeys, options, enableCrossOsArchive = false) {
     restoreKeys = restoreKeys || [];
     const keys = [primaryKey, ...restoreKeys];
     debug("Resolved Keys:");
@@ -87767,7 +87482,7 @@ function restoreCacheV1(paths_1, primaryKey_1, restoreKeys_1, options_1) {
         info("Lookup only - skipping download");
         return cacheEntry.cacheKey;
       }
-      archivePath = path19.join(yield createTempDirectory(), getCacheFileName(compressionMethod));
+      archivePath = path18.join(yield createTempDirectory(), getCacheFileName(compressionMethod));
       debug(`Archive Path: ${archivePath}`);
       yield downloadCache(cacheEntry.archiveLocation, archivePath, options);
       if (isDebug()) {
@@ -87800,7 +87515,7 @@ function restoreCacheV1(paths_1, primaryKey_1, restoreKeys_1, options_1) {
   });
 }
 function restoreCacheV2(paths_1, primaryKey_1, restoreKeys_1, options_1) {
-  return __awaiter22(this, arguments, void 0, function* (paths, primaryKey, restoreKeys, options, enableCrossOsArchive = false) {
+  return __awaiter19(this, arguments, void 0, function* (paths, primaryKey, restoreKeys, options, enableCrossOsArchive = false) {
     options = Object.assign(Object.assign({}, options), { useAzureSdk: true });
     restoreKeys = restoreKeys || [];
     const keys = [primaryKey, ...restoreKeys];
@@ -87836,7 +87551,7 @@ function restoreCacheV2(paths_1, primaryKey_1, restoreKeys_1, options_1) {
         info("Lookup only - skipping download");
         return response.matchedKey;
       }
-      archivePath = path19.join(yield createTempDirectory(), getCacheFileName(compressionMethod));
+      archivePath = path18.join(yield createTempDirectory(), getCacheFileName(compressionMethod));
       debug(`Archive path: ${archivePath}`);
       debug(`Starting download of archive to: ${archivePath}`);
       yield downloadCache(response.signedDownloadUrl, archivePath, options);
@@ -87872,7 +87587,7 @@ function restoreCacheV2(paths_1, primaryKey_1, restoreKeys_1, options_1) {
   });
 }
 function saveCache2(paths_1, key_1, options_1) {
-  return __awaiter22(this, arguments, void 0, function* (paths, key, options, enableCrossOsArchive = false) {
+  return __awaiter19(this, arguments, void 0, function* (paths, key, options, enableCrossOsArchive = false) {
     const cacheServiceVersion = getCacheServiceVersion();
     debug(`Cache service version: ${cacheServiceVersion}`);
     checkPaths(paths);
@@ -87887,7 +87602,7 @@ function saveCache2(paths_1, key_1, options_1) {
   });
 }
 function saveCacheV1(paths_1, key_1, options_1) {
-  return __awaiter22(this, arguments, void 0, function* (paths, key, options, enableCrossOsArchive = false) {
+  return __awaiter19(this, arguments, void 0, function* (paths, key, options, enableCrossOsArchive = false) {
     var _a, _b, _c, _d, _e2;
     const compressionMethod = yield getCompressionMethod();
     let cacheId = -1;
@@ -87898,7 +87613,7 @@ function saveCacheV1(paths_1, key_1, options_1) {
       throw new Error(`Path Validation Error: Path(s) specified in the action for caching do(es) not exist, hence no cache is being saved.`);
     }
     const archiveFolder = yield createTempDirectory();
-    const archivePath = path19.join(archiveFolder, getCacheFileName(compressionMethod));
+    const archivePath = path18.join(archiveFolder, getCacheFileName(compressionMethod));
     debug(`Archive Path: ${archivePath}`);
     try {
       yield createTar(archiveFolder, cachePaths, compressionMethod);
@@ -87950,7 +87665,7 @@ function saveCacheV1(paths_1, key_1, options_1) {
   });
 }
 function saveCacheV2(paths_1, key_1, options_1) {
-  return __awaiter22(this, arguments, void 0, function* (paths, key, options, enableCrossOsArchive = false) {
+  return __awaiter19(this, arguments, void 0, function* (paths, key, options, enableCrossOsArchive = false) {
     options = Object.assign(Object.assign({}, options), { uploadChunkSize: 64 * 1024 * 1024, uploadConcurrency: 8, useAzureSdk: true });
     const compressionMethod = yield getCompressionMethod();
     const twirpClient = internalCacheTwirpClient();
@@ -87962,7 +87677,7 @@ function saveCacheV2(paths_1, key_1, options_1) {
       throw new Error(`Path Validation Error: Path(s) specified in the action for caching do(es) not exist, hence no cache is being saved.`);
     }
     const archiveFolder = yield createTempDirectory();
-    const archivePath = path19.join(archiveFolder, getCacheFileName(compressionMethod));
+    const archivePath = path18.join(archiveFolder, getCacheFileName(compressionMethod));
     debug(`Archive Path: ${archivePath}`);
     try {
       yield createTar(archiveFolder, cachePaths, compressionMethod);
@@ -88051,7 +87766,7 @@ var ToolchainInstaller = class {
       return data.baseUrl;
     }
     const base = "https://download.swift.org";
-    return new URL5(path20.posix.join("/", data.branch, data.platform, data.dir), base);
+    return new URL5(path19.posix.join("/", data.branch, data.platform, data.dir), base);
   }
   swiftVersionCommand() {
     return {
@@ -88071,7 +87786,7 @@ var ToolchainInstaller = class {
       tool = find(toolCacheKey, version3, arch5).trim();
     }
     const tmpDir = process.env.RUNNER_TEMP || os11.tmpdir();
-    const restore = path20.join(tmpDir, "setup-swift", toolCacheKey);
+    const restore = path19.join(tmpDir, "setup-swift", toolCacheKey);
     if (!tool?.length) {
       if (await restoreCache([restore], actionCacheKey)) {
         debug(`Restored snapshot at "${restore}" from key "${actionCacheKey}"`);
@@ -88105,7 +87820,7 @@ var ToolchainInstaller = class {
     await this.add(tool, arch5);
   }
   async download(arch5) {
-    const url2 = new URL5(path20.posix.join(this.baseUrl.pathname, this.data.download), this.baseUrl);
+    const url2 = new URL5(path19.posix.join(this.baseUrl.pathname, this.data.download), this.baseUrl);
     debug(`Downloading snapshot from "${url2}" for architecture ${arch5}`);
     return await downloadTool(url2.href);
   }
@@ -88129,9 +87844,9 @@ async function setupKeys() {
   try {
     debug("Fetching verification PGP keys");
     const allKeys = "https://swift.org/keys/all-keys.asc";
-    const path36 = await downloadTool(allKeys);
+    const path35 = await downloadTool(allKeys);
     debug("Importing verification PGP keys");
-    await exec("gpg", ["--import", path36]);
+    await exec("gpg", ["--import", path35]);
   } catch {
     debug("Using fallback PGP keys server");
     await exec("gpg", [
@@ -88220,7 +87935,7 @@ var VerifyingToolchainInstaller = class extends ToolchainInstaller {
 };
 
 // lib/installer/linux.js
-import * as path21 from "path";
+import * as path20 from "path";
 import { promises as fs15 } from "fs";
 
 // lib/installer/package_manager/index.js
@@ -88245,8 +87960,8 @@ var PackageManager = class {
 var LinuxToolchainInstaller = class extends VerifyingToolchainInstaller {
   async installDependencies() {
     const platform2 = this.data.platform;
-    const linuxRequirements = path21.join(SWIFTORG, "_includes", "linux");
-    const file = path21.join(MODULE_DIR, linuxRequirements, `${platform2}.html`);
+    const linuxRequirements = path20.join(SWIFTORG, "_includes", "linux");
+    const file = path20.join(MODULE_DIR, linuxRequirements, `${platform2}.html`);
     try {
       await fs15.access(file);
     } catch (error2) {
@@ -88285,12 +88000,12 @@ var LinuxToolchainInstaller = class extends VerifyingToolchainInstaller {
     debug(`Extracting toolchain from "${archive}"`);
     const extractPath = await extractTar(archive);
     debug(`Toolchain extracted to "${extractPath}"`);
-    const archiveName = path21.basename(this.data.download, ".tar.gz");
-    return path21.join(extractPath, archiveName);
+    const archiveName = path20.basename(this.data.download, ".tar.gz");
+    return path20.join(extractPath, archiveName);
   }
   async add(toolchain) {
     debug(`Adding toolchain "${toolchain}" to path`);
-    const swiftPath = path21.join(toolchain, "usr", "bin");
+    const swiftPath = path20.join(toolchain, "usr", "bin");
     addPath(swiftPath);
     debug(`Swift installed at "${swiftPath}"`);
   }
@@ -88298,13 +88013,13 @@ var LinuxToolchainInstaller = class extends VerifyingToolchainInstaller {
 
 // lib/installer/windows/index.js
 import * as os14 from "os";
-import * as path30 from "path";
+import * as path29 from "path";
 import { promises as fs21 } from "fs";
 var semver5 = __toESM(require_semver2(), 1);
 
 // lib/utils/visual_studio/base.js
 import * as os12 from "os";
-import * as path22 from "path";
+import * as path21 from "path";
 var VISUAL_STUDIO_WINSDK_COMPONENT_REGEX = /Microsoft\.VisualStudio\.Component\.Windows[0-9]+SDK\.([0-9]+)/;
 var VisualStudio = class _VisualStudio {
   installationPath;
@@ -88340,7 +88055,7 @@ var VisualStudio = class _VisualStudio {
     ];
   }
   async env() {
-    const nativeToolsScriptx86 = path22.join(this.installationPath, "Common7", "Tools", "VsDevCmd.bat");
+    const nativeToolsScriptx86 = path21.join(this.installationPath, "Common7", "Tools", "VsDevCmd.bat");
     const args = [];
     const sdkComponentMatch = this.components.map((component) => {
       return VISUAL_STUDIO_WINSDK_COMPONENT_REGEX.exec(component);
@@ -88366,23 +88081,23 @@ var VisualStudio = class _VisualStudio {
 
 // lib/utils/visual_studio/setup.js
 import * as os13 from "os";
-import * as path25 from "path";
+import * as path24 from "path";
 import { promises as fs17 } from "fs";
 import { randomUUID as randomUUID6 } from "crypto";
 
 // lib/utils/visual_studio/vswhere.js
-import * as path24 from "path";
+import * as path23 from "path";
 import { promises as fs16 } from "fs";
 
 // lib/utils/windows/index.js
-import * as path23 from "path";
+import * as path22 from "path";
 function systemDrive() {
   return process.env.SystemDrive ?? "C:";
 }
 function program86() {
   const drive = systemDrive();
   const program862 = "ProgramFiles(x86)";
-  return process.env[program862] ?? path23.join(drive, program862);
+  return process.env[program862] ?? path22.join(drive, program862);
 }
 
 // lib/utils/visual_studio/vswhere.js
@@ -88393,14 +88108,14 @@ var VSWhere;
     const vsWherePath = process.env.VSWHERE_PATH;
     if (vsWherePath) {
       debug(`Using given vswhere-path: ${vsWherePath}`);
-      vswhereToolExe = path24.join(vsWherePath, "vswhere.exe");
+      vswhereToolExe = path23.join(vsWherePath, "vswhere.exe");
     } else {
       try {
         const vsWhereInPath = await which("vswhere", true);
         debug(`Found vswhere in path: ${vsWhereInPath}`);
         vswhereToolExe = vsWhereInPath;
       } catch {
-        vswhereToolExe = path24.join(program86(), "Microsoft Visual Studio", "Installer", "vswhere.exe");
+        vswhereToolExe = path23.join(program86(), "Microsoft Visual Studio", "Installer", "vswhere.exe");
         debug(`Trying Visual Studio-installed path: ${vswhereToolExe}`);
       }
     }
@@ -88443,7 +88158,7 @@ VisualStudio.setup = async function(requirement) {
   if (vsEnv.UCRTVersion && vsEnv.UniversalCRTSdkDir && vsEnv.VCToolsInstallDir) {
     const tmpDir = process.env.RUNNER_TEMP || os13.tmpdir();
     const configFileName = `swift-setup-installation-${randomUUID6()}.vsconfig`;
-    const configPath = path25.join(tmpDir, configFileName);
+    const configPath = path24.join(tmpDir, configFileName);
     debug(`Exporting VS installation config to "${configPath}"`);
     await exec(`"${vs2.properties.setupEngineFilePath}"`, [
       "export",
@@ -88475,7 +88190,7 @@ VisualStudio.setup = async function(requirement) {
 };
 
 // lib/utils/visual_studio/update.js
-import * as path26 from "path";
+import * as path25 from "path";
 import { promises as fs18 } from "fs";
 VisualStudio.prototype.update = async function(sdkroot) {
   const vsEnv = await this.env();
@@ -88491,14 +88206,14 @@ VisualStudio.prototype.update = async function(sdkroot) {
   if (!(universalCRTSdkDir && uCRTVersion && vCToolsInstallDir)) {
     throw new Error(`Failed to find paths from "${JSON.stringify(vsEnv)}"`);
   }
-  const sdkshare = path26.join(sdkroot, "usr", "share");
-  const winsdk = path26.join(universalCRTSdkDir, "Include", uCRTVersion);
-  const vcToolsInclude = path26.join(vCToolsInstallDir, "include");
-  const vcModulemap = path26.join(vcToolsInclude, "module.modulemap");
-  const uCRTMapInstalled = path26.join(sdkshare, "ucrt.modulemap");
-  const winsdkMap = path26.join(sdkshare, "winsdk.modulemap");
-  const uCRTMapSdk = path26.join(winsdk, "ucrt", "module.modulemap");
-  const umMap = path26.join(winsdk, "um", "module.modulemap");
+  const sdkshare = path25.join(sdkroot, "usr", "share");
+  const winsdk = path25.join(universalCRTSdkDir, "Include", uCRTVersion);
+  const vcToolsInclude = path25.join(vCToolsInstallDir, "include");
+  const vcModulemap = path25.join(vcToolsInclude, "module.modulemap");
+  const uCRTMapInstalled = path25.join(sdkshare, "ucrt.modulemap");
+  const winsdkMap = path25.join(sdkshare, "winsdk.modulemap");
+  const uCRTMapSdk = path25.join(winsdk, "ucrt", "module.modulemap");
+  const umMap = path25.join(winsdk, "um", "module.modulemap");
   try {
     await fs18.access(uCRTMapInstalled);
     await fs18.access(winsdkMap);
@@ -88509,19 +88224,19 @@ VisualStudio.prototype.update = async function(sdkroot) {
   await fs18.copyFile(uCRTMapInstalled, uCRTMapSdk);
   await fs18.copyFile(winsdkMap, umMap);
   try {
-    const modulemap = path26.join(sdkshare, "vcruntime.modulemap");
+    const modulemap = path25.join(sdkshare, "vcruntime.modulemap");
     const runtimenotes = "vcruntime.apinotes";
-    const apinotes = path26.join(sdkshare, runtimenotes);
+    const apinotes = path25.join(sdkshare, runtimenotes);
     await fs18.access(modulemap);
     await fs18.copyFile(modulemap, vcModulemap);
-    await fs18.copyFile(apinotes, path26.join(vcToolsInclude, runtimenotes));
+    await fs18.copyFile(apinotes, path25.join(vcToolsInclude, runtimenotes));
   } catch (error2) {
     debug(`Using visualc files for copy due to "${error2}"`);
-    const modulemap = path26.join(sdkshare, "visualc.modulemap");
+    const modulemap = path25.join(sdkshare, "visualc.modulemap");
     const runtimenotes = "visualc.apinotes";
-    const apinotes = path26.join(sdkshare, runtimenotes);
+    const apinotes = path25.join(sdkshare, runtimenotes);
     await fs18.copyFile(modulemap, vcModulemap);
-    await fs18.copyFile(apinotes, path26.join(vcToolsInclude, runtimenotes));
+    await fs18.copyFile(apinotes, path25.join(vcToolsInclude, runtimenotes));
   }
 };
 
@@ -88550,21 +88265,21 @@ var CustomInstallation = class {
 };
 
 // lib/installer/windows/installation/approach.js
-import * as path27 from "path";
+import * as path26 from "path";
 import { promises as fs19 } from "fs";
 async function firstDirectoryLayout(root) {
   debug("Trying first installation approach");
   const drive = systemDrive();
-  const location = root ?? path27.join(drive, "Library");
-  const devdir = path27.join(location, "Developer");
+  const location = root ?? path26.join(drive, "Library");
+  const devdir = path26.join(location, "Developer");
   const toolchainName = "unknown-Asserts-development.xctoolchain";
-  const toolchain = path27.join(devdir, "Toolchains", toolchainName);
+  const toolchain = path26.join(devdir, "Toolchains", toolchainName);
   await fs19.access(toolchain);
-  const winsdk = path27.join("Developer", "SDKs", "Windows.sdk");
-  const sdkroot = path27.join(devdir, "Platforms", "Windows.platform", winsdk);
-  const runtimeRoot = path27.join(location, "Swift");
-  const runtime = path27.join(runtimeRoot, "runtime-development");
-  const devPath = path27.join(drive, "Program Files", "Swift");
+  const winsdk = path26.join("Developer", "SDKs", "Windows.sdk");
+  const sdkroot = path26.join(devdir, "Platforms", "Windows.platform", winsdk);
+  const runtimeRoot = path26.join(location, "Swift");
+  const runtime = path26.join(runtimeRoot, "runtime-development");
+  const devPath = path26.join(drive, "Program Files", "Swift");
   try {
     await fs19.access(devPath);
     await fs19.cp(devPath, runtimeRoot, { recursive: true });
@@ -88577,13 +88292,13 @@ async function firstDirectoryLayout(root) {
 async function secondDirectoryLayout(root) {
   debug("Trying second installation approach");
   const drive = root ?? systemDrive();
-  const location = path27.join(drive, "Program Files", "Swift");
+  const location = path26.join(drive, "Program Files", "Swift");
   const toolchainName = "0.0.0+Asserts";
-  const toolchain = path27.join(location, "Toolchains", toolchainName);
+  const toolchain = path26.join(location, "Toolchains", toolchainName);
   await fs19.access(toolchain);
-  const winsdk = path27.join("Developer", "SDKs", "Windows.sdk");
-  const sdkroot = path27.join(location, "Platforms", "Windows.platform", winsdk);
-  const runtime = path27.join(location, "Runtimes", "0.0.0");
+  const winsdk = path26.join("Developer", "SDKs", "Windows.sdk");
+  const sdkroot = path26.join(location, "Platforms", "Windows.platform", winsdk);
+  const runtime = path26.join(location, "Runtimes", "0.0.0");
   debug("Second installation approach succeeded");
   return new Installation(location, toolchain, sdkroot, runtime);
 }
@@ -88597,21 +88312,21 @@ async function thirdDirectoryLayout(version3, root) {
     if (!localAppData) {
       throw new Error("LOCALAPPDATA environment variable not set");
     }
-    location = path27.join(localAppData, "Programs", "Swift");
+    location = path26.join(localAppData, "Programs", "Swift");
   }
   const toolchainName = `${version3}+Asserts`;
-  const toolchain = path27.join(location, "Toolchains", toolchainName);
+  const toolchain = path26.join(location, "Toolchains", toolchainName);
   await fs19.access(toolchain);
-  const winsdk = path27.join("Developer", "SDKs", "Windows.sdk");
-  const sdkroot = path27.join(location, "Platforms", version3, "Windows.platform", winsdk);
-  const runtime = path27.join(location, "Runtimes", version3);
+  const winsdk = path26.join("Developer", "SDKs", "Windows.sdk");
+  const sdkroot = path26.join(location, "Platforms", version3, "Windows.platform", winsdk);
+  const runtime = path26.join(location, "Runtimes", version3);
   debug("Third installation approach succeeded");
   return new Installation(location, toolchain, sdkroot, runtime);
 }
 
 // lib/installer/windows/installation/fallback.js
-import * as path28 from "path";
-function comapareEnvironment(oldJSON, newJSON) {
+import * as path27 from "path";
+function compareEnvironment(oldJSON, newJSON) {
   const difference = {};
   let newPaths = [];
   let before;
@@ -88623,7 +88338,7 @@ function comapareEnvironment(oldJSON, newJSON) {
       const old = before[key];
       if (before[key] !== value) {
         if (key.toUpperCase() === "PATH" && old) {
-          newPaths = value.replace(old, "").split(path28.delimiter).filter((item) => item);
+          newPaths = value.replace(old, "").split(path27.delimiter).filter((item) => item);
         } else {
           difference[key] = value;
         }
@@ -88650,7 +88365,7 @@ async function fallback(oldEnv, newEnv) {
   const data = Object.entries(newEnv).reduce((previous, current) => {
     return {
       ...previous,
-      ...comapareEnvironment(oldEnv[current[0]], current[1])
+      ...compareEnvironment(oldEnv[current[0]], current[1])
     };
   }, {});
   debug(`Setting up environment with "${JSON.stringify(data)}"`);
@@ -88707,14 +88422,14 @@ Installation.detect = async (oldEnv, newEnv, version3) => {
 };
 
 // lib/installer/windows/modules/index.js
-import * as path29 from "path";
+import * as path28 from "path";
 import * as https4 from "https";
 import { promises as fs20 } from "fs";
 async function updateSdkModules(sdkRoot) {
   startGroup("Updating SDK module definitions to latest version");
   let swiftPath;
-  for (const p of process.env.PATH?.split(path29.delimiter) ?? []) {
-    swiftPath = path29.join(p, process.platform === "win32" ? "swift.exe" : "swift");
+  for (const p of process.env.PATH?.split(path28.delimiter) ?? []) {
+    swiftPath = path28.join(p, process.platform === "win32" ? "swift.exe" : "swift");
     try {
       await fs20.access(swiftPath);
       break;
@@ -88726,41 +88441,41 @@ async function updateSdkModules(sdkRoot) {
   if (!swiftPath) {
     throw new Error("Swift command not found in PATH");
   }
-  const swiftRoot = path29.dirname(path29.dirname(swiftPath));
+  const swiftRoot = path28.dirname(path28.dirname(swiftPath));
   const moduleDefinitions = {
     "(Legacy) WinSDK Module Map": {
       url: "https://raw.githubusercontent.com/swiftlang/swift/main/stdlib/public/Platform/winsdk_um.modulemap",
-      destination: path29.join(sdkRoot, "usr", "share", "winsdk.modulemap")
+      destination: path28.join(sdkRoot, "usr", "share", "winsdk.modulemap")
     },
     "WinSDK(UM) Module Map": {
       url: "https://raw.githubusercontent.com/swiftlang/swift/main/stdlib/public/Platform/winsdk_um.modulemap",
-      destination: path29.join(sdkRoot, "usr", "share", "winsdk_um.modulemap")
+      destination: path28.join(sdkRoot, "usr", "share", "winsdk_um.modulemap")
     },
     "WinSDK(Shared) Module Map": {
       url: "https://raw.githubusercontent.com/swiftlang/swift/main/stdlib/public/Platform/winsdk_shared.modulemap",
-      destination: path29.join(sdkRoot, "usr", "share", "winsdk_shared.modulemap")
+      destination: path28.join(sdkRoot, "usr", "share", "winsdk_shared.modulemap")
     },
     "UCRT Module Map": {
       url: "https://raw.githubusercontent.com/swiftlang/swift/main/stdlib/public/Platform/ucrt.modulemap",
-      destination: path29.join(sdkRoot, "usr", "share", "ucrt.modulemap")
+      destination: path28.join(sdkRoot, "usr", "share", "ucrt.modulemap")
     },
     "VCRuntime Module Map": {
       url: "https://raw.githubusercontent.com/swiftlang/swift/main/stdlib/public/Platform/vcruntime.modulemap",
-      destination: path29.join(sdkRoot, "usr", "share", "vcruntime.modulemap")
+      destination: path28.join(sdkRoot, "usr", "share", "vcruntime.modulemap")
     },
     "VCRuntime API Notes": {
       url: "https://raw.githubusercontent.com/swiftlang/swift/main/stdlib/public/Platform/vcruntime.apinotes",
-      destination: path29.join(sdkRoot, "usr", "share", "vcruntime.apinotes")
+      destination: path28.join(sdkRoot, "usr", "share", "vcruntime.apinotes")
     },
     "Clang Module Map": {
       url: "https://raw.githubusercontent.com/llvm/llvm-project/main/clang/lib/Headers/module.modulemap",
-      destination: path29.join(swiftRoot, "lib", "swift", "clang", "include", "module.modulemap")
+      destination: path28.join(swiftRoot, "lib", "swift", "clang", "include", "module.modulemap")
     }
   };
   const createdDirectories = [];
   for (const [name, definition] of Object.entries(moduleDefinitions)) {
     try {
-      const destinationDir = path29.dirname(definition.destination);
+      const destinationDir = path28.dirname(definition.destination);
       if (!createdDirectories.includes(destinationDir)) {
         await fs20.mkdir(destinationDir, { recursive: true });
         createdDirectories.push(destinationDir);
@@ -88830,7 +88545,7 @@ var WindowsToolchainInstaller = class extends VerifyingToolchainInstaller {
     return `Microsoft.VisualStudio.Component.Windows${major2}SDK.${minor}`;
   }
   async installedSdks() {
-    const sdksPath = path30.join(program86(), "Windows Kits", "10", "Include");
+    const sdksPath = path29.join(program86(), "Windows Kits", "10", "Include");
     try {
       const dirs = await fs21.readdir(sdksPath, { withFileTypes: true });
       return dirs.filter((dirent) => dirent.isDirectory()).map((dirent) => {
@@ -88900,17 +88615,17 @@ var WindowsToolchainInstaller = class extends VerifyingToolchainInstaller {
     const sdkrootKey = "SDKROOT";
     let sdkroot;
     if (installation instanceof Installation) {
-      sdkroot = installation?.sdkroot ?? core_exports;
+      sdkroot = installation?.sdkroot;
       exportVariable(sdkrootKey, sdkroot);
       if (installation.devdir) {
         exportVariable("DEVELOPER_DIR", installation.devdir);
       }
       const location = installation.location;
-      const swiftPath = path30.join(installation.toolchain, "usr", "bin");
-      const swiftDev = path30.join(location, "Swift-development", "bin");
-      const icu67 = path30.join(location, "icu-67", "usr", "bin");
-      const tools = path30.join(location, "Tools");
-      const runtimePath = path30.join(installation.runtime, "usr", "bin");
+      const swiftPath = path29.join(installation.toolchain, "usr", "bin");
+      const swiftDev = path29.join(location, "Swift-development", "bin");
+      const icu67 = path29.join(location, "icu-67", "usr", "bin");
+      const tools = path29.join(location, "Tools");
+      const runtimePath = path29.join(installation.runtime, "usr", "bin");
       const requirePaths = [swiftPath, swiftDev, icu67, tools, runtimePath];
       for (const envPath of requirePaths) {
         try {
@@ -88941,16 +88656,16 @@ var WindowsToolchainInstaller = class extends VerifyingToolchainInstaller {
       "-sdk",
       sdkroot,
       "-I",
-      path30.join(sdkroot, "usr", "lib", "swift"),
+      path29.join(sdkroot, "usr", "lib", "swift"),
       "-L",
-      path30.join(sdkroot, "usr", "lib", "swift", "windows")
+      path29.join(sdkroot, "usr", "lib", "swift", "windows")
     ].join(" ");
     exportVariable("SWIFTFLAGS", swiftFlags);
   }
 };
 
 // lib/installer/xcode.js
-import * as path31 from "path";
+import * as path30 from "path";
 import { promises as fs22 } from "fs";
 var plist = __toESM(require_plist(), 1);
 var XcodeToolchainInstaller = class extends ToolchainInstaller {
@@ -89002,21 +88717,21 @@ var XcodeToolchainInstaller = class extends ToolchainInstaller {
     const unpackedPath = await extractXar(pkg);
     debug(`Toolchain unpacked to "${unpackedPath}"`);
     const pkgFile = this.data.download;
-    const pkgName = path31.basename(pkgFile, path31.extname(pkgFile));
-    const payload = path31.join(unpackedPath, `${pkgName}-package.pkg`, "Payload");
+    const pkgName = path30.basename(pkgFile, path30.extname(pkgFile));
+    const payload = path30.join(unpackedPath, `${pkgName}-package.pkg`, "Payload");
     const extractedPath = await extractTar(payload);
     debug(`Toolchain extracted to "${extractedPath}"`);
     return extractedPath;
   }
   async add(toolchain, arch5) {
-    const xctoolchains = path31.join("/Library", "Developer", "Toolchains");
+    const xctoolchains = path30.join("/Library", "Developer", "Toolchains");
     try {
       await fs22.access(xctoolchains);
     } catch (error2) {
       debug(`Creating directory "${xctoolchains}" resolving "${error2}"`);
       await exec("sudo", ["mkdir", "-p", xctoolchains]);
     }
-    const xctoolchain = path31.join(xctoolchains, `${this.data.dir}.xctoolchain`);
+    const xctoolchain = path30.join(xctoolchains, `${this.data.dir}.xctoolchain`);
     try {
       await fs22.access(xctoolchain);
       debug(`Removing existing xctoolchain "${xctoolchain}"`);
@@ -89027,10 +88742,10 @@ var XcodeToolchainInstaller = class extends ToolchainInstaller {
     debug(`Linking "${xctoolchain}" to "${toolchain}"`);
     await exec("sudo", ["ln", "-s", toolchain, xctoolchain]);
     debug(`Adding toolchain "${toolchain}" to path`);
-    const swiftPath = path31.join(toolchain, "usr", "bin");
+    const swiftPath = path30.join(toolchain, "usr", "bin");
     addPath(swiftPath);
     debug(`Swift installed for architecture ${arch5} at "${swiftPath}"`);
-    const infoPlist = await fs22.readFile(path31.join(toolchain, "Info.plist"), "utf-8");
+    const infoPlist = await fs22.readFile(path30.join(toolchain, "Info.plist"), "utf-8");
     const info2 = plist.parse(infoPlist).valueOf();
     debug(`Setting Swift toolchain identifier to "${info2.CFBundleIdentifier}"`);
     exportVariable("TOOLCHAINS", info2.CFBundleIdentifier);
@@ -89038,7 +88753,7 @@ var XcodeToolchainInstaller = class extends ToolchainInstaller {
 };
 
 // lib/installer/sdk.js
-import * as path32 from "path";
+import * as path31 from "path";
 var SdkToolchainInstaller = class extends ToolchainInstaller {
   async unpack(_resource, _arch) {
     throw new Error("Method not implemented.");
@@ -89047,7 +88762,7 @@ var SdkToolchainInstaller = class extends ToolchainInstaller {
     throw new Error("Method not implemented.");
   }
   async install(_arch, _hasSDKs) {
-    const url2 = new URL(path32.posix.join(this.baseUrl.pathname, this.data.download), this.baseUrl);
+    const url2 = new URL(path31.posix.join(this.baseUrl.pathname, this.data.download), this.baseUrl);
     startGroup(`Installing SDK ${url2}`);
     const args = ["sdk", "install", url2.href];
     if (this.data.checksum) {
@@ -89098,8 +88813,8 @@ var XcodePlatform = class extends Platform {
     return this.name;
   }
   snapshotFor(snapshot2) {
-    const fileExt = path33.extname(snapshot2.download);
-    const fileName = path33.basename(snapshot2.download, fileExt);
+    const fileExt = path32.extname(snapshot2.download);
+    const fileName = path32.basename(snapshot2.download, fileExt);
     return {
       ...snapshot2,
       debug_info: `${fileName}-symbols.${fileExt}`
@@ -89130,12 +88845,12 @@ var XcodePlatform = class extends Platform {
 };
 
 // lib/platform/linux.js
-import * as path35 from "path";
+import * as path34 from "path";
 import { promises as fs23 } from "fs";
 var import_lodash4 = __toESM(require_lodash(), 1);
 
 // lib/platform/versioned.js
-import * as path34 from "path";
+import * as path33 from "path";
 var import_lodash3 = __toESM(require_lodash(), 1);
 var VersionedPlatform = class extends Platform {
   name;
@@ -89184,15 +88899,15 @@ var VersionedPlatform = class extends Platform {
       return [];
     }
     const fallbackVer = this.fallbackPlatformVersion(files.map((file) => {
-      const yml = path34.extname(file);
-      return path34.basename(file, yml);
+      const yml = path33.extname(file);
+      return path33.basename(file, yml);
     }));
     if (!fallbackVer || !files.length) {
       return [];
     }
     return files.filter((file) => {
-      const yml = path34.extname(file);
-      const filename = path34.basename(file, yml);
+      const yml = path33.extname(file);
+      const filename = path33.basename(file, yml);
       const match2 = this.nameRegex.exec(filename);
       const versionStr = match2?.groups?.version;
       if (!versionStr) {
@@ -89205,8 +88920,8 @@ var VersionedPlatform = class extends Platform {
   async toolFiles(version3) {
     let files = await super.toolFiles(version3);
     const platformFiles = files.filter((file) => {
-      const yml = path34.extname(file);
-      return path34.basename(file, yml) === this.file;
+      const yml = path33.extname(file);
+      return path33.basename(file, yml) === this.file;
     });
     if (platformFiles.length) {
       files = platformFiles;
@@ -89279,7 +88994,7 @@ var LinuxPlatform = class extends VersionedPlatform {
     return "tar.gz";
   }
   async html() {
-    const doc = path35.join(MODULE_DIR, SWIFTORG, "download", "index.md");
+    const doc = path34.join(MODULE_DIR, SWIFTORG, "download", "index.md");
     const content = await fs23.readFile(doc, "utf8");
     return content;
   }
@@ -89291,7 +89006,7 @@ var LinuxPlatform = class extends VersionedPlatform {
     try {
       const vGlob = `${this.version}`.split("").join("*");
       const index = ["linux", this.name, vGlob, "index.md"];
-      const doc = path35.join(SWIFTORG, "install", ...index);
+      const doc = path34.join(SWIFTORG, "install", ...index);
       const file = (await Ze(doc, { absolute: true, cwd: MODULE_DIR }))[0];
       if (!file) {
         return tools;

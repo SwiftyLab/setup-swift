@@ -3,7 +3,7 @@ import * as core from '@actions/core'
 import {getExecOutput} from '@actions/exec'
 import {CustomInstallation} from './base'
 
-function comapareEnvironment(oldJSON: string, newJSON: string) {
+function compareEnvironment(oldJSON: string, newJSON: string) {
   const difference: Record<string, string> = {}
   let newPaths: string[] = []
   let before: Record<string, string>
@@ -54,7 +54,7 @@ export async function fallback(
     (previous, current) => {
       return {
         ...previous,
-        ...comapareEnvironment(oldEnv[current[0]], current[1])
+        ...compareEnvironment(oldEnv[current[0]], current[1])
       }
     },
     {} as {newPaths: string[]; variables: Record<string, string>}

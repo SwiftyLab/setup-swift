@@ -123,7 +123,7 @@ export class WindowsToolchainInstaller extends VerifyingToolchainInstaller<Windo
     const sdkrootKey = 'SDKROOT'
     let sdkroot: string | undefined
     if (installation instanceof Installation) {
-      sdkroot = installation?.sdkroot ?? core
+      sdkroot = installation?.sdkroot
       core.exportVariable(sdkrootKey, sdkroot)
       if (installation.devdir) {
         core.exportVariable('DEVELOPER_DIR', installation.devdir)
