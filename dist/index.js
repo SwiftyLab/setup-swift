@@ -88588,7 +88588,7 @@ var WindowsToolchainInstaller = class extends VerifyingToolchainInstaller {
     };
   }
   async download(arch5) {
-    let vsSetupAction = new Promise((resolve2) => resolve2({}));
+    let vsSetupAction = Promise.resolve({});
     const vsComponents = getInput(INPUT_VISUAL_STUDIO_COMPONENTS);
     if (vsComponents.length || getBooleanInput(INPUT_PREFER_VISUAL_STUDIO_LINKER)) {
       debug(`Using VS requirement ${JSON.stringify(this.vsRequirement(arch5))}`);
@@ -88641,7 +88641,7 @@ var WindowsToolchainInstaller = class extends VerifyingToolchainInstaller {
       sdkroot = installation.variables[sdkrootKey];
     }
     if (!sdkroot) {
-      warning(`Failed VS environment after installation ${installLocation}`);
+      warning(`SDKROOT was not set after installation at ${installLocation}; Visual Studio/Swift environment setup cannot continue and the installation may be unusable.`);
       return;
     }
     const version3 = await this.installedSwiftVersion();
