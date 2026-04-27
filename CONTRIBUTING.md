@@ -7,7 +7,7 @@ _See also: [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md)_
 
 ## Submitting Pull Requests
 
-You can contribute by fixing bugs or adding new features, you can go through out [GitHub issues](https://github.com/SwiftyLab/setup-swift/issues) to start contributing. For larger code changes, we first recommend discussing them in our [GitHub dicussions](https://github.com/SwiftyLab/setup-swift/discussions). When submitting a pull request, please do the followings:
+You can contribute by fixing bugs or adding new features, you can go through out [GitHub issues](https://github.com/SwiftyLab/setup-swift/issues) to start contributing. For larger code changes, we first recommend discussing them in our [GitHub discussions](https://github.com/SwiftyLab/setup-swift/discussions). When submitting a pull request, please do the followings:
 
 1. Apply standard formatting with `npm run format`, and verify added code with lint rules by `npm run lint`.
 1. Add relevant tests and ensure your changes don't break any existing tests (see [Automated Tests](#automated-tests) below).

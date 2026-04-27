@@ -89,7 +89,7 @@ export class Swiftorg {
         res.on('end', () => {
           try {
             const parsedData = JSON.parse(rawData)
-            core.debug(`Recieved swift.org metadata: "${rawData}"`)
+            core.debug(`Received swift.org metadata: "${rawData}"`)
             Swiftorg.commitFromMetadata(parsedData).then(
               commit => resolve({commit}),
               e => reject(e)
