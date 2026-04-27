@@ -116,7 +116,7 @@ export async function updateSdkModules(sdkRoot: string): Promise<void> {
               })
 
               res.on('end', () => {
-                core.debug(`Recieved ${name} module definition: "${rawData}"`)
+                core.debug(`Received ${name} module definition: "${rawData}"`)
                 resolve(rawData)
               })
             })

@@ -135,7 +135,7 @@ export async function currentData(): Promise<SwiftorgMetadata> {
       res.on('end', () => {
         try {
           const parsedData = JSON.parse(rawData) as SwiftorgMetadata
-          core.debug(`Recieved swift.org metadata: "${rawData}"`)
+          core.debug(`Received swift.org metadata: "${rawData}"`)
           resolve(parsedData)
         } catch (e) {
           core.error(`Parsing swift.org metadata error: '${e}'`)
