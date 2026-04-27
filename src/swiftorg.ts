@@ -5,10 +5,10 @@ import {exec} from '@actions/exec'
 import {MODULE_DIR, SWIFTORG, SWIFTORG_ORIGIN, SWIFTORG_METADATA} from './const'
 import * as https from 'https'
 
-let swiftorgContractVersion: Promise<string | undefined>
+let swiftorgContractVersion: Promise<string | undefined> | undefined = undefined
 
 async function getSwiftorgContractVersion(): Promise<string | undefined> {
-  if (swiftorgContractVersion) {
+  if (swiftorgContractVersion !== undefined) {
     return await swiftorgContractVersion
   }
 
