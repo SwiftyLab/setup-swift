@@ -87,7 +87,7 @@ export class WindowsToolchainInstaller extends VerifyingToolchainInstaller<Windo
   }
 
   protected async download(arch: string) {
-    let vsSetupAction = new Promise(resolve => resolve({}))
+    let vsSetupAction = Promise.resolve({})
     const vsComponents = core.getInput(INPUT_VISUAL_STUDIO_COMPONENTS)
     if (
       vsComponents.length ||
@@ -153,7 +153,7 @@ export class WindowsToolchainInstaller extends VerifyingToolchainInstaller<Windo
 
     if (!sdkroot) {
       core.warning(
-        `Failed VS environment after installation ${installLocation}`
+        `SDKROOT was not set after installation at ${installLocation}; Visual Studio/Swift environment setup cannot continue and the installation may be unusable.`
       )
       return
     }
