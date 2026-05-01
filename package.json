@@ -62,7 +62,7 @@
     "depcheck": "^1.4.7",
     "esbuild": "0.27.4",
     "eslint": "^10.1.0",
-    "globals": "^17.4.0",
+    "globals": "^17.5.0",
     "jiti": "^2.6.1",
     "nock": "^14.0.10",
     "prettier": "^3.8.1",
