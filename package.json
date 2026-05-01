@@ -67,7 +67,7 @@
     "nock": "^14.0.10",
     "prettier": "^3.8.3",
     "sort-package-json": "^3.6.1",
-    "typescript": "^6.0.2",
+    "typescript": "^6.0.3",
     "vitest": "^4.1.5"
   },
   "engines": {
