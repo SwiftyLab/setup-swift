@@ -57,7 +57,7 @@ jobs:
         uses: actions/setup-node@v6
 
       - name: Cache dependencies
-        uses: actions/cache@v5.0.4
+        uses: actions/cache@v5.0.5
         with:
           key: node-${{ runner.os }}-${{ runner.arch }}-${{ github.ref }}
           path: node_modules
@@ -126,7 +126,7 @@ jobs:
         uses: actions/setup-node@v6
 
       - name: Cache dependencies
-        uses: actions/cache@v5.0.4
+        uses: actions/cache@v5.0.5
         with:
           key: node-${{ runner.os }}-${{ runner.arch }}-${{ github.ref }}
           path: node_modules
@@ -211,7 +211,7 @@ jobs:
         uses: actions/setup-node@v6
 
       - name: Cache dependencies
-        uses: actions/cache@v5.0.4
+        uses: actions/cache@v5.0.5
         with:
           key: node-${{ runner.os }}-${{ runner.arch }}-${{ github.ref }}
           path: node_modules
@@ -326,7 +326,7 @@ jobs:
         uses: actions/setup-node@v6
 
       - name: Cache dependencies
-        uses: actions/cache@v5.0.4
+        uses: actions/cache@v5.0.5
         with:
           key: node-${{ runner.os }}-${{ runner.arch }}-${{ github.ref }}
           path: node_modules
@@ -510,7 +510,7 @@ jobs:
         uses: actions/setup-node@v6
 
       - name: Cache dependencies
-        uses: actions/cache@v5.0.4
+        uses: actions/cache@v5.0.5
         with:
           key: node-${{ runner.os }}-${{ runner.arch }}-${{ github.ref }}
           path: node_modules
@@ -579,7 +579,7 @@ jobs:
         uses: actions/setup-node@v6
 
       - name: Cache dependencies
-        uses: actions/cache@v5.0.4
+        uses: actions/cache@v5.0.5
         with:
           key: node-${{ runner.os }}-${{ runner.arch }}-${{ github.ref }}
           path: node_modules
