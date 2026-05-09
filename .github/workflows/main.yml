@@ -69,7 +69,7 @@ jobs:
 
       - name: Check latest swift.org
         id: swift-org
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const path = require('path');
@@ -260,7 +260,7 @@ jobs:
       - name: Get cached installation
         id: get-tool
         if: failure()
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const os = require('os');
@@ -347,7 +347,7 @@ jobs:
 
       - name: Generate SDK install command
         id: gen-sdk-install
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const sdks = JSON.parse(process.env.SWIFT_SDK_SNAPSHOTS);
@@ -395,7 +395,7 @@ jobs:
           ]
     steps:
       - name: Setup wrapper composite action at ${{ env.COMPOSITE }}
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const path = require('path');
@@ -443,7 +443,7 @@ jobs:
 
       - name: Cleanup
         if: always()
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         continue-on-error: true
         with:
           script: await io.rmRF('${{ env.COMPOSITE }}');
@@ -520,7 +520,7 @@ jobs:
 
       - name: Generate swift.org metadata
         id: swiftorg-metadata
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const path = require('path');
@@ -608,7 +608,7 @@ jobs:
           NODE_PATH: ${{ github.workspace }}/node_modules
 
       - name: Update latest major version tag
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           github-token: ${{ secrets.COMMIT_TOKEN }}
           script: |
