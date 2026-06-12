@@ -55,7 +55,7 @@
     "@types/plist": "^3.0.5",
     "@types/semver": "^7.7.1",
     "@typescript-eslint/eslint-plugin": "^8.53.0",
-    "@typescript-eslint/parser": "^8.58.0",
+    "@typescript-eslint/parser": "^8.61.0",
     "@vitest/coverage-istanbul": "^4.1.4",
     "@vitest/eslint-plugin": "^1.6.16",
     "conventional-changelog-conventionalcommits": "^7.0.0",
