@@ -53,6 +53,8 @@ jobs:
       - name: Location of libncurses
         run: |
           ldconfig -p | grep libncurses
+          cat /etc/ld.so.conf
+          cat /etc/ld.so.conf.d/*.conf
           echo $LD_LIBRARY_PATH
 
       - name: Checkout repository
