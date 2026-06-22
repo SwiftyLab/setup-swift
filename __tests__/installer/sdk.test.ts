@@ -73,7 +73,7 @@ describe('SDK toolchain installation', () => {
 
     await installPromise
 
-    expect(execSpy).toHaveBeenCalledTimes(2)
+    expect(execSpy).toHaveBeenCalledTimes(3)
     expect(infoSpy).toHaveBeenCalledWith('Waiting 1000ms before retrying')
   })
 
@@ -82,6 +82,7 @@ describe('SDK toolchain installation', () => {
     const execSpy = vi
       .spyOn(exec, 'exec')
       .mockRejectedValueOnce(new Error('Network error'))
+      .mockResolvedValueOnce(0)
       .mockRejectedValueOnce(new Error('Timeout'))
       .mockResolvedValueOnce(0)
     const infoSpy = vi.spyOn(core, 'info').mockReturnValue()
@@ -95,7 +96,7 @@ describe('SDK toolchain installation', () => {
 
     await installPromise
 
-    expect(execSpy).toHaveBeenCalledTimes(3)
+    expect(execSpy).toHaveBeenCalledTimes(5)
     expect(infoSpy).toHaveBeenCalledWith('Waiting 1000ms before retrying')
     expect(infoSpy).toHaveBeenCalledWith('Waiting 2000ms before retrying')
   })
@@ -114,7 +115,7 @@ describe('SDK toolchain installation', () => {
     await expect(installer.install('x86_64', false)).rejects.toThrow(
       'Persistent network error'
     )
-    expect(execSpy).toHaveBeenCalledTimes(3)
+    expect(execSpy).toHaveBeenCalledTimes(6)
   })
 
   it('tests install with custom base URL', async () => {

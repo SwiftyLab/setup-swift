@@ -32,6 +32,17 @@ export class SdkToolchainInstaller extends ToolchainInstaller<SdkSnapshot> {
         core.debug(
           `Failed to install SDK ${url.href} with args ${args.join(' ')}: ${error}`
         )
+
+        try {
+          await exec(
+            'swift',
+            ['sdk', 'remove', path.basename(this.data.download, '.tar.gz')],
+            {ignoreReturnCode: true}
+          )
+        } catch (error) {
+          core.debug(`Failed to remove SDK ${this.data.download}: ${error}`)
+        }
+
         if (index === 3) {
           throw error
         }
