@@ -12,7 +12,8 @@
     "strictBuiltinIteratorReturn": false,
     "skipLibCheck": true,
     "isolatedModules": true,
-    "lib": ["ES2021.String"]
+    "lib": ["ESNext"],
+    "types": ["node"]
   },
   "exclude": ["node_modules"]
 }

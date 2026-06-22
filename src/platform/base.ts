@@ -9,6 +9,7 @@ import {
   SWIFT_BRANCH_REGEX
 } from '../version'
 import {ToolchainSnapshot, SwiftRelease} from '../snapshot'
+import {YAML_SCHEMA} from '../const'
 import {ToolchainInstaller, SnapshotForInstaller} from '../installer'
 
 export abstract class Platform<
@@ -25,7 +26,7 @@ export abstract class Platform<
 
   protected async releases() {
     const data = await fs.readFile(SWIFT_RELEASE_FILE, 'utf-8')
-    return yaml.load(data) as SwiftRelease[]
+    return yaml.load(data, {schema: YAML_SCHEMA}) as SwiftRelease[]
   }
 
   abstract snapshotFor(
@@ -83,7 +84,7 @@ export abstract class Platform<
         const branch = path.basename(path.dirname(file)).replaceAll('_', '.')
         const data = await fs.readFile(file, 'utf-8')
         return {
-          data: yaml.load(data) as object[],
+          data: yaml.load(data, {schema: YAML_SCHEMA}) as object[],
           platform,
           branch
         }

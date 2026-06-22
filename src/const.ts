@@ -1,6 +1,12 @@
 import * as path from 'path'
+import * as yaml from 'js-yaml'
 
 export const MODULE_DIR = path.dirname(__dirname)
+
+// js-yaml 5 follows the YAML 1.2 core schema, which dropped the implicit
+// `!!timestamp` type, so dates would otherwise load as plain strings. Re-add
+// the timestamp tag so date fields are parsed back into `Date` instances.
+export const YAML_SCHEMA = yaml.CORE_SCHEMA.withTags(yaml.timestampTag)
 export const SWIFTORG = 'swiftorg'
 export const SWIFTORG_ORIGIN = 'https://github.com/apple/swift-org-website.git'
 export const SWIFTORG_METADATA =

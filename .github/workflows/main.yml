@@ -266,8 +266,8 @@ jobs:
             const os = require('os');
             const path = require('path');
             const fs = require('fs/promises');
-            const toolCache = require('@actions/tool-cache');
-            const {exec: actionExec} = require('@actions/exec');
+            const toolCache = await import('@actions/tool-cache');
+            const {exec: actionExec} = await import('@actions/exec');
             let arch = '';
             switch (os.arch()) {
               case 'x64':

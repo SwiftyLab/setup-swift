@@ -10,6 +10,7 @@ import {
 } from '../base'
 import {SdkSnapshot, SwiftRelease, ToolchainSnapshot} from '../../snapshot'
 import {SdkRequirement} from './requirement'
+import {YAML_SCHEMA} from '../../const'
 
 export class SdkSupportedVersion<
   T extends ToolchainVersion
@@ -119,7 +120,7 @@ export class SdkSupportedVersion<
           data = await fs.readFile(yml, 'utf-8')
         }
 
-        let snapshots = yaml.load(data) as SdkSnapshot[]
+        let snapshots = yaml.load(data, {schema: YAML_SCHEMA}) as SdkSnapshot[]
         snapshots = snapshots.filter(snapshot => snapshot.dir === toolchain.dir)
         return [
           snapshots.length
@@ -142,7 +143,7 @@ export class SdkSupportedVersion<
     toolchain: ToolchainSnapshot
   ): Promise<[SdkSnapshot, SdkRequirement][]> {
     const data = await fs.readFile(SWIFT_RELEASE_FILE, 'utf-8')
-    const releases = yaml.load(data) as SwiftRelease[]
+    const releases = yaml.load(data, {schema: YAML_SCHEMA}) as SwiftRelease[]
     const release = releases.find(release => release.tag === toolchain.dir)
 
     const snapshots: [SdkSnapshot, SdkRequirement][] = []
