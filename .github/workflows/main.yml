@@ -50,6 +50,11 @@ jobs:
       update_latest: ${{ github.ref_name == github.event.repository.default_branch && steps.swift-org.outputs.update_latest == 'true' }}
 
     steps:
+      - name: Location of libncurses
+        run: |
+          ldconfig -p | grep libncurses
+          echo $LD_LIBRARY_PATH
+
       - name: Checkout repository
         uses: actions/checkout@v6
 
