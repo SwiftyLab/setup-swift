@@ -101,7 +101,7 @@ export class XcodeToolchainInstaller extends ToolchainInstaller<XcodeToolchainSn
       path.join(toolchain, 'Info.plist'),
       'utf-8'
     )
-    const info = plist.parse(infoPlist).valueOf() as ToolchainInfo
+    const info = plist.parse(infoPlist)?.valueOf() as ToolchainInfo
     core.debug(
       `Setting Swift toolchain identifier to "${info.CFBundleIdentifier}"`
     )

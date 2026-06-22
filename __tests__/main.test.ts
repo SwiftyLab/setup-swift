@@ -39,7 +39,7 @@ describe('setup-swift run validation', () => {
         platform: 'static-sdk',
         branch: 'swift-5.8-release',
         preventCaching: true
-      } as SdkSnapshot,
+      },
       new StaticLinux()
     ] as [SdkSnapshot, SdkRequirement]
   ]
