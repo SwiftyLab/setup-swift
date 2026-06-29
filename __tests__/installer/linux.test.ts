@@ -149,6 +149,31 @@ describe('linux toolchain installation verification', () => {
     }
   })
 
+  it('tests dependencies installed on action cache restore', async () => {
+    const installer = new LinuxToolchainInstaller(toolchain)
+    const cached = path.resolve('tool', 'cached', 'path')
+    vi.spyOn(toolCache, 'find').mockReturnValue('')
+    vi.spyOn(cache, 'restoreCache').mockResolvedValue(cached)
+    vi.spyOn(core, 'getBooleanInput').mockReturnValue(true)
+    vi.spyOn(toolCache, 'cacheDir').mockResolvedValue(cached)
+    vi.spyOn(fs, 'access').mockResolvedValue()
+    const readFileSpy = vi
+      .spyOn(fs, 'readFile')
+      .mockResolvedValue('<pre>\n$ sudo apt-get install libncurses-dev\n</pre>')
+    const execSpy = vi.spyOn(exec, 'exec').mockResolvedValue(0)
+    const downloadSpy = vi.spyOn(toolCache, 'downloadTool')
+    try {
+      await installer.install('aarch64', false)
+    } finally {
+      readFileSpy.mockRestore()
+    }
+    expect(downloadSpy).not.toHaveBeenCalled()
+    const installed = execSpy.mock.calls.some(
+      ([cmd, args]) => cmd === 'sudo' && !!args?.includes('libncurses-dev')
+    )
+    expect(installed).toBeTruthy()
+  })
+
   it('tests installation with tool cache', async () => {
     const installer = new LinuxToolchainInstaller(toolchain)
     const cached = path.resolve('tool', 'cached', 'path')

@@ -8,7 +8,14 @@ import {PackageManager} from './package_manager'
 import {MODULE_DIR, SWIFTORG} from '../const'
 
 export class LinuxToolchainInstaller extends VerifyingToolchainInstaller<LinuxToolchainSnapshot> {
+  private dependenciesInstall?: Promise<void>
+
   private async installDependencies() {
+    this.dependenciesInstall ??= this.doInstallDependencies()
+    return this.dependenciesInstall
+  }
+
+  private async doInstallDependencies() {
     const platform = this.data.platform
     const linuxRequirements = path.join(SWIFTORG, '_includes', 'linux')
     const file = path.join(MODULE_DIR, linuxRequirements, `${platform}.html`)
@@ -60,6 +67,11 @@ export class LinuxToolchainInstaller extends VerifyingToolchainInstaller<LinuxTo
   }
 
   protected async add(toolchain: string) {
+    // Dependencies must be installed on every install path, including cache
+    // hits where `download` (and its parallel dependency install) is skipped.
+    // Memoization in `installDependencies` prevents a redundant install when
+    // the toolchain was freshly downloaded.
+    await this.installDependencies()
     core.debug(`Adding toolchain "${toolchain}" to path`)
     const swiftPath = path.join(toolchain, 'usr', 'bin')
     core.addPath(swiftPath)
