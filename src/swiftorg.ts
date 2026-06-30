@@ -118,8 +118,22 @@ export class Swiftorg {
     const origin = SWIFTORG_ORIGIN
     core.debug(`Adding submodule at "${swiftorg}" directory`)
     const cwd = {cwd: swiftorg}
+    // Only these subtrees are read by the action. A blobless partial clone
+    // (`--filter=blob:none`) combined with a cone-mode sparse checkout limits
+    // both the fetched objects and the populated working tree to these paths,
+    // avoiding the rest of the swift.org website (assets, images, blog, etc.).
     await exec('git', ['init', swiftorg])
-    await exec('git', ['fetch', origin, ref, '--depth=1', '--no-tags'], cwd)
+    await exec('git', ['remote', 'add', 'origin', origin], cwd)
+    await exec(
+      'git',
+      ['sparse-checkout', 'set', '_data', '_includes', 'install'],
+      cwd
+    )
+    await exec(
+      'git',
+      ['fetch', 'origin', ref, '--depth=1', '--no-tags', '--filter=blob:none'],
+      cwd
+    )
     await exec('git', ['checkout', 'FETCH_HEAD', '--detach'], cwd)
   }
 }
