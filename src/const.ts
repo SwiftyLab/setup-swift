@@ -20,6 +20,9 @@ export const INPUT_DEVELOPMENT = 'development'
 export const INPUT_DRY_RUN = 'dry-run'
 export const INPUT_SDKS = 'sdks'
 
+// For Linux
+export const INPUT_SKIP_INSTALL_DEPENDENCIES = 'skip-linux-install-dependencies'
+
 // For macOS
 export const INPUT_PREFER_OSS_TOOLCHAIN = 'prefer-oss-toolchain'
 

@@ -52825,6 +52825,7 @@ var INPUT_CHECK_LATEST = "check-latest";
 var INPUT_DEVELOPMENT = "development";
 var INPUT_DRY_RUN = "dry-run";
 var INPUT_SDKS = "sdks";
+var INPUT_SKIP_INSTALL_DEPENDENCIES = "skip-linux-install-dependencies";
 var INPUT_PREFER_OSS_TOOLCHAIN = "prefer-oss-toolchain";
 var INPUT_UPDATE_SDK_MODULES = "update-sdk-modules";
 var INPUT_VISUAL_STUDIO_COMPONENTS = "visual-studio-components";
@@ -89242,6 +89243,10 @@ var LinuxToolchainInstaller = class extends VerifyingToolchainInstaller {
     return this.dependenciesInstall;
   }
   async doInstallDependencies() {
+    if (getBooleanInput(INPUT_SKIP_INSTALL_DEPENDENCIES)) {
+      debug("Skipping dependencies install as disabled by input");
+      return;
+    }
     const platform2 = this.data.platform;
     const linuxRequirements = path20.join(SWIFTORG, "_includes", "linux");
     const file = path20.join(MODULE_DIR, linuxRequirements, `${platform2}.html`);

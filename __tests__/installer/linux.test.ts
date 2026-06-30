@@ -154,7 +154,9 @@ describe('linux toolchain installation verification', () => {
     const cached = path.resolve('tool', 'cached', 'path')
     vi.spyOn(toolCache, 'find').mockReturnValue('')
     vi.spyOn(cache, 'restoreCache').mockResolvedValue(cached)
-    vi.spyOn(core, 'getBooleanInput').mockReturnValue(true)
+    vi.spyOn(core, 'getBooleanInput').mockImplementation(
+      name => name !== 'skip-linux-install-dependencies'
+    )
     vi.spyOn(toolCache, 'cacheDir').mockResolvedValue(cached)
     vi.spyOn(fs, 'access').mockResolvedValue()
     const readFileSpy = vi
@@ -172,6 +174,31 @@ describe('linux toolchain installation verification', () => {
       ([cmd, args]) => cmd === 'sudo' && !!args?.includes('libncurses-dev')
     )
     expect(installed).toBeTruthy()
+  })
+
+  it('tests dependencies skipped when skip-linux-install-dependencies enabled', async () => {
+    const installer = new LinuxToolchainInstaller(toolchain)
+    const cached = path.resolve('tool', 'cached', 'path')
+    vi.spyOn(toolCache, 'find').mockReturnValue('')
+    vi.spyOn(cache, 'restoreCache').mockResolvedValue(cached)
+    vi.spyOn(core, 'getBooleanInput').mockImplementation(
+      name => name === 'skip-linux-install-dependencies'
+    )
+    vi.spyOn(toolCache, 'cacheDir').mockResolvedValue(cached)
+    vi.spyOn(fs, 'access').mockResolvedValue()
+    const readFileSpy = vi
+      .spyOn(fs, 'readFile')
+      .mockResolvedValue('<pre>\n$ sudo apt-get install libncurses-dev\n</pre>')
+    const execSpy = vi.spyOn(exec, 'exec').mockResolvedValue(0)
+    try {
+      await installer.install('aarch64', false)
+    } finally {
+      readFileSpy.mockRestore()
+    }
+    const installed = execSpy.mock.calls.some(
+      ([cmd, args]) => cmd === 'sudo' && !!args?.includes('libncurses-dev')
+    )
+    expect(installed).toBeFalsy()
   })
 
   it('tests installation with tool cache', async () => {
