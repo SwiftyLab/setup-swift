@@ -53835,7 +53835,9 @@ var Swiftorg = class _Swiftorg {
     debug(`Adding submodule at "${swiftorg}" directory`);
     const cwd = { cwd: swiftorg };
     await exec("git", ["init", swiftorg]);
-    await exec("git", ["fetch", origin, ref, "--depth=1", "--no-tags"], cwd);
+    await exec("git", ["remote", "add", "origin", origin], cwd);
+    await exec("git", ["sparse-checkout", "set", "_data", "_includes", "install"], cwd);
+    await exec("git", ["fetch", "origin", ref, "--depth=1", "--no-tags", "--filter=blob:none"], cwd);
     await exec("git", ["checkout", "FETCH_HEAD", "--detach"], cwd);
   }
 };
