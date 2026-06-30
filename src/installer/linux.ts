@@ -5,7 +5,7 @@ import * as toolCache from '@actions/tool-cache'
 import {VerifyingToolchainInstaller} from './verify'
 import {LinuxToolchainSnapshot} from '../snapshot'
 import {PackageManager} from './package_manager'
-import {MODULE_DIR, SWIFTORG} from '../const'
+import {INPUT_SKIP_INSTALL_DEPENDENCIES, MODULE_DIR, SWIFTORG} from '../const'
 
 export class LinuxToolchainInstaller extends VerifyingToolchainInstaller<LinuxToolchainSnapshot> {
   private dependenciesInstall?: Promise<void>
@@ -16,6 +16,10 @@ export class LinuxToolchainInstaller extends VerifyingToolchainInstaller<LinuxTo
   }
 
   private async doInstallDependencies() {
+    if (core.getBooleanInput(INPUT_SKIP_INSTALL_DEPENDENCIES)) {
+      core.debug('Skipping dependencies install as disabled by input')
+      return
+    }
     const platform = this.data.platform
     const linuxRequirements = path.join(SWIFTORG, '_includes', 'linux')
     const file = path.join(MODULE_DIR, linuxRequirements, `${platform}.html`)

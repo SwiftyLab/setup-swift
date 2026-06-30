@@ -74,6 +74,13 @@ inputs:
       Examples: "static-linux", "static-linux;wasm", "static-linux;wasm;android".
     required: false
     default: ''
+  skip-linux-install-dependencies:
+    description: >-
+      Whether to skip installing the system dependencies required by the Swift toolchain (Linux only).
+      Disabled by default, can be enabled if the dependencies are already provisioned
+      on the runner or managed externally.
+    required: false
+    default: 'false'
 outputs:
   swift-version:
     description: The actual Swift version that was configured.
