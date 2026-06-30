@@ -91,7 +91,10 @@ describe('linux toolchain installation verification', () => {
       vi.spyOn(core, 'getBooleanInput').mockReturnValue(true)
       vi.spyOn(cache, 'restoreCache').mockResolvedValue(undefined)
       vi.spyOn(toolCache, 'find').mockReturnValue('')
-      vi.spyOn(fs, 'cp').mockResolvedValue()
+      const cpSpy = vi.spyOn(fs, 'cp').mockResolvedValue()
+      const renameSpy = vi.spyOn(fs, 'rename').mockResolvedValue()
+      vi.spyOn(fs, 'rm').mockResolvedValue()
+      vi.spyOn(fs, 'mkdir').mockResolvedValue('')
       const downloadSpy = vi.spyOn(toolCache, 'downloadTool')
       downloadSpy.mockResolvedValue(download)
       const extractSpy = vi.spyOn(toolCache, 'extractTar')
@@ -115,11 +118,16 @@ describe('linux toolchain installation verification', () => {
       const actionCacheKey = `${toolCacheKey}-${arch}`
       const toolDir = path.basename(toolchain.download, '.tar.gz')
       const cachedTool = path.join(extracted, toolDir)
+      const tmpDir = process.env.RUNNER_TEMP || os.tmpdir()
+      const restore = path.join(tmpDir, 'setup-swift', toolCacheKey)
       expect(toolCacheSpy.mock.calls[0]?.[0]).toBe(cachedTool)
       expect(toolCacheSpy.mock.calls[0]?.[1]).toBe(toolCacheKey)
       expect(toolCacheSpy.mock.calls[0]?.[2]).toBe('5.8.0')
       expect(toolCacheSpy.mock.calls[0]?.[3]).toBe(arch)
       expect(actionCacheSpy.mock.calls[0]?.[1]).toBe(actionCacheKey)
+      // The unpacked toolchain is moved to the cache restore path, not copied.
+      expect(renameSpy).toHaveBeenCalledWith(cachedTool, restore)
+      expect(cpSpy).not.toHaveBeenCalled()
     }
   )
 
@@ -285,6 +293,9 @@ describe('linux toolchain installation verification', () => {
     vi.spyOn(cache, 'restoreCache').mockResolvedValue(undefined)
     vi.spyOn(toolCache, 'find').mockReturnValue('')
     vi.spyOn(fs, 'cp').mockResolvedValue()
+    vi.spyOn(fs, 'rename').mockResolvedValue()
+    vi.spyOn(fs, 'rm').mockResolvedValue()
+    vi.spyOn(fs, 'mkdir').mockResolvedValue('')
     vi.spyOn(fs, 'access').mockResolvedValue()
     vi.spyOn(toolCache, 'downloadTool').mockResolvedValue(download)
     vi.spyOn(toolCache, 'extractTar').mockResolvedValue(extracted)

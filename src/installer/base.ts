@@ -19,6 +19,16 @@ export type SnapshotForInstaller<Installer> =
 export abstract class ToolchainInstaller<Snapshot extends ToolchainSnapshot> {
   constructor(readonly data: Snapshot) {}
 
+  /**
+   * Whether `unpack` produces a disposable temporary directory that can be
+   * moved into the action cache restore path instead of copied. Installers that
+   * unpack into a persistent system location (e.g. Windows) must override this
+   * to `false` so the installed toolchain is left in place.
+   */
+  protected get unpackIsRelocatable() {
+    return true
+  }
+
   protected get version() {
     const match = SWIFT_BRANCH_REGEX.exec(this.data.dir)
     return match && match.length > 1 ? parseSemVer(match[1]) : undefined
@@ -49,6 +59,7 @@ export abstract class ToolchainInstaller<Snapshot extends ToolchainSnapshot> {
     const actionCacheKey = arch ? `${toolCacheKey}-${arch}` : toolCacheKey
     const version = this.version?.raw
     let tool: string | undefined
+    let unpacked: string | undefined
     let toolCacheHit = false
     let actionCacheHit = false
     if (version) {
@@ -71,6 +82,7 @@ export abstract class ToolchainInstaller<Snapshot extends ToolchainSnapshot> {
         const resource = await this.download(arch)
         const installation = await this.unpack(resource, arch)
         core.debug(`Downloaded and installed snapshot at "${installation}"`)
+        unpacked = installation
         tool = installation
       }
     } else {
@@ -96,7 +108,21 @@ export abstract class ToolchainInstaller<Snapshot extends ToolchainSnapshot> {
       !toolCacheHit &&
       !this.data.preventCaching
     ) {
-      await fs.cp(tool, restore, {recursive: true})
+      await fs.mkdir(path.dirname(restore), {recursive: true})
+      if (unpacked && this.unpackIsRelocatable) {
+        // The toolchain has already been copied into the tool cache above, so
+        // the freshly unpacked copy is redundant. Move it to the action cache
+        // restore path instead of making a second full-size copy.
+        await fs.rm(restore, {recursive: true, force: true})
+        try {
+          await fs.rename(unpacked, restore)
+        } catch (error) {
+          core.debug(`Falling back to copy after rename failed with "${error}"`)
+          await fs.cp(unpacked, restore, {recursive: true})
+        }
+      } else {
+        await fs.cp(tool, restore, {recursive: true})
+      }
       await cache.saveCache([restore], actionCacheKey)
       core.debug(`Saved to cache with key "${actionCacheKey}"`)
     }

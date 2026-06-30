@@ -945,4 +945,11 @@ describe('windows toolchain installation verification', () => {
     const devVersion = await installer.installedSwiftVersion()
     expect(devVersion).toBe('5.9-dev')
   })
+
+  it('tests unpacked toolchain is not relocatable', async () => {
+    const installer = new WindowsToolchainInstaller(toolchain)
+    // Windows installs to a persistent system location, so the unpacked
+    // toolchain must be copied (not moved) when populating the action cache.
+    expect(installer['unpackIsRelocatable']).toBe(false)
+  })
 })

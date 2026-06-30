@@ -1,3 +1,4 @@
+import * as os from 'os'
 import * as path from 'path'
 import {promises as fs} from 'fs'
 import * as core from '@actions/core'
@@ -77,6 +78,9 @@ describe('macOS toolchain installation verification', () => {
     vi.spyOn(fs, 'access').mockResolvedValue()
     vi.spyOn(fs, 'readFile').mockResolvedValue('')
     vi.spyOn(fs, 'cp').mockResolvedValue()
+    vi.spyOn(fs, 'rename').mockResolvedValue()
+    vi.spyOn(fs, 'rm').mockResolvedValue()
+    vi.spyOn(fs, 'mkdir').mockResolvedValue('')
     vi.spyOn(plist, 'parse').mockReturnValue({CFBundleIdentifier: identifier})
     vi.spyOn(exec, 'getExecOutput').mockResolvedValue({
       exitCode: 0,
@@ -166,7 +170,10 @@ describe('macOS toolchain installation verification', () => {
       vi.spyOn(cache, 'restoreCache').mockResolvedValue(undefined)
       vi.spyOn(toolCache, 'find').mockReturnValue('')
       vi.spyOn(exec, 'exec').mockResolvedValue(0)
-      vi.spyOn(fs, 'cp').mockResolvedValue()
+      const cpSpy = vi.spyOn(fs, 'cp').mockResolvedValue()
+      const renameSpy = vi.spyOn(fs, 'rename').mockResolvedValue()
+      vi.spyOn(fs, 'rm').mockResolvedValue()
+      vi.spyOn(fs, 'mkdir').mockResolvedValue('')
       const downloadSpy = vi.spyOn(toolCache, 'downloadTool')
       downloadSpy.mockResolvedValue(download)
       const extractSpy = vi.spyOn(toolCache, 'extractXar')
@@ -194,11 +201,16 @@ describe('macOS toolchain installation verification', () => {
       }
       const toolCacheKey = `${toolchain.dir}-${toolchain.platform}`
       const actionCacheKey = `${toolCacheKey}-${arch}`
+      const tmpDir = process.env.RUNNER_TEMP || os.tmpdir()
+      const restore = path.join(tmpDir, 'setup-swift', toolCacheKey)
       expect(toolCacheSpy.mock.calls[0]?.[0]).toBe(deployed)
       expect(toolCacheSpy.mock.calls[0]?.[1]).toBe(toolCacheKey)
       expect(toolCacheSpy.mock.calls[0]?.[2]).toBe('5.8.1')
       expect(toolCacheSpy.mock.calls[0]?.[3]).toBe(arch)
       expect(actionCacheSpy.mock.calls[0]?.[1]).toBe(actionCacheKey)
+      // The unpacked toolchain is moved to the cache restore path, not copied.
+      expect(renameSpy).toHaveBeenCalledWith(deployed, restore)
+      expect(cpSpy).not.toHaveBeenCalled()
     }
   )
 
