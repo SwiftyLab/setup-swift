@@ -89037,6 +89037,15 @@ var ToolchainInstaller = class {
   constructor(data) {
     this.data = data;
   }
+  /**
+   * Whether `unpack` produces a disposable temporary directory that can be
+   * moved into the action cache restore path instead of copied. Installers that
+   * unpack into a persistent system location (e.g. Windows) must override this
+   * to `false` so the installed toolchain is left in place.
+   */
+  get unpackIsRelocatable() {
+    return true;
+  }
   get version() {
     const match2 = SWIFT_BRANCH_REGEX.exec(this.data.dir);
     return match2 && match2.length > 1 ? (0, import_semver5.coerce)(match2[1]) : void 0;
@@ -89060,6 +89069,7 @@ var ToolchainInstaller = class {
     const actionCacheKey = arch5 ? `${toolCacheKey}-${arch5}` : toolCacheKey;
     const version3 = this.version?.raw;
     let tool;
+    let unpacked;
     let toolCacheHit = false;
     let actionCacheHit = false;
     if (version3) {
@@ -89077,6 +89087,7 @@ var ToolchainInstaller = class {
         const resource = await this.download(arch5);
         const installation = await this.unpack(resource, arch5);
         debug(`Downloaded and installed snapshot at "${installation}"`);
+        unpacked = installation;
         tool = installation;
       }
     } else {
@@ -89094,7 +89105,18 @@ var ToolchainInstaller = class {
       }
     }
     if (tool && getBooleanInput(INPUT_CACHE_SNAPSHOT) && !actionCacheHit && !toolCacheHit && !this.data.preventCaching) {
-      await fs14.cp(tool, restore, { recursive: true });
+      await fs14.mkdir(path19.dirname(restore), { recursive: true });
+      if (unpacked && this.unpackIsRelocatable) {
+        await fs14.rm(restore, { recursive: true, force: true });
+        try {
+          await fs14.rename(unpacked, restore);
+        } catch (error2) {
+          debug(`Falling back to copy after rename failed with "${error2}"`);
+          await fs14.cp(unpacked, restore, { recursive: true });
+        }
+      } else {
+        await fs14.cp(tool, restore, { recursive: true });
+      }
       await saveCache2([restore], actionCacheKey);
       debug(`Saved to cache with key "${actionCacheKey}"`);
     }
@@ -89822,6 +89844,11 @@ async function updateSdkModules(sdkRoot) {
 
 // lib/installer/windows/index.js
 var WindowsToolchainInstaller = class extends VerifyingToolchainInstaller {
+  // `unpack` installs the toolchain to a persistent system location, so it must
+  // not be moved out of place when populating the action cache.
+  get unpackIsRelocatable() {
+    return false;
+  }
   async winsdk() {
     const win11Semver = "10.0.22000";
     const recommended = semver5.gte(this.version ?? "6.2.0", "6.2.0") ? win11Semver : "10.0.17763";

@@ -16,6 +16,12 @@ import {
 } from '../../const'
 
 export class WindowsToolchainInstaller extends VerifyingToolchainInstaller<WindowsToolchainSnapshot> {
+  // `unpack` installs the toolchain to a persistent system location, so it must
+  // not be moved out of place when populating the action cache.
+  protected get unpackIsRelocatable() {
+    return false
+  }
+
   private async winsdk() {
     const win11Semver = '10.0.22000'
     const recommended = semver.gte(this.version ?? '6.2.0', '6.2.0')

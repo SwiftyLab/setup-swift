@@ -233,6 +233,7 @@ jobs:
           prefer-oss-toolchain: ${{ matrix.sdk != '' }}
           prefer-visual-studio-linker: ${{ runner.os == 'Windows' && matrix.vs-link }}
           update-sdk-modules: ${{ runner.os == 'Windows' && matrix.latest-modules }}
+          skip-linux-install-dependencies: true
 
       - name: Verify Swift version in macos
         if: runner.os == 'macOS'
@@ -426,7 +427,8 @@ jobs:
                     with: {
                       'swift-version': 'latest',
                       'check-latest': '${{ needs.ci.outputs.check_latest }}',
-                      'sdks': '${{ runner.os }}' != 'Windows' ? 'static-linux;wasm;android' : ''
+                      'sdks': '${{ runner.os }}' != 'Windows' ? 'static-linux;wasm;android' : '',
+                      'skip-linux-install-dependencies': true
                     }
                   }
                 ]
