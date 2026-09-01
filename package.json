@@ -69,7 +69,7 @@
     "prettier": "^3.9.4",
     "sort-package-json": "^4.0.0",
     "typescript": "^6.0.3",
-    "vitest": "^4.1.9"
+    "vitest": "^4.1.11"
   },
   "engines": {
     "node": ">=20.0.0",
