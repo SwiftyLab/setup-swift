@@ -370,7 +370,9 @@ jobs:
           image: swift:${{ fromJSON(steps.setup-swift.outputs.toolchain).docker }}
           shell: bash
           run: |
-            swift --version | grep ${{ steps.setup-swift.outputs.swift-version }} || exit 1
+            # a x.y.0 release reports itself as x.y, so treat the .0 as optional
+            SWIFT_VERSION="${{ steps.setup-swift.outputs.swift-version }}"
+            swift --version | grep -E "${SWIFT_VERSION%.0}(\.0)?" || exit 1
             swift -print-target-info || exit 0
             ${{ steps.gen-sdk-install.outputs.command }}
 
@@ -408,6 +410,9 @@ jobs:
               outputs: {
                 'swift-version': {
                   value: '$' + `{{ steps.run.outputs.swift-version }}`
+                },
+                'toolchain': {
+                  value: '$' + `{{ steps.run.outputs.toolchain }}`
                 }
               },
               runs: {
@@ -461,11 +466,15 @@ jobs:
 
       - name: Verify Swift SDKs
         if: runner.os != 'Windows'
+        env:
+          # SDK bundles are named after the release tag, which can differ from
+          # the version `swift --version` reports, i.e. swift-6.4.0-RELEASE vs 6.4
+          SWIFT_TAG: ${{ fromJSON(steps.setup-swift.outputs.toolchain).dir }}
         run: |
           SWIFT_SDK_LIST=$(swift sdk list)
-          echo "$SWIFT_SDK_LIST" | grep ${{ steps.setup-swift.outputs.swift-version }}-RELEASE_static-linux || exit 1
-          echo "$SWIFT_SDK_LIST" | grep ${{ steps.setup-swift.outputs.swift-version }}-RELEASE_wasm || exit 1
-          echo "$SWIFT_SDK_LIST" | grep ${{ steps.setup-swift.outputs.swift-version }}-RELEASE_android || exit 1
+          echo "$SWIFT_SDK_LIST" | grep "${SWIFT_TAG}_static-linux" || exit 1
+          echo "$SWIFT_SDK_LIST" | grep "${SWIFT_TAG}_wasm" || exit 1
+          echo "$SWIFT_SDK_LIST" | grep "${SWIFT_TAG}_android" || exit 1
 
       - name: Test Swift package
         run: |
