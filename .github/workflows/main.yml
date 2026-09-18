@@ -467,10 +467,11 @@ jobs:
       - name: Verify Swift SDKs
         if: runner.os != 'Windows'
         env:
+          SWIFT_TOOLCHAIN: ${{ steps.setup-swift.outputs.toolchain }}
+        run: |
           # SDK bundles are named after the release tag, which can differ from
           # the version `swift --version` reports, i.e. swift-6.4.0-RELEASE vs 6.4
-          SWIFT_TAG: ${{ fromJSON(steps.setup-swift.outputs.toolchain).dir }}
-        run: |
+          SWIFT_TAG=$(echo "$SWIFT_TOOLCHAIN" | jq -er .dir)
           SWIFT_SDK_LIST=$(swift sdk list)
           echo "$SWIFT_SDK_LIST" | grep "${SWIFT_TAG}_static-linux" || exit 1
           echo "$SWIFT_SDK_LIST" | grep "${SWIFT_TAG}_wasm" || exit 1
@@ -482,11 +483,15 @@ jobs:
           swift build --build-tests
           swift test
 
-      - name: Test Swift package for SDKs
+      - name: Test Swift package for static Linux SDK
         if: runner.os != 'Windows'
-        run: |
-          swift build --swift-sdk aarch64-swift-linux-musl
-          swift build --swift-sdk aarch64-unknown-linux-android28 --static-swift-stdlib
+        run: swift build --swift-sdk aarch64-swift-linux-musl
+
+      - name: Test Swift package for Android SDK
+        # the Android SDK bundle only ships linux-x86_64 host NDK tools, so the
+        # NDK linker can't be executed on an aarch64 Linux host
+        if: runner.os != 'Windows' && !(runner.os == 'Linux' && runner.arch == 'ARM64')
+        run: swift build --swift-sdk aarch64-unknown-linux-android28 --static-swift-stdlib
 
   pages:
     name: Publish metadata to GitHub Pages
