@@ -75,8 +75,8 @@ describe('parse version from provided string', () => {
     expect(version.dev).toBe(false)
     expect(version.requiresSwiftOrg).toBe(true)
     const sVersion = version as SemanticToolchainVersion
-    expect(sVersion['dirGlob']).toBe('swift-5_0-*')
-    expect(sVersion['dirRegex']).toStrictEqual(/swift-5\.0-/)
+    expect(sVersion['dirGlob']).toBe('swift-5_0*')
+    expect(sVersion['dirRegex']).toStrictEqual(/swift-5\.0(\.(0|x))?-/)
   })
 
   it('parses X.X semver', async () => {
@@ -95,8 +95,48 @@ describe('parse version from provided string', () => {
     expect(version.dev).toBe(false)
     expect(version.requiresSwiftOrg).toBe(true)
     const sVersion = version as SemanticToolchainVersion
-    expect(sVersion['dirGlob']).toBe('swift-5_5-*')
-    expect(sVersion['dirRegex']).toStrictEqual(/swift-5\.5-/)
+    expect(sVersion['dirGlob']).toBe('swift-5_5*')
+    expect(sVersion['dirRegex']).toStrictEqual(/swift-5\.5(\.(0|x))?-/)
+  })
+
+  it('satisfies X.X.0 semver with tags dropping the patch component', async () => {
+    // swift.org tagged an `x.y.0` release as `swift-x.y-RELEASE` up to Swift 6.3
+    const version = ToolchainVersion.create('5.5.0', false)
+    expect(version.satisfiedBy('swift-5.5-RELEASE')).toBe(true)
+    expect(
+      version.satisfiedBy('swift-5.5-DEVELOPMENT-SNAPSHOT-2021-08-05-a')
+    ).toBe(true)
+    expect(version.satisfiedBy('swift-5.5.1-RELEASE')).toBe(false)
+    expect(version.satisfiedBy('swift-5.5.3-RELEASE')).toBe(false)
+  })
+
+  it('satisfies X.X.0 semver with tags keeping the patch component', async () => {
+    // swift.org tags an `x.y.0` release as `swift-x.y.0-RELEASE` from Swift 6.4,
+    // with its development snapshots tagged `swift-x.y.x-DEVELOPMENT-SNAPSHOT-*`
+    const version = ToolchainVersion.create('6.4.0', false)
+    const sVersion = version as SemanticToolchainVersion
+    expect(sVersion['dirGlob']).toBe('swift-6_4*')
+    expect(sVersion['dirRegex']).toStrictEqual(/swift-6\.4(\.(0|x))?-/)
+    expect(version.satisfiedBy('swift-6.4.0-RELEASE')).toBe(true)
+    expect(version.satisfiedBy('swift-6.4-RELEASE')).toBe(true)
+    expect(
+      version.satisfiedBy('swift-6.4.x-DEVELOPMENT-SNAPSHOT-2026-09-15-a')
+    ).toBe(true)
+    expect(version.satisfiedBy('swift-6.4.1-RELEASE')).toBe(false)
+    expect(version.satisfiedBy('swift-6.4.10-RELEASE')).toBe(false)
+    expect(version.satisfiedBy('swift-6.40-RELEASE')).toBe(false)
+    expect(version.satisfiedBy('swift-6.5.0-RELEASE')).toBe(false)
+  })
+
+  it('satisfies X.X semver range with both release tag conventions', async () => {
+    const version = ToolchainVersion.create('6.4', false)
+    const sVersion = version as SemanticToolchainVersion
+    expect(sVersion['dirGlob']).toBe('swift-6_4*')
+    expect(sVersion['dirRegex']).toStrictEqual(/swift-6\.4/)
+    expect(version.satisfiedBy('swift-6.4.0-RELEASE')).toBe(true)
+    expect(version.satisfiedBy('swift-6.4-RELEASE')).toBe(true)
+    expect(version.satisfiedBy('swift-6.4.1-RELEASE')).toBe(true)
+    expect(version.satisfiedBy('swift-6.3.3-RELEASE')).toBe(false)
   })
 
   it('parses X.X.X semver', async () => {

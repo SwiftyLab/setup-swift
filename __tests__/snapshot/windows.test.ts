@@ -85,6 +85,24 @@ describe('fetch windows tool data based on options', () => {
     expect(wTool.preventCaching).toBe(false)
   })
 
+  it('fetches windows 10 swift 6.4.0 tool tagged with its patch component', async () => {
+    // swift.org tags this release `swift-6.4.0-RELEASE`, not `swift-6.4-RELEASE`
+    setos({os: 'win32'})
+    vi.spyOn(os, 'arch').mockReturnValue('x64')
+    const ver6_4_0 = ToolchainVersion.create('6.4.0', false)
+    const tool = await Platform.toolchain(ver6_4_0)
+    expect(tool).toBeTruthy()
+    const wTool = tool as WindowsToolchainSnapshot
+    expect(wTool.download).toBe('swift-6.4.0-RELEASE-windows10.exe')
+    expect(wTool.dir).toBe('swift-6.4.0-RELEASE')
+    expect(wTool.platform).toBe('windows10')
+    expect(wTool.branch).toBe('swift-6.4.0-release')
+    expect(wTool.download_signature).toBe(
+      'swift-6.4.0-RELEASE-windows10.exe.sig'
+    )
+    expect(wTool.preventCaching).toBe(false)
+  })
+
   it('fetches windows 10 latest swift tool', async () => {
     setos({os: 'win32'})
     vi.spyOn(os, 'arch').mockReturnValue('x64')
