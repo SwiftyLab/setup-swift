@@ -89,6 +89,23 @@ describe('fetch macos tool data based on options', () => {
     expect(xTool.preventCaching).toBe(false)
   })
 
+  it('fetches macOS swift 6.4.0 tool tagged with its patch component', async () => {
+    // swift.org tags this release `swift-6.4.0-RELEASE`, not `swift-6.4-RELEASE`
+    setos({os: 'darwin'})
+    vi.spyOn(os, 'arch').mockReturnValue('arm64')
+    const ver6_4_0 = ToolchainVersion.create('6.4.0', false)
+    const tool = await Platform.toolchain(ver6_4_0)
+    expect(tool).toBeTruthy()
+    const xTool = tool as XcodeToolchainSnapshot
+    expect(xTool.download).toBe('swift-6.4.0-RELEASE-osx.pkg')
+    expect(xTool.debug_info).toBe('swift-6.4.0-RELEASE-osx-symbols.pkg')
+    expect(xTool.dir).toBe('swift-6.4.0-RELEASE')
+    expect(xTool.platform).toBe('xcode')
+    expect(xTool.branch).toBe('swift-6.4.0-release')
+    expect(xTool.xcode).toBe('27.0')
+    expect(xTool.preventCaching).toBe(false)
+  })
+
   it('fetches macOS latest swift tool', async () => {
     setos({os: 'darwin'})
     vi.spyOn(os, 'arch').mockReturnValue('x64')
