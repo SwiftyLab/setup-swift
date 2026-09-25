@@ -121,6 +121,43 @@ describe('fetch linux tool data based on options', () => {
     expect(lTool.preventCaching).toBe(false)
   })
 
+  it('fetches ubuntu 24.04 swift 6.4.0 tool tagged with its patch component', async () => {
+    // swift.org tags this release `swift-6.4.0-RELEASE`, not `swift-6.4-RELEASE`
+    setos({os: 'linux', dist: 'Ubuntu', release: '24.04'})
+    vi.spyOn(os, 'arch').mockReturnValue('x64')
+    const ver6_4_0 = ToolchainVersion.create('6.4.0', false)
+    const tool = await Platform.toolchain(ver6_4_0)
+    expect(tool).toBeTruthy()
+    const lTool = tool as LinuxToolchainSnapshot
+    expect(lTool.download).toBe('swift-6.4.0-RELEASE-ubuntu24.04.tar.gz')
+    expect(lTool.dir).toBe('swift-6.4.0-RELEASE')
+    expect(lTool.platform).toBe('ubuntu2404')
+    expect(lTool.branch).toBe('swift-6.4.0-release')
+    expect(lTool.download_signature).toBe(
+      'swift-6.4.0-RELEASE-ubuntu24.04.tar.gz.sig'
+    )
+    expect(lTool.docker).toBe('6.4.0-noble')
+    expect(lTool.preventCaching).toBe(false)
+  })
+
+  it('fetches ubuntu 24.04 swift 6.4.0 dev snapshots from the x branch directory', async () => {
+    // swift.org keeps these in `_data/builds/swift-6_4_x-branch`,
+    // not in a `swift-6_4-branch` directory
+    setos({os: 'linux', dist: 'Ubuntu', release: '24.04'})
+    vi.spyOn(os, 'arch').mockReturnValue('x64')
+    const dev6_4_0 = ToolchainVersion.create('6.4.0', true)
+    const tools = await Platform.toolchains(dev6_4_0)
+    const snapshots = tools.filter(tool =>
+      tool.dir.startsWith('swift-6.4.x-DEVELOPMENT-SNAPSHOT-')
+    )
+    expect(snapshots.length).toBeGreaterThan(0)
+    for (const snapshot of snapshots) {
+      expect(snapshot.platform).toBe('ubuntu2404')
+      expect(snapshot.branch).toBe('swift-6.4.x-branch')
+      expect(snapshot.download).toBe(`${snapshot.dir}-ubuntu24.04.tar.gz`)
+    }
+  })
+
   it('fetches ubuntu 18.04 latest swift tool', async () => {
     setos({os: 'linux', dist: 'Ubuntu', release: '18.04'})
     vi.spyOn(os, 'arch').mockReturnValue('x64')

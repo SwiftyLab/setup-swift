@@ -53490,7 +53490,12 @@ var SemanticToolchainVersion = class extends ToolchainVersion {
     this.requested = requested;
     this.semver = semver6;
   }
-  get versionComponent() {
+  /**
+   * The version prefix every toolchain tag satisfying this request starts with,
+   * e.g. `6.4` for both `6.4` and `6.4.0`, since swift.org drops a zero patch
+   * component when tagging a release.
+   */
+  get versionPrefix() {
     if (this.semver.patch !== 0) {
       return this.requested;
     }
@@ -53504,13 +53509,25 @@ var SemanticToolchainVersion = class extends ToolchainVersion {
     if (this.semver.build.length) {
       version3 += `+${this.semver.build.join(".")}`;
     }
-    return version3 === this.requested ? this.requested : `${version3}-`;
+    return version3;
+  }
+  /**
+   * Whether an exact zero patch version was requested, i.e. the request spells
+   * out a patch component that {@link versionPrefix} drops, and so must not be
+   * satisfied by a later patch of the same minor version.
+   */
+  get isExactZeroPatch() {
+    return this.semver.patch === 0 && this.requested !== this.versionPrefix;
   }
   get dirGlob() {
-    return `swift-${this.versionComponent.replaceAll(".", "_")}*`;
+    return `swift-${this.versionPrefix.replaceAll(".", "_")}*`;
   }
   get dirRegex() {
-    return new RegExp(`swift-${(0, import_lodash.escapeRegExp)(this.versionComponent)}`);
+    const version3 = (0, import_lodash.escapeRegExp)(this.versionPrefix);
+    if (this.isExactZeroPatch) {
+      return new RegExp(`swift-${version3}(\\.(0|x))?-`);
+    }
+    return new RegExp(`swift-${version3}`);
   }
   toString() {
     return `version: ${this.semver.raw}, dev: ${this.dev}`;
