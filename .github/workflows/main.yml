@@ -194,7 +194,7 @@ jobs:
             vs-link: false
             latest-modules: false
           - os: ubuntu-22.04
-            swift: ${{ fromJSON(vars.SETUPSWIFT_CUSTOM_TOOLCHAINS).ubuntu2204 }} # custom toolchain
+            swift: ${{ fromJSON(vars.SETUPSWIFT_CUSTOM_TOOLCHAINS || '{"ubuntu2204":"https://github.com/swiftwasm/swift/releases/download/swift-wasm-5.10-SNAPSHOT-2024-03-30-a/swift-wasm-5.10-SNAPSHOT-2024-03-30-a-ubuntu22.04_x86_64.tar.gz"}').ubuntu2204 }} # custom toolchain
             development: true
           - os: macos-14
             swift: '6.0.3'
