@@ -1,3 +1,19 @@
+## [1.14.1](https://github.com/SwiftyLab/setup-swift/compare/v1.14.0...v1.14.1) (2026-09-25)
+
+
+### 🐛 Fixes
+
+* fixed Linux dependencies not installed when Linux installation loaded from cache (resolves [#513](https://github.com/SwiftyLab/setup-swift/issues/513)) ([#518](https://github.com/SwiftyLab/setup-swift/issues/518)) ([5e4b06d](https://github.com/SwiftyLab/setup-swift/commit/5e4b06d8327e4b2428251a2bb64076e9be119667))
+* fixed SDK install retry failure because of partial install ([#515](https://github.com/SwiftyLab/setup-swift/issues/515)) ([ba1feaf](https://github.com/SwiftyLab/setup-swift/commit/ba1feaf43fbafbc71aaff71ea3dfca5b83cc7bc8))
+* fixed Swift 6.4.0 setup ([e7caec5](https://github.com/SwiftyLab/setup-swift/commit/e7caec5cac33cab222f4803649b242d071c6e8e2))
+
+
+### 🐎 Performance Improvements
+
+* added option to skip Linux dependencies installation ([4c8c153](https://github.com/SwiftyLab/setup-swift/commit/4c8c1534ef7bc8ecf41a60c222bd373a827dacb6))
+* improved `swift-org-website` metadata setup ([f62e5ab](https://github.com/SwiftyLab/setup-swift/commit/f62e5aba4be5e5ecdc97723d7f533b34a91c748b))
+* improved installation caching ([99a712c](https://github.com/SwiftyLab/setup-swift/commit/99a712c73f34bba891f753320ba5e281ae689302))
+
 ## [1.14.0](https://github.com/SwiftyLab/setup-swift/compare/v1.13.0...v1.14.0) (2026-04-27)
 
 
