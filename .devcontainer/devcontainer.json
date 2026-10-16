@@ -1,6 +1,6 @@
 {
   "image": "mcr.microsoft.com/devcontainers/universal:5-noble",
-  "hostRequirements": { "cpus": 2, "memory": "4gb" },
+  "hostRequirements": {"cpus": 2, "memory": "4gb"},
   "customizations": {
     "vscode": {
       "extensions": [
