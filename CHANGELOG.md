@@ -1,3 +1,15 @@
+## [1.14.2](https://github.com/SwiftyLab/setup-swift/compare/v1.14.1...v1.14.2) (2026-10-16)
+
+
+### 🛠 Build System
+
+* updated to upstream WinSDK split module map ([f8a10cd](https://github.com/SwiftyLab/setup-swift/commit/f8a10cdaa68b6fa3be909002cbbeb13b3db300be))
+
+
+### 💄 Styles
+
+* fixed prettier error ([ed15e63](https://github.com/SwiftyLab/setup-swift/commit/ed15e634093cb11b5e3d03b3439a3f33c21f8375))
+
 ## [1.14.1](https://github.com/SwiftyLab/setup-swift/compare/v1.14.0...v1.14.1) (2026-09-25)
 
 
