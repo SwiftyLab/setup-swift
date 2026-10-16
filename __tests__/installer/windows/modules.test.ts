@@ -24,7 +24,7 @@ describe('windows modules SDK update', () => {
     process.env = env
   })
 
-  it('successfully updates all SDK module definitions', async () => {
+  it('successfully updates all SDK module definitions for split WinSDK layout', async () => {
     const moduleContent = 'module TestModule { header "test.h" }'
 
     setContent({
@@ -38,11 +38,88 @@ describe('windows modules SDK update', () => {
     vi.spyOn(fs, 'access').mockResolvedValue()
     const mkdirSpy = vi.spyOn(fs, 'mkdir').mockResolvedValue('')
     const writeFileSpy = vi.spyOn(fs, 'writeFile').mockResolvedValue()
+    const getSpy = vi.spyOn(https, 'get')
 
     await updateSdkModules(mockSdkRoot)
 
-    // Verify directories were created
     const usrShare = path.join(mockSdkRoot, 'usr', 'share')
+    const clangInclude = path.join(
+      path.dirname(path.dirname(mockSwiftPath)),
+      'lib',
+      'swift',
+      'clang',
+      'include'
+    )
+
+    expect(mkdirSpy).toHaveBeenCalledTimes(2)
+    expect(mkdirSpy).toHaveBeenCalledWith(usrShare, {recursive: true})
+    expect(mkdirSpy).toHaveBeenCalledWith(clangInclude, {recursive: true})
+
+    // Verify all 9 module files were written
+    expect(writeFileSpy).toHaveBeenCalledTimes(9)
+    for (const file of [
+      'winsdk.modulemap',
+      'um.modulemap',
+      'shared.modulemap',
+      'winrt.modulemap',
+      'SwiftWinRT.h',
+      'ucrt.modulemap',
+      'vcruntime.modulemap',
+      'vcruntime.apinotes'
+    ]) {
+      expect(writeFileSpy).toHaveBeenCalledWith(
+        path.join(usrShare, file),
+        moduleContent
+      )
+      expect(getSpy).toHaveBeenCalledWith(
+        `https://raw.githubusercontent.com/swiftlang/swift/main/stdlib/public/Platform/${file}`,
+        expect.any(Function)
+      )
+    }
+    expect(writeFileSpy).toHaveBeenCalledWith(
+      path.join(clangInclude, 'module.modulemap'),
+      moduleContent
+    )
+  })
+
+  it('successfully updates all SDK module definitions for legacy WinSDK layout', async () => {
+    const moduleContent = 'module TestModule { header "test.h" }'
+
+    setContent({
+      statusCode: 200,
+      data: moduleContent,
+      headers: {
+        'content-type': 'text/plain'
+      }
+    })
+
+    const usrShare = path.join(mockSdkRoot, 'usr', 'share')
+    vi.spyOn(fs, 'access').mockImplementation(async filePath => {
+      if (filePath === path.join(usrShare, 'um.modulemap')) {
+        throw new Error('ENOENT')
+      }
+    })
+    const mkdirSpy = vi.spyOn(fs, 'mkdir').mockResolvedValue('')
+    const writeFileSpy = vi.spyOn(fs, 'writeFile').mockResolvedValue()
+    const getSpy = vi.spyOn(https, 'get')
+
+    await updateSdkModules(mockSdkRoot)
+
+    const legacyRef = '8bf8281136fa72aa85d72027fcecc31435359ad1'
+    for (const file of [
+      'winsdk_um.modulemap',
+      'winsdk_shared.modulemap',
+      'ucrt.modulemap',
+      'vcruntime.modulemap',
+      'vcruntime.apinotes'
+    ]) {
+      expect(getSpy).toHaveBeenCalledWith(
+        `https://raw.githubusercontent.com/swiftlang/swift/${legacyRef}/stdlib/public/Platform/${file}`,
+        expect.any(Function)
+      )
+    }
+
+    // Verify directories were created
     const clangInclude = path.join(
       path.dirname(path.dirname(mockSwiftPath)),
       'lib',

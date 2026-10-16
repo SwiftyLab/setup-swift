@@ -30,6 +30,7 @@
     "lint": "depcheck --ignores @vitest/coverage-istanbul && eslint && prettier --check .",
     "package": "esbuild lib/main.js --bundle --platform=node --target=node24 --format=esm --banner:js=\"import{createRequire}from'module';import{fileURLToPath}from'url';import{dirname}from'path';const require=createRequire(import.meta.url);const __filename=fileURLToPath(import.meta.url);const __dirname=dirname(__filename);\" --outfile=dist/index.js",
     "prepare": "node --import jiti/register -e \"import('./.github/utils/update_metadata.ts').then(m => (m.default?.fetch ?? m.fetch)())\" && npm run build",
+    "source-zip": "mkdir -p build && rm -f build/setup-swift-source.zip && tmp=$(mktemp -d) && git init -q --bare \"$tmp\" && git -c core.quotePath=false --git-dir=\"$tmp\" --work-tree=. ls-files -o --exclude-standard | grep -vxF build/setup-swift-source.zip | zip -q -X -@ build/setup-swift-source.zip; s=$?; rm -rf \"$tmp\"; [ $s -eq 0 ] && echo \"Wrote build/setup-swift-source.zip ($(du -h build/setup-swift-source.zip | cut -f1))\"; exit $s",
     "test": "vitest run --coverage"
   },
   "dependencies": {

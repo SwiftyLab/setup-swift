@@ -719,7 +719,12 @@ describe('windows toolchain installation verification', () => {
     vi.spyOn(fs, 'access')
       .mockRejectedValueOnce(new Error())
       .mockRejectedValueOnce(new Error())
-      .mockResolvedValue()
+      .mockImplementation(async filePath => {
+        // Swift 5.9.1 predates the split WinSDK module map layout
+        if (path.basename(filePath.toString()) === 'um.modulemap') {
+          throw new Error('ENOENT')
+        }
+      })
     vi.spyOn(exec, 'exec').mockResolvedValue(0)
     vi.spyOn(exec, 'getExecOutput')
       .mockResolvedValueOnce({
