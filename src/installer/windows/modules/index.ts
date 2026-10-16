@@ -39,30 +39,79 @@ export async function updateSdkModules(sdkRoot: string): Promise<void> {
   }
 
   const swiftRoot = path.dirname(path.dirname(swiftPath))
+  const sdkShare = path.join(sdkRoot, 'usr', 'share')
+
+  // swiftlang/swift#e96bdab split WinSDK into `winsdk`, `um` and `shared`
+  // module maps, with matching compiler changes. Toolchains predating it
+  // expect `winsdk_um` and `winsdk_shared` instead, so pick definitions
+  // matching the layout shipped with the installed toolchain.
+  let splitLayout: boolean
+  try {
+    await fs.access(path.join(sdkShare, 'um.modulemap'))
+    splitLayout = true
+  } catch {
+    splitLayout = false
+  }
+
+  const platformUrl = (file: string): string => {
+    // Last `main` commit with module maps for toolchains predating the split
+    const ref = splitLayout
+      ? 'main'
+      : '8bf8281136fa72aa85d72027fcecc31435359ad1'
+    return `https://raw.githubusercontent.com/swiftlang/swift/${ref}/stdlib/public/Platform/${file}`
+  }
+
+  const winsdkModuleDefinitions: ModuleDefinitions = splitLayout
+    ? {
+        'WinSDK Module Map': {
+          url: platformUrl('winsdk.modulemap'),
+          destination: path.join(sdkShare, 'winsdk.modulemap')
+        },
+        'WinSDK(UM) Module Map': {
+          url: platformUrl('um.modulemap'),
+          destination: path.join(sdkShare, 'um.modulemap')
+        },
+        'WinSDK(Shared) Module Map': {
+          url: platformUrl('shared.modulemap'),
+          destination: path.join(sdkShare, 'shared.modulemap')
+        },
+        'WinSDK(WinRT) Module Map': {
+          url: platformUrl('winrt.modulemap'),
+          destination: path.join(sdkShare, 'winrt.modulemap')
+        },
+        'WinSDK(WinRT) Shim Header': {
+          url: platformUrl('SwiftWinRT.h'),
+          destination: path.join(sdkShare, 'SwiftWinRT.h')
+        }
+      }
+    : {
+        '(Legacy) WinSDK Module Map': {
+          url: platformUrl('winsdk_um.modulemap'),
+          destination: path.join(sdkShare, 'winsdk.modulemap')
+        },
+        'WinSDK(UM) Module Map': {
+          url: platformUrl('winsdk_um.modulemap'),
+          destination: path.join(sdkShare, 'winsdk_um.modulemap')
+        },
+        'WinSDK(Shared) Module Map': {
+          url: platformUrl('winsdk_shared.modulemap'),
+          destination: path.join(sdkShare, 'winsdk_shared.modulemap')
+        }
+      }
+
   const moduleDefinitions: ModuleDefinitions = {
-    '(Legacy) WinSDK Module Map': {
-      url: 'https://raw.githubusercontent.com/swiftlang/swift/main/stdlib/public/Platform/winsdk_um.modulemap',
-      destination: path.join(sdkRoot, 'usr', 'share', 'winsdk.modulemap')
-    },
-    'WinSDK(UM) Module Map': {
-      url: 'https://raw.githubusercontent.com/swiftlang/swift/main/stdlib/public/Platform/winsdk_um.modulemap',
-      destination: path.join(sdkRoot, 'usr', 'share', 'winsdk_um.modulemap')
-    },
-    'WinSDK(Shared) Module Map': {
-      url: 'https://raw.githubusercontent.com/swiftlang/swift/main/stdlib/public/Platform/winsdk_shared.modulemap',
-      destination: path.join(sdkRoot, 'usr', 'share', 'winsdk_shared.modulemap')
-    },
+    ...winsdkModuleDefinitions,
     'UCRT Module Map': {
-      url: 'https://raw.githubusercontent.com/swiftlang/swift/main/stdlib/public/Platform/ucrt.modulemap',
-      destination: path.join(sdkRoot, 'usr', 'share', 'ucrt.modulemap')
+      url: platformUrl('ucrt.modulemap'),
+      destination: path.join(sdkShare, 'ucrt.modulemap')
     },
     'VCRuntime Module Map': {
-      url: 'https://raw.githubusercontent.com/swiftlang/swift/main/stdlib/public/Platform/vcruntime.modulemap',
-      destination: path.join(sdkRoot, 'usr', 'share', 'vcruntime.modulemap')
+      url: platformUrl('vcruntime.modulemap'),
+      destination: path.join(sdkShare, 'vcruntime.modulemap')
     },
     'VCRuntime API Notes': {
-      url: 'https://raw.githubusercontent.com/swiftlang/swift/main/stdlib/public/Platform/vcruntime.apinotes',
-      destination: path.join(sdkRoot, 'usr', 'share', 'vcruntime.apinotes')
+      url: platformUrl('vcruntime.apinotes'),
+      destination: path.join(sdkShare, 'vcruntime.apinotes')
     },
     'Clang Module Map': {
       url: 'https://raw.githubusercontent.com/llvm/llvm-project/main/clang/lib/Headers/module.modulemap',
