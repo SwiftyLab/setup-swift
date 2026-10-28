@@ -90059,18 +90059,58 @@ var ToolchainInstaller = class {
 import { posix as posix4 } from "path";
 
 // lib/utils/gpg.js
+import { spawn as spawn2 } from "child_process";
+var KEYSERVER = "hkps://keyserver.ubuntu.com:443";
+var GPG_TIMEOUT = 6e4;
+var GPG_KILL_DELAY = 1e4;
+async function execGpg(args) {
+  const gpg = await which("gpg", true);
+  info(`[command]${gpg} ${args.join(" ")}`);
+  await new Promise((resolve2, reject) => {
+    const child2 = spawn2(gpg, args, {
+      stdio: ["ignore", "inherit", "inherit"],
+      windowsHide: true
+    });
+    let timedOut = false;
+    let killTimer;
+    const timeout = setTimeout(() => {
+      timedOut = true;
+      warning("GPG command timed out after 60 seconds; terminating");
+      killTimer = setTimeout(() => child2.kill("SIGKILL"), GPG_KILL_DELAY);
+      child2.kill("SIGTERM");
+    }, GPG_TIMEOUT);
+    function cleanup() {
+      clearTimeout(timeout);
+      clearTimeout(killTimer);
+    }
+    child2.once("error", (error2) => {
+      cleanup();
+      reject(error2);
+    });
+    child2.once("exit", (code, signal) => {
+      cleanup();
+      if (timedOut) {
+        reject(new Error("GPG command timed out after 60 seconds"));
+      } else if (code !== 0) {
+        reject(new Error(signal ? `GPG command terminated by ${signal}` : `GPG command failed with exit code ${code}`));
+      } else {
+        resolve2();
+      }
+    });
+  });
+}
 async function setupKeys() {
   try {
     debug("Fetching verification PGP keys");
     const allKeys = "https://swift.org/keys/all-keys.asc";
     const path35 = await downloadTool(allKeys);
     debug("Importing verification PGP keys");
-    await exec("gpg", ["--import", path35]);
+    await execGpg(["--import", path35]);
   } catch {
     debug("Using fallback PGP keys server");
-    await exec("gpg", [
+    await execGpg([
       "--keyserver",
-      "hkp://keyserver.ubuntu.com",
+      KEYSERVER,
       "--recv-keys",
       "52BB 7E3D E28A 71BE 22EC  05FF EF80 A866 B47A 981F",
       "7463 A81A 4B2E EA1B 551F  FBCF D441 C977 412B 37AD",
@@ -90088,10 +90128,10 @@ async function setupKeys() {
 }
 async function verify(signaturePath, packagePath) {
   debug("Verifying PGP signature");
-  await exec("gpg", ["--verify", signaturePath, packagePath]);
+  await execGpg(["--verify", signaturePath, packagePath]);
 }
 async function refreshKeys() {
-  const pool = ["hkp://keyserver.ubuntu.com"];
+  const pool = [KEYSERVER];
   for (const server of pool) {
     debug(`Refreshing keys from "${server}"`);
     if (await refreshKeysFromServer(server)) {
@@ -90108,8 +90148,8 @@ async function refreshKeys() {
 }
 async function refreshKeysFromServer(server) {
   try {
-    const code = await exec("gpg", ["--keyserver", server, "--refresh-keys", "Swift"], { ignoreReturnCode: true });
-    return code === 0;
+    await execGpg(["--keyserver", server, "--refresh-keys", "Swift"]);
+    return true;
   } catch (error2) {
     warning(`Facing error "${error2}" when trying to refresh keys from "${server}"`);
     return false;
