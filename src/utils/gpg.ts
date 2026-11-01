@@ -1,6 +1,57 @@
-import {exec} from '@actions/exec'
+import {spawn} from 'child_process'
 import * as core from '@actions/core'
+import * as io from '@actions/io'
 import * as toolCache from '@actions/tool-cache'
+
+const KEYSERVER = 'hkps://keyserver.ubuntu.com:443'
+const GPG_TIMEOUT = 60_000
+const GPG_KILL_DELAY = 10_000
+
+async function execGpg(args: string[]): Promise<void> {
+  const gpg = await io.which('gpg', true)
+  core.info(`[command]${gpg} ${args.join(' ')}`)
+  await new Promise<void>((resolve, reject) => {
+    // Inherit output streams so a child keeping a pipe open cannot block exit.
+    const child = spawn(gpg, args, {
+      stdio: ['ignore', 'inherit', 'inherit'],
+      windowsHide: true
+    })
+    let timedOut = false
+    let killTimer: ReturnType<typeof setTimeout> | undefined
+    const timeout = setTimeout(() => {
+      timedOut = true
+      core.warning('GPG command timed out after 60 seconds; terminating')
+      killTimer = setTimeout(() => child.kill('SIGKILL'), GPG_KILL_DELAY)
+      child.kill('SIGTERM')
+    }, GPG_TIMEOUT)
+
+    function cleanup() {
+      clearTimeout(timeout)
+      clearTimeout(killTimer)
+    }
+
+    child.once('error', error => {
+      cleanup()
+      reject(error)
+    })
+    child.once('exit', (code, signal) => {
+      cleanup()
+      if (timedOut) {
+        reject(new Error('GPG command timed out after 60 seconds'))
+      } else if (code !== 0) {
+        reject(
+          new Error(
+            signal
+              ? `GPG command terminated by ${signal}`
+              : `GPG command failed with exit code ${code}`
+          )
+        )
+      } else {
+        resolve()
+      }
+    })
+  })
+}
 
 export async function setupKeys() {
   try {
@@ -8,12 +59,12 @@ export async function setupKeys() {
     const allKeys = 'https://swift.org/keys/all-keys.asc'
     const path = await toolCache.downloadTool(allKeys)
     core.debug('Importing verification PGP keys')
-    await exec('gpg', ['--import', path])
+    await execGpg(['--import', path])
   } catch {
     core.debug('Using fallback PGP keys server')
-    await exec('gpg', [
+    await execGpg([
       '--keyserver',
-      'hkp://keyserver.ubuntu.com',
+      KEYSERVER,
       '--recv-keys',
       '52BB 7E3D E28A 71BE 22EC  05FF EF80 A866 B47A 981F',
       '7463 A81A 4B2E EA1B 551F  FBCF D441 C977 412B 37AD',
@@ -33,11 +84,11 @@ export async function setupKeys() {
 
 export async function verify(signaturePath: string, packagePath: string) {
   core.debug('Verifying PGP signature')
-  await exec('gpg', ['--verify', signaturePath, packagePath])
+  await execGpg(['--verify', signaturePath, packagePath])
 }
 
 async function refreshKeys() {
-  const pool = ['hkp://keyserver.ubuntu.com']
+  const pool = [KEYSERVER]
 
   for (const server of pool) {
     core.debug(`Refreshing keys from "${server}"`)
@@ -60,12 +111,8 @@ async function refreshKeys() {
 
 async function refreshKeysFromServer(server: string) {
   try {
-    const code = await exec(
-      'gpg',
-      ['--keyserver', server, '--refresh-keys', 'Swift'],
-      {ignoreReturnCode: true}
-    )
-    return code === 0
+    await execGpg(['--keyserver', server, '--refresh-keys', 'Swift'])
+    return true
   } catch (error) {
     core.warning(
       `Facing error "${error}" when trying to refresh keys from "${server}"`

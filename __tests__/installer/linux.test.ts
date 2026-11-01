@@ -20,6 +20,10 @@ vi.mock('@actions/core', {spy: true})
 vi.mock('@actions/exec', {spy: true})
 vi.mock('@actions/tool-cache', {spy: true})
 vi.mock('fs', {spy: true})
+vi.mock('../../src/utils/gpg', () => ({
+  setupKeys: vi.fn(),
+  verify: vi.fn()
+}))
 
 describe('linux toolchain installation verification', () => {
   const env = process.env
